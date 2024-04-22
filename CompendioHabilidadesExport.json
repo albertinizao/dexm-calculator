@@ -4,7 +4,7 @@
   "Lanzamiento": "Normal",
   "Bifrost": 5,
   "Prueba": "Sentir Yggdrasil 10+",
-  "Descripcion": "Repeles la materia en contacto con la palma de tu mano. Empujas 4 casillas al objetivo a mele. Este recibe un daño igual a 5D10.",
+  "Descripcion": "Repeles la materia en contacto con la palma de tu mano. Empujas 4 casillas al objetivo a mele. Este recibe un danno igual a 5D10.",
   "Column6": "No",
   "Mnt": 4,
   "Sentir Yggdrasil": 3
@@ -13,10 +13,10 @@
   "Nombre": "Punzada de energia (A)",
   "Lanzamiento": "Normal",
   "Bifrost": 15,
-  "Prueba": "Cruzar Bifrost 10+",
-  "Descripcion": "Provocas 10 de daño que ignora cualquier escudo o armadura. Solo requiere señalar con un dedo y puedes intentar camuflar este ataque.",
+  "Prueba": "CruzarBifrost 10+",
+  "Descripcion": "Provocas 10 de danno que ignora cualquier escudo o armadura. Solo requiere sennalar con un dedo y puedes intentar camuflar este ataque.",
   "Column6": "No",
-  "Cruzar Bifrost": 5,
+  "CruzarBifrost": 5,
   "Sentir Yggdrasil": 5
  },
  {
@@ -34,7 +34,7 @@
   "Prueba": "Sentir Yggdrasil 13+",
   "Descripcion": "Esta habilidad solo puede ser utilizada en combate. Tu o el objetivo el contacto fisico contigo recupera 10 de Bifrost.",
   "Column6": "No",
-  "Cruzar Bifrost": 8,
+  "CruzarBifrost": 8,
   "Sentir Yggdrasil": 11
  },
  {
@@ -62,7 +62,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": 15,
   "Prueba": "Sentir Yggdrasil 15+",
-  "Descripcion": "Si el objetivo tiene mas Bifrost que tu, añades un bono igual a la diferencia\/10 a la tirada de punteria",
+  "Descripcion": "Si el objetivo tiene mas Bifrost que tu, annades un bono igual a la diferencia\/10 a la tirada de punteria",
   "Column6": "No",
   "Provocar": 14,
   "Sentir Yggdrasil": 14
@@ -160,7 +160,7 @@
   "Prueba": "Sentir Yggdrasil 16+",
   "Descripcion": "Repite la prueba para saber si el objetivo miente.",
   "Column6": "No",
-  "Engaño": 14,
+  "Enganno": 14,
   "Sentir Yggdrasil": 14
  },
  {
@@ -178,7 +178,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": 20,
   "Prueba": "Sentir Yggdrasil 15+",
-  "Descripcion": "Añade durante el turno la facultad de absorber 1D20 de Bifrost por golpe a tus ataques cuerpo a cuerpo",
+  "Descripcion": "Annade durante el turno la facultad de absorber 1D20 de Bifrost por golpe a tus ataques cuerpo a cuerpo",
   "Column6": "No",
   "Destreza": 14,
   "Sentir Yggdrasil": 14
@@ -196,10 +196,10 @@
  {
   "Nombre": "Drenaje de Bifrost",
   "Lanzamiento": "Normal",
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Drenas hasta 50 de Bifrost al objetivo, y tu obtienes la cantidad que el haya perdido.",
   "Column6": "No",
-  "Cruzar Bifrost": 14,
+  "CruzarBifrost": 14,
   "Sentir Yggdrasil": 14
  },
  {
@@ -235,27 +235,27 @@
   "Descripcion": "Debes seleccionar como objetivo a alguien con el que tengas una relacion especial (amistad, familiaridad, romance…) durante al menos 5 meses. El objetivo puede usar tu bifrost en cualquier momento si ambos lo deseais. Consume un 50% mas de lo normal cuando lo hace asi.",
   "Column6": "No",
   "Mnt": 10,
-  "Cruzar Bifrost": 15,
+  "CruzarBifrost": 15,
   "Sentir Yggdrasil": 15
  },
  {
   "Nombre": "Provocar extasis",
   "Lanzamiento": "Mantener",
   "Bifrost": "20 al turno",
-  "Descripcion": "El objetivo queda totalmente inmovilizado mientras mantengas esta habilidad.\nTanto al activarla como al final de cada turno del objetivo, se hace una prueba enfrentada entre tu cruzar bifrost y cualquiera de sus siguientes atributos: Mente, Fisico, Cruzar Bifrost, Einherjer, Fuerza, Resistencia, Sentir Yggdrasil (a su voluntad). Si fallas, dejas de mantener esta habilidad.",
+  "Descripcion": "El objetivo queda totalmente inmovilizado mientras mantengas esta habilidad.\nTanto al activarla como al final de cada turno del objetivo, se hace una prueba enfrentada entre tu CruzarBifrost y cualquiera de sus siguientes atributos: Mente, Fisico, CruzarBifrost, Einherjer, Fuerza, Resistencia, Sentir Yggdrasil (a su voluntad). Si fallas, dejas de mantener esta habilidad.",
   "Column6": "No",
-  "Cruzar Bifrost": 15,
+  "CruzarBifrost": 15,
   "Sentir Yggdrasil": 15
  },
  {
   "Nombre": "Sincronizar poderes",
   "Lanzamiento": "Mantener",
   "Bifrost": 30,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Selecciona un objetivo al activar esta habilidad. Siempre que el objetivo fuese a gastar Bifrost, la mitad del Bifrost que fuese a gastar el objetivo mientras mantienes la habilidad la gastas tu en su lugar.",
   "Column6": "No",
   "Risa": 25,
-  "Cruzar Bifrost": 25,
+  "CruzarBifrost": 25,
   "Sentir Yggdrasil": 15
  },
  {
@@ -263,7 +263,7 @@
   "Lanzamiento": "Inst\/1",
   "Bifrost": "x + 1\/2",
   "Prueba": "Sentir Yggdrasil 13+",
-  "Descripcion": "X es el coste de Bifrost de la habilidad que absorbes. \nLa habilidad absorbida no te hace daño y puedes lanzarla de forma gratuita sobre su anterior lanzador si lo ves y cumples todos los requisitos de la habilidad.",
+  "Descripcion": "X es el coste de Bifrost de la habilidad que absorbes. \nLa habilidad absorbida no te hace danno y puedes lanzarla de forma gratuita sobre su anterior lanzador si lo ves y cumples todos los requisitos de la habilidad.",
   "Column6": "No",
   "Sentir Yggdrasil": 15
  },
@@ -312,18 +312,18 @@
   "Prueba": "Sentir Yggdrasil 16+",
   "Descripcion": "Eliminas de forma permanente toda conexion con el Yggdrasil del objetivo, que debe permanecer en contacto fisico contigo durante todo el lanzamiento.",
   "Column6": "No",
-  "Cruzar Bifrost": 20,
+  "CruzarBifrost": 20,
   "Sentir Yggdrasil": 20
  },
  {
   "Nombre": "Escudo mental",
   "Lanzamiento": "Mantener",
   "Bifrost": "50+20 turno",
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Invocas un escudo de energia 800 en un cuadrado de 5 de lado contigo en medio.\nLa energia del escudo se recupera al inicio de tu siguiente turno.\nEste escudo no puede ser atravesado por materia moviendose lenta, que tendra que restar energia al escudo.\nCuando se deje de mantener la habilidad, el escudo desaparece",
   "Column6": "No",
   "Mnt": 30,
-  "Cruzar Bifrost": 20,
+  "CruzarBifrost": 20,
   "Sentir Yggdrasil": 20
  },
  {
@@ -340,7 +340,7 @@
   "Nombre": "Telepatia",
   "Lanzamiento": "Mantener",
   "Bifrost": "40+5 al turno",
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Puedes comunicarte telepaticamente con un objetivo al alcance de la vista. No puede contestarte.",
   "Column6": "No",
   "Sentir Yggdrasil": 20
@@ -351,7 +351,7 @@
   "Prueba": "Sentir Yggdrasil 15+",
   "Descripcion": "Solo puede ser utilizada durante el combate. Recuperas 20 de Bifrost.",
   "Column6": "No",
-  "Cruzar Bifrost": 18,
+  "CruzarBifrost": 18,
   "Sentir Yggdrasil": 21
  },
  {
@@ -499,10 +499,10 @@
   "Nombre": "Falsa curacion",
   "Lanzamiento": "Inst",
   "Bifrost": 10,
-  "Prueba": "Engaño 20+",
+  "Prueba": "Enganno 20+",
   "Descripcion": "Esta habilidad solo puede ser utilizada cuando vayas a recibir una curacion. Te curas normalmente, pero aparentemente no te has curado.",
   "Column6": "No",
-  "Engaño": 12,
+  "Enganno": 12,
   "Resistencia": 12
  },
  {
@@ -530,7 +530,7 @@
   "Lanzamiento": "Inst\/5",
   "Bifrost": 20,
   "Prueba": "Einherjer 12+",
-  "Descripcion": "Reduces en 10 el daño fisico que recibas hasa el comiendo de tu proximo turno",
+  "Descripcion": "Reduces en 10 el danno fisico que recibas hasa el comiendo de tu proximo turno",
   "Column6": "No",
   "Heroe": 17,
   "Dvergr": 19,
@@ -540,8 +540,8 @@
   "Nombre": "Vinculo empatico",
   "Lanzamiento": "Mantener",
   "Bifrost": "15 al turno",
-  "Prueba": "Cruzar Bifrost 13+",
-  "Descripcion": "Siempre que el objetivo fuese a sufrir daño, el solo sufre el 50% de dicho daño. Tu tambien sufres ese 50%.",
+  "Prueba": "CruzarBifrost 13+",
+  "Descripcion": "Siempre que el objetivo fuese a sufrir danno, el solo sufre el 50% de dicho danno. Tu tambien sufres ese 50%.",
   "Column6": "No",
   "Valkiria": 16,
   "Resistencia": 12
@@ -561,7 +561,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": 15,
   "Prueba": "Einherjer 14+",
-  "Descripcion": "Obtienes un +5 a la prueba de resistencia contra un daño cuerpo a cuerpo.",
+  "Descripcion": "Obtienes un +5 a la prueba de resistencia contra un danno cuerpo a cuerpo.",
   "Column6": "No",
   "Fuerza": 13,
   "Resistencia": 13
@@ -571,7 +571,7 @@
   "Lanzamiento": "Normal",
   "Bifrost": 20,
   "Prueba": "Einherjer 16+",
-  "Descripcion": "Entras en trance durante 5 turnos. Durante este tiempo solo puedes moverte para acercarte a criaturas con el objetivo de atacarlas, y atacarlas cuerpo a cuerpo. Reduce a la mitad el daño que recibas durante este tiempo. Una vez termine el trance, pierdes un turno.",
+  "Descripcion": "Entras en trance durante 5 turnos. Durante este tiempo solo puedes moverte para acercarte a criaturas con el objetivo de atacarlas, y atacarlas cuerpo a cuerpo. Reduce a la mitad el danno que recibas durante este tiempo. Una vez termine el trance, pierdes un turno.",
   "Column6": "No",
   "Destreza": 13,
   "Fisica\/Quimica": 13,
@@ -609,7 +609,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": 15,
   "Prueba": "Einherjer 16+",
-  "Descripcion": "Repite la tirada de resistencia que hayas realizado por sufrir daño cuerpo a cuerpo. Quedate con el segundo resultado.",
+  "Descripcion": "Repite la tirada de resistencia que hayas realizado por sufrir danno cuerpo a cuerpo. Quedate con el segundo resultado.",
   "Column6": "No",
   "Destreza": 14,
   "Resistencia": 14
@@ -628,10 +628,10 @@
   "Nombre": "Endurecer piel",
   "Lanzamiento": "Inst",
   "Bifrost": 30,
-  "Prueba": "Cruzar Bifrost 15+",
-  "Descripcion": "exito automatico en la tirada de resistencia por haber sufrido daño.",
+  "Prueba": "CruzarBifrost 15+",
+  "Descripcion": "exito automatico en la tirada de resistencia por haber sufrido danno.",
   "Column6": "No",
-  "Cruzar Bifrost": 14,
+  "CruzarBifrost": 14,
   "Resistencia": 14
  },
  {
@@ -677,7 +677,7 @@
   "Nombre": "Miedo a la invencibilidad",
   "Lanzamiento": "Inst",
   "Bifrost": 10,
-  "Descripcion": "Esta habilidad solo se puede utilizar despues de obtener un critico en una tirada de resistencia en respuesta a sufrir daño. Realiza una prueba de intimidar duplicando el bono y dados (hasta un maximo adicional de +5 y +5d6)",
+  "Descripcion": "Esta habilidad solo se puede utilizar despues de obtener un critico en una tirada de resistencia en respuesta a sufrir danno. Realiza una prueba de intimidar duplicando el bono y dados (hasta un maximo adicional de +5 y +5d6)",
   "Column6": "No",
   "Intimidar": 15,
   "Resistencia": 15
@@ -714,7 +714,7 @@
   "Prueba": "Sentir Yggdrasil 16+",
   "Descripcion": "Observas una enfermedad activa, a un enfermo o te concentras en una enfermedad que conozcas bien. Pasas a tener los sintomas de la enfermedad sin que estos te perjudiquen realmente. Si te vuelves a concentrar 1 minuto, pierdes los sintomas.",
   "Column6": "No",
-  "Engaño": 16,
+  "Enganno": 16,
   "Resistencia": 16
  },
  {
@@ -790,7 +790,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": 5,
   "Prueba": "Einhjerjer 14+",
-  "Descripcion": "Esta habilidad solo puede ser utilizada tras fallar una tirada de resistencia por haber sufrido daño en una localizacion.Durante tantos turnos como por cuanto fallaste la prueba \/ 3 +1, tu sangre se solidifica y reduce a la mitad el daño que fueses a sufrir en esa misma localizacion.",
+  "Descripcion": "Esta habilidad solo puede ser utilizada tras fallar una tirada de resistencia por haber sufrido danno en una localizacion.Durante tantos turnos como por cuanto fallaste la prueba \/ 3 +1, tu sangre se solidifica y reduce a la mitad el danno que fueses a sufrir en esa misma localizacion.",
   "Column6": "No",
   "Fisica\/Quimica": 20,
   "Resistencia": 20
@@ -819,10 +819,10 @@
   "Nombre": "Antifenix",
   "Lanzamiento": "Inst",
   "Bifrost": 20,
-  "Prueba": "Engaño 20+",
+  "Prueba": "Enganno 20+",
   "Descripcion": "Esta habilidad solo puede usarse despues de tener exito en una tirada de Resistencia. Aparentemente fallas la tirada.",
   "Column6": "No",
-  "Engaño": 20,
+  "Enganno": 20,
   "Resistencia": 20
  },
  {
@@ -860,7 +860,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": 20,
   "Prueba": "Resistencia 14+",
-  "Descripcion": "Reduce a la mitad el daño que fueses a recibir por un accidente de trafico.",
+  "Descripcion": "Reduce a la mitad el danno que fueses a recibir por un accidente de trafico.",
   "Column6": "No",
   "Conduccion": 20,
   "Resistencia": 20
@@ -895,7 +895,7 @@
   "Nombre": "Balas luminicas",
   "Lanzamiento": "Inst",
   "Bifrost": 10,
-  "Prueba": "Cruzar Bifrost 13+",
+  "Prueba": "CruzarBifrost 13+",
   "Descripcion": "La siguiente bala que dispares emite luz durante 1 minuto como si fuese una antorcha.",
   "Column6": "No",
   "Fisica\/Quimica": 8,
@@ -905,10 +905,10 @@
   "Nombre": "Disparo de fogueo",
   "Lanzamiento": "Inst",
   "Bifrost": 5,
-  "Prueba": "Engaño 14+",
-  "Descripcion": "Si en tu siguiente accion fueses a provocar daño por un disparo, no produces ningun daño.",
+  "Prueba": "Enganno 14+",
+  "Descripcion": "Si en tu siguiente accion fueses a provocar danno por un disparo, no produces ningun danno.",
   "Column6": "No",
-  "Engaño": 8,
+  "Enganno": 8,
   "Punteria": 8
  },
  {
@@ -1008,17 +1008,17 @@
   "Lanzamiento": "Inst",
   "Bifrost": 20,
   "Prueba": "Medicina 14+",
-  "Descripcion": "Esta habilidad solo se puede usar justo antes de hacer una tirada de punteria para disparar. Si tu disparo hace daño, anota el daño recibido \/5. El objetivo sufre ese daño al inicio de su turno hasta que reciba atencion medica.",
+  "Descripcion": "Esta habilidad solo se puede usar justo antes de hacer una tirada de punteria para disparar. Si tu disparo hace danno, anota el danno recibido \/5. El objetivo sufre ese danno al inicio de su turno hasta que reciba atencion medica.",
   "Column6": "No",
   "Medicina": 12,
   "Punteria": 12
  },
  {
-  "Nombre": "Guiño de la muerte",
+  "Nombre": "Guinno de la muerte",
   "Lanzamiento": "Normal\/3",
   "Bifrost": 20,
   "Prueba": "Einherjer 13+",
-  "Descripcion": "Guiñas el ojo. El objetivo situado a 10 de distancia y que te este viendo sufre 45 de daño mental. Haz una prueba de Atractivo contra su Resistencia. Si superas, el objetivo es empujado 1 casilla y cae al suelo.",
+  "Descripcion": "Guinnas el ojo. El objetivo situado a 10 de distancia y que te este viendo sufre 45 de danno mental. Haz una prueba de Atractivo contra su Resistencia. Si superas, el objetivo es empujado 1 casilla y cae al suelo.",
   "Column6": "No",
   "Atractivo": 12,
   "Punteria": 12
@@ -1027,7 +1027,7 @@
   "Nombre": "Balas propulsadas",
   "Lanzamiento": "Inst",
   "Bifrost": 5,
-  "Prueba": "Cruzar Bifrost 14+",
+  "Prueba": "CruzarBifrost 14+",
   "Descripcion": "Duplica el alcance del arma de proyectiles que estes utilizando hasta el principio de tu proximo turno o hasta dejar de utilizarla.",
   "Column6": "No",
   "Fisica\/Quimica": 13,
@@ -1040,7 +1040,7 @@
   "Prueba": "Sentir Yggdrasil 13+",
   "Descripcion": "Abres fuego con tu arma de forma normal. Fallas todos los disparos. Tu siguiente accion que requiera una tirada de punteria con este arma, suma su carencia al resultado de las pruebas de punteria.",
   "Column6": "No",
-  "Engaño": 13,
+  "Enganno": 13,
   "Punteria": 13
  },
  {
@@ -1095,7 +1095,7 @@
   "Nombre": "Silenciar disparo",
   "Lanzamiento": "Normal",
   "Bifrost": 20,
-  "Prueba": "Cruzar Bifrost 14+",
+  "Prueba": "CruzarBifrost 14+",
   "Descripcion": "El siguiente disparo que realices no se puede escuchar.",
   "Column6": "No",
   "Esconderse": 15,
@@ -1131,11 +1131,11 @@
   "Punteria": 15
  },
  {
-  "Nombre": "Tiro dañino (B)",
+  "Nombre": "Tiro dannino (B)",
   "Lanzamiento": "Inst\/3",
   "Bifrost": 9,
   "Prueba": "Punteria 7+",
-  "Descripcion": "La siguiente vez que fueras a hacer usar una accion en disparar, disparas un unico tiro añadiendo 2D10 al daño",
+  "Descripcion": "La siguiente vez que fueras a hacer usar una accion en disparar, disparas un unico tiro annadiendo 2D10 al danno",
   "Column6": "No",
   "Punteria": 15
  },
@@ -1153,7 +1153,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": 5,
   "Prueba": "Einherjer 13+",
-  "Descripcion": "Arroja tu arma cuerpo a cuerpo a una distancia de ((Prueba en destreza)\/5)+1 casillas. Provoca el mismo daño que si hubiese sido un ataque cuerpo a cuerpo, pero con un solo golpe y el arma queda en esa posicion.",
+  "Descripcion": "Arroja tu arma cuerpo a cuerpo a una distancia de ((Prueba en destreza)\/5)+1 casillas. Provoca el mismo danno que si hubiese sido un ataque cuerpo a cuerpo, pero con un solo golpe y el arma queda en esa posicion.",
   "Column6": "No",
   "Destreza": 16,
   "Punteria": 16
@@ -1173,7 +1173,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": 5,
   "Prueba": "Punteria 15+",
-  "Descripcion": "Si estas provocando daño con un arma de fuego al objetivo, sufres una herida horrible que reduce su atractivo de forma permanente en 1 punto, y en otro punto adicional por cada 50 de daño que no hayas sufrido gracias a esta habilidad.",
+  "Descripcion": "Si estas provocando danno con un arma de fuego al objetivo, sufres una herida horrible que reduce su atractivo de forma permanente en 1 punto, y en otro punto adicional por cada 50 de danno que no hayas sufrido gracias a esta habilidad.",
   "Column6": "No",
   "Atractivo": 16,
   "Punteria": 16
@@ -1204,7 +1204,7 @@
   "Lanzamiento": "Mantener",
   "Bifrost": "20 + 5",
   "Prueba": "Intimidar 18+",
-  "Descripcion": "El objetivo que no haya iniciado aun acciones hostiles no puede realizar acciones mientras mantengas esta habilidad. El coste adicional es de 5 por minuto fuera de combate o de 5 por turno en combate. Mientras mantengas esta habilidad no puedes perder el contacto visual con el objetivo, debes empuñar un arma de fuego en todo momento y estar apuntando al objetivo. Si el objetivo sufre daño, se cancela la habilidad. Si el objetivo se libera de esta habilidad, cuenta como que ha iniciado acciones hostiles.",
+  "Descripcion": "El objetivo que no haya iniciado aun acciones hostiles no puede realizar acciones mientras mantengas esta habilidad. El coste adicional es de 5 por minuto fuera de combate o de 5 por turno en combate. Mientras mantengas esta habilidad no puedes perder el contacto visual con el objetivo, debes empunnar un arma de fuego en todo momento y estar apuntando al objetivo. Si el objetivo sufre danno, se cancela la habilidad. Si el objetivo se libera de esta habilidad, cuenta como que ha iniciado acciones hostiles.",
   "Column6": "No",
   "Intimidar": 18,
   "Punteria": 18
@@ -1222,7 +1222,7 @@
  {
   "Nombre": "Disparos sangrantes",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Siempre que un enemigo falle una tirada de resistencia por el daño provocado opr un disparo tuyo, ademas de los efectos normales sufre un sangrado, anota el daño recibido \/10. El objetivo sufre ese daño al inicio de su turno hasta que reciba atencion medica.",
+  "Descripcion": "Siempre que un enemigo falle una tirada de resistencia por el danno provocado opr un disparo tuyo, ademas de los efectos normales sufre un sangrado, anota el danno recibido \/10. El objetivo sufre ese danno al inicio de su turno hasta que reciba atencion medica.",
   "Column6": "No",
   "Medicina": 20,
   "Punteria": 20
@@ -1260,7 +1260,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": 10,
   "Prueba": "Einherjer 14+",
-  "Descripcion": "Esta habilidad solo puede ser utilizada al declara una accion tuya que implique al menos un ataque cuerpo a cuerpo. Toda tirada de resistencia provocada por un daño de tu ataque cuerpo a cuerpo, tiene la dificultad incrementada un 50%.",
+  "Descripcion": "Esta habilidad solo puede ser utilizada al declara una accion tuya que implique al menos un ataque cuerpo a cuerpo. Toda tirada de resistencia provocada por un danno de tu ataque cuerpo a cuerpo, tiene la dificultad incrementada un 50%.",
   "Column6": "No",
   "Fuerza": 20,
   "Punteria": 20
@@ -1269,8 +1269,8 @@
   "Nombre": "Balas incendiarias",
   "Lanzamiento": "Normal",
   "Bifrost": 40,
-  "Prueba": "Cruzar Bifrost 18+",
-  "Descripcion": "Durante 10 turnos, agrega a tu arma de proyectiles +15\/+10\/+10\/+5 de daño de fuego. Cada vez que alguien reciba daño de fuego de esta forma, debe hacer una tirada de resistencia con una dificultad igual a la mitad del daño de fuego para no prenderse de fuego.",
+  "Prueba": "CruzarBifrost 18+",
+  "Descripcion": "Durante 10 turnos, agrega a tu arma de proyectiles +15\/+10\/+10\/+5 de danno de fuego. Cada vez que alguien reciba danno de fuego de esta forma, debe hacer una tirada de resistencia con una dificultad igual a la mitad del danno de fuego para no prenderse de fuego.",
   "Column6": "No",
   "Fisica\/Quimica": 20,
   "Punteria": 20
@@ -1289,7 +1289,7 @@
   "Nombre": "Cargador silencioso",
   "Lanzamiento": "Normal\/10",
   "Bifrost": 80,
-  "Prueba": "Cruzar Bifrost 18+",
+  "Prueba": "CruzarBifrost 18+",
   "Descripcion": "Todos tus disparos hasta el final de tu siguiente turno no provocan ningun ruido.",
   "Column6": "No",
   "Esconderse": 20,
@@ -1299,10 +1299,10 @@
   "Nombre": "Regimiento de la muerte",
   "Lanzamiento": "2 acciones",
   "Bifrost": 30,
-  "Prueba": "Engaño 20+",
-  "Descripcion": "Disparas todas las armas que tengas (y quieras usar) de forma totalmente inexacta. Fallas todos los disparos. Suma todos los daños de los disparos como si hubiesen impactado en una zona normal y divide el resultado entre 50. Ese resultado es el numero de personas que parecen haber abierto fuego.",
+  "Prueba": "Enganno 20+",
+  "Descripcion": "Disparas todas las armas que tengas (y quieras usar) de forma totalmente inexacta. Fallas todos los disparos. Suma todos los dannos de los disparos como si hubiesen impactado en una zona normal y divide el resultado entre 50. Ese resultado es el numero de personas que parecen haber abierto fuego.",
   "Column6": "No",
-  "Engaño": 20,
+  "Enganno": 20,
   "Punteria": 20
  },
  {
@@ -1319,8 +1319,8 @@
   "Nombre": "Recoger arma",
   "Lanzamiento": "Normal",
   "Bifrost": 20,
-  "Prueba": "Cruzar Bifrost 15+",
-  "Descripcion": "Atrae el arma cuerpo a cuerpo desatendida que este a una distancia de como maximo 10 casillas hasta tu propia casilla. Si tuvieses una mano libre, puedes empuñarla automaticamente.",
+  "Prueba": "CruzarBifrost 15+",
+  "Descripcion": "Atrae el arma cuerpo a cuerpo desatendida que este a una distancia de como maximo 10 casillas hasta tu propia casilla. Si tuvieses una mano libre, puedes empunnarla automaticamente.",
   "Column6": "No",
   "Destreza": 20,
   "Punteria": 20
@@ -1340,7 +1340,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": 15,
   "Prueba": "Conducir 15+",
-  "Descripcion": "Si disparas a un vehiculo de un tipo que conozcas, duplica el daño que recibe.",
+  "Descripcion": "Si disparas a un vehiculo de un tipo que conozcas, duplica el danno que recibe.",
   "Column6": "No",
   "Conduccion": 20,
   "Punteria": 20
@@ -1366,11 +1366,11 @@
   "Punteria": 20
  },
  {
-  "Nombre": "Guiño infernal",
+  "Nombre": "Guinno infernal",
   "Lanzamiento": "Normal\/5",
   "Bifrost": 40,
   "Prueba": "Einherjer 15+",
-  "Descripcion": "Guiñas el ojo. Toda criatura situada a 15 de distancia y que te este viendo sufre 45 de daño mental. Haz una prueba de Atractivo contra cada una de sus Resistencia. Si superas, la criatura es empujada 1 casilla y cae al suelo.",
+  "Descripcion": "Guinnas el ojo. Toda criatura situada a 15 de distancia y que te este viendo sufre 45 de danno mental. Haz una prueba de Atractivo contra cada una de sus Resistencia. Si superas, la criatura es empujada 1 casilla y cae al suelo.",
   "Column6": "No",
   "Atractivo": 20,
   "Punteria": 20
@@ -1457,7 +1457,7 @@
   "Nombre": "Conquistar corazon",
   "Lanzamiento": "Normal",
   "Bifrost": 10,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Realiza una prueba de Atractivo contra la Mente del objetivo. Si el objetivo falla sufre un encaprichamiento fisico de ti durante 1 dia. Esto no le obliga a seguir ningun curso de accion, pero si hace que tienda a el.",
   "Column6": "No",
   "Atractivo": 10,
@@ -1544,10 +1544,10 @@
   "Nombre": "Ira de Viðarr",
   "Lanzamiento": "Inst",
   "Bifrost": 36,
-  "Prueba": " Cruzar Bifrost 15+",
-  "Descripcion": "Esta habilidad tiene que ser lanzada sobre un objetivo que te haya hecho algun tipo de daño (fisico, emocional…)\nDurante 3 turnos, puedes repetir una vez por golpe cualquier tirada, siempre y cuando sea para agredir al objetivo. (O impactar, o lugar de impacto… No ambas por golpe.)",
+  "Prueba": " CruzarBifrost 15+",
+  "Descripcion": "Esta habilidad tiene que ser lanzada sobre un objetivo que te haya hecho algun tipo de danno (fisico, emocional…)\nDurante 3 turnos, puedes repetir una vez por golpe cualquier tirada, siempre y cuando sea para agredir al objetivo. (O impactar, o lugar de impacto… No ambas por golpe.)",
   "Column6": "No",
-  "Cruzar Bifrost": 14,
+  "CruzarBifrost": 14,
   "Provocar": 14
  },
  {
@@ -1576,7 +1576,7 @@
   "Prueba": "Sentir Yggdrasil 14+",
   "Descripcion": "Si la siguiente accion que realizas es una provocacion, puedes provocar mentalmente de forma que solo el objetivo perciba tu provocacion.",
   "Column6": "No",
-  "Engaño": 16,
+  "Enganno": 16,
   "Provocar": 16
  },
  {
@@ -1692,10 +1692,10 @@
   "Nombre": "No iba en serio",
   "Lanzamiento": "Inst\/2",
   "Bifrost": 5,
-  "Prueba": "Engaño 14+",
+  "Prueba": "Enganno 14+",
   "Descripcion": "Cancela la accion hostil del objetivo provocado para atacarte.",
   "Column6": "No",
-  "Engaño": 20,
+  "Enganno": 20,
   "Provocar": 20
  },
  {
@@ -1741,7 +1741,7 @@
   "Nombre": "Beso picaro",
   "Lanzamiento": "Normal\/2",
   "Bifrost": 15,
-  "Prueba": "Cruzar Bifrost 14+",
+  "Prueba": "CruzarBifrost 14+",
   "Descripcion": "Selecciona un objetivo que pueda sentirse atraido por ti. Haz una prueba de atractivo contra la mente del objetivo. Si superas, el objetivo queda aturdido 1 ronda por cada 5 de diferencia en el resultado.",
   "Column6": "No",
   "Atractivo": 20,
@@ -1779,10 +1779,10 @@
   "Nombre": "Falso tratamiento",
   "Lanzamiento": "Inst",
   "Bifrost": 5,
-  "Prueba": "Engaño 14+",
+  "Prueba": "Enganno 14+",
   "Descripcion": "Fallas la tirada de medicina sin que parezca intencionado.",
   "Column6": "No",
-  "Engaño": 6,
+  "Enganno": 6,
   "Medicina": 6
  },
  {
@@ -1799,7 +1799,7 @@
   "Nombre": "Retirar favor de Fulla",
   "Lanzamiento": "Normal",
   "Bifrost": 30,
-  "Prueba": "Cruzar Bifrost 14+",
+  "Prueba": "CruzarBifrost 14+",
   "Descripcion": "Realiza una prueba en medicina y anota el resultado. Hasta que el objetivo tocado sea tratado durante 1 semana superando en una tirada de medicina tu resultado, no puede concebir.",
   "Column6": "No",
   "Atractivo": 8,
@@ -1809,18 +1809,18 @@
   "Nombre": "Discurso pseudocientifico",
   "Lanzamiento": "2 acciones",
   "Bifrost": 20,
-  "Prueba": "Engañar 18+",
-  "Descripcion": "Haces un discurso abiertamente pseudocientifico. Haz una prueba de Engaño contra la Percepcion del objetivo. En caso de superar, haz una nueva prueba con la puntuacion de Mente o Estudio del objetivo (no la tuya) a dificultad 18+. Si tienes exito, el objetivo pierde sus proximas acciones, tantas como los puntos por lo que hayas superado la prueba +1.",
+  "Prueba": "Engannar 18+",
+  "Descripcion": "Haces un discurso abiertamente pseudocientifico. Haz una prueba de Enganno contra la Percepcion del objetivo. En caso de superar, haz una nueva prueba con la puntuacion de Mente o Estudio del objetivo (no la tuya) a dificultad 18+. Si tienes exito, el objetivo pierde sus proximas acciones, tantas como los puntos por lo que hayas superado la prueba +1.",
   "Column6": "No",
-  "Engaño": 18,
+  "Enganno": 18,
   "Fisica\/Quimica": 18,
   "Labia": 14,
   "Medicina": 10
  },
  {
-  "Nombre": "Puño blando",
+  "Nombre": "Punno blando",
   "Lanzamiento": "Inst",
-  "Descripcion": "El daño que producen tus manos desnudas no puede llegar a matar al objetivo a menos que alcance una vida negativa igual a su vida maxima. Una vez alcanzada vida negativa, el objetivo queda inconsciente. Como accion inmediata puedes cancelar el efecto de esta habilidad.",
+  "Descripcion": "El danno que producen tus manos desnudas no puede llegar a matar al objetivo a menos que alcance una vida negativa igual a su vida maxima. Una vez alcanzada vida negativa, el objetivo queda inconsciente. Como accion inmediata puedes cancelar el efecto de esta habilidad.",
   "Column6": "No",
   "Fuerza": 10,
   "Medicina": 10
@@ -1856,7 +1856,7 @@
   "Nombre": "Toque de fertilidad",
   "Lanzamiento": "2 minutos",
   "Bifrost": 10,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Durante 4 horas, el objetivo tocado aumenta un 30% la probabilidad de concebir.",
   "Column6": "No",
   "Atractivo": 10,
@@ -1884,7 +1884,7 @@
  {
   "Nombre": "Maestro torturador",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Si estas torturando a un objetivo, aumenta tu tirada de intimidar en 1\/5 el daño que haya sufrido el objetivo desde que inicio la tortura. Mientras estes torturando, puedes reducir a la mitad cualquier daño que realices al objetivo torturado.",
+  "Descripcion": "Si estas torturando a un objetivo, aumenta tu tirada de intimidar en 1\/5 el danno que haya sufrido el objetivo desde que inicio la tortura. Mientras estes torturando, puedes reducir a la mitad cualquier danno que realices al objetivo torturado.",
   "Column6": "No",
   "Intimidar": 11,
   "Medicina": 11
@@ -1893,7 +1893,7 @@
   "Nombre": "Denunciar crimen de guerra",
   "Lanzamiento": "Inst",
   "Bifrost": 5,
-  "Prueba": "Cruzar Bifrost 12+",
+  "Prueba": "CruzarBifrost 12+",
   "Descripcion": "El objetivo no puede atacar a ninguna criatura que este por debajo de 0 PV.",
   "Column6": "No",
   "Diplomacia": 11,
@@ -1902,7 +1902,7 @@
  {
   "Nombre": "Golpe mas letal",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Aumenta en 10 el daño de tus ataques cuerpo a cuerpo en punto vital.",
+  "Descripcion": "Aumenta en 10 el danno de tus ataques cuerpo a cuerpo en punto vital.",
   "Column6": "No",
   "Destreza": 11,
   "Medicina": 11
@@ -1922,7 +1922,7 @@
   "Lanzamiento": "Normal",
   "Bifrost": 15,
   "Prueba": "Einherjer 16+",
-  "Descripcion": "Haz un golpe cuerpo a cuerpo. Si impacta, en vez de hacer daño, haz una prueba enfrentada de Fuerza contra la Resistencia del objetivo. Si falla, le dislocas una extremidad a tu eleccion, siempre que esto fuese posible dada la morfologia del objetivo.",
+  "Descripcion": "Haz un golpe cuerpo a cuerpo. Si impacta, en vez de hacer danno, haz una prueba enfrentada de Fuerza contra la Resistencia del objetivo. Si falla, le dislocas una extremidad a tu eleccion, siempre que esto fuese posible dada la morfologia del objetivo.",
   "Column6": "No",
   "Fuerza": 12,
   "Medicina": 12
@@ -1931,20 +1931,20 @@
   "Nombre": "Falsa curacion",
   "Lanzamiento": "Inst",
   "Bifrost": 15,
-  "Prueba": "Engaño 14+",
+  "Prueba": "Enganno 14+",
   "Descripcion": "Esta habilidad solo puede ser utilziando junto a una curacion que apliques a un objetivo. Elige un tiempo al usar la habilidad. Pasado este tiempo, el objetivo pierde la misma cantidad de vida que le fue curada cuando usaste la habilidad.",
   "Column6": "No",
-  "Engaño": 12,
+  "Enganno": 12,
   "Medicina": 12
  },
  {
   "Nombre": "Apariencia vital",
   "Lanzamiento": "X minutos",
   "Bifrost": "X",
-  "Prueba": "Cruzar Bifrost 13+",
-  "Descripcion": "Durante 2*X minutos, camuflas las señales poco evidentes de que una maquina no es un ser vivo. (Si tiene un cable, este sigue estando, y una tostadora sigue pareciendo una tostadora)",
+  "Prueba": "CruzarBifrost 13+",
+  "Descripcion": "Durante 2*X minutos, camuflas las sennales poco evidentes de que una maquina no es un ser vivo. (Si tiene un cable, este sigue estando, y una tostadora sigue pareciendo una tostadora)",
   "Column6": "No",
-  "Engaño": 13,
+  "Enganno": 13,
   "Informatica": 13,
   "Medicina": 13
  },
@@ -1952,8 +1952,8 @@
   "Nombre": "Cyborg del Valhalla",
   "Lanzamiento": "Inst",
   "Bifrost": 40,
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "El implante que estes añadiendo a un organismo con acceso al Valhalla, tiene reflejo en el mismo.",
+  "Prueba": "CruzarBifrost 14+",
+  "Descripcion": "El implante que estes annadiendo a un organismo con acceso al Valhalla, tiene reflejo en el mismo.",
   "Column6": "No",
   "Informatica": 13,
   "Medicina": 13
@@ -1962,7 +1962,7 @@
   "Nombre": "Replicar droga",
   "Lanzamiento": "15 minutos",
   "Bifrost": 30,
-  "Prueba": "Cruzar Bifrost 18+",
+  "Prueba": "CruzarBifrost 18+",
   "Descripcion": "Haz una prueba de Medicina y una de Fisica\/Quimica. Suma el resultado y dividelo entre 10. Selecciona una droga cuya formulacion conozcas o con la que tengas contacto fisico y crea tantas dosis como el resultado. Esta habilidad funciona con cualquier sustancia que altere tus atributos temporalmente o que pueda causar adiccion.",
   "Column6": "No",
   "Fisica\/Quimica": 13,
@@ -2008,10 +2008,10 @@
   "Nombre": "Suturar heridas",
   "Lanzamiento": "Inst",
   "Bifrost": 65,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Evitas un cercenamiento que haya ocurrido en la accion anterior",
   "Column6": "No",
-  "Cruzar Bifrost": 14,
+  "CruzarBifrost": 14,
   "Medicina": 14
  },
  {
@@ -2028,7 +2028,7 @@
   "Nombre": "Regar la semilla vital",
   "Lanzamiento": "10 minutos",
   "Bifrost": 40,
-  "Prueba": "Cruzar Bifrost 12+",
+  "Prueba": "CruzarBifrost 12+",
   "Descripcion": "Durante las proximas 24 horas el feto se desarrolla 10 veces mas rapido.",
   "Column6": "No",
   "Atractivo": 14,
@@ -2063,7 +2063,7 @@
   "Medicina": 16
  },
  {
-  "Nombre": "Droga de diseño",
+  "Nombre": "Droga de disenno",
   "Lanzamiento": "1 hora",
   "Descripcion": "Creas y aprendes la formulacion droga que puedes unir con cualquier otra sustancia sin alterar sus propiedades originales. Cuando la droga es consumida, debe hacerse una prueba de Resistencia con una dificultad 16+. Si falla, se vuelve adicto. Repite la tirada y quedate con el peor resultado tantas veces como veces hayas consumido la droga en los ultimos 3 dias. Una vez usada esta habilidad para originar una droga de esta forma, puedes crear dosis con \"Replicar droga\"",
   "Column6": "No",
@@ -2082,7 +2082,7 @@
   "Nombre": "Triaje del Valhalla",
   "Lanzamiento": "Normal",
   "Bifrost": 150,
-  "Prueba": "Cruzar Bifrost 18+",
+  "Prueba": "CruzarBifrost 18+",
   "Descripcion": "Estabiliza a todas las criaturas en un radio de 20 metros.",
   "Column6": "No",
   "Liderazgo": 20,
@@ -2102,7 +2102,7 @@
   "Nombre": "Inhibir miedo",
   "Lanzamiento": "2 acciones",
   "Bifrost": 20,
-  "Prueba": "Cruzar Bifrost 14+",
+  "Prueba": "CruzarBifrost 14+",
   "Descripcion": "El cerebro objetivo no puede sentir miedo durante 1 dia.",
   "Column6": "No",
   "Intimidar": 20,
@@ -2112,7 +2112,7 @@
   "Nombre": "Implante bionico personal",
   "Lanzamiento": "1 hora",
   "Prueba": "Sentir Yggdrasil 13+",
-  "Descripcion": "Esta habilidad debe ser usada durante la creacion de un implante bionico pensando ya en el objetivo donde implantarlo. Si creas y añades un implante bionico a una criautra, dicho implante jamas sera rechazado por el anfitrion.",
+  "Descripcion": "Esta habilidad debe ser usada durante la creacion de un implante bionico pensando ya en el objetivo donde implantarlo. Si creas y annades un implante bionico a una criautra, dicho implante jamas sera rechazado por el anfitrion.",
   "Column6": "No",
   "Informatica": 20,
   "Medicina": 20
@@ -2141,7 +2141,7 @@
   "Prueba": "Medicina 21+",
   "Descripcion": "Si el objetivo tuviese menos nivel que tu, obtiene un nivel.\nSi duplicas su nivel, obtiene dos niveles. Si aun habiendo subido ese nivel le sigues duplicando, otro. Y asi hasta conseguir un maximo de 4 niveles.",
   "Column6": "No",
-  "Cruzar Bifrost": 25,
+  "CruzarBifrost": 25,
   "Evolutivo Curva": 15,
   "Medicina": 20
  },
@@ -2150,7 +2150,7 @@
   "Lanzamiento": "Inst\/3",
   "Bifrost": 10,
   "Prueba": "Sentir Yggdrasil 15+",
-  "Descripcion": "Si fueses a recibir un impacto critico en un punto vital, en vez de eso no sufres ningun daño.",
+  "Descripcion": "Si fueses a recibir un impacto critico en un punto vital, en vez de eso no sufres ningun danno.",
   "Column6": "No",
   "Esquiva": 20,
   "Medicina": 20
@@ -2170,9 +2170,9 @@
   "Lanzamiento": "Inst\/dia",
   "Bifrost": 30,
   "Prueba": "Einherjer 20+",
-  "Descripcion": "Mueres. Tras 10 minutos, resucitas en las mismas condiciones que cuando usaste esta habilidad. Si sufres daño mientras estas muerto, ese daño se aplica una vez resucites.",
+  "Descripcion": "Mueres. Tras 10 minutos, resucitas en las mismas condiciones que cuando usaste esta habilidad. Si sufres danno mientras estas muerto, ese danno se aplica una vez resucites.",
   "Column6": "No",
-  "Engaño": 20,
+  "Enganno": 20,
   "Medicina": 20
  },
  {
@@ -2225,8 +2225,8 @@
   "Nombre": "Toque de Fulla",
   "Lanzamiento": "Normal",
   "Bifrost": 30,
-  "Prueba": "Cruzar Bifrost 18+",
-  "Descripcion": "El objetivo tocado puede hacer una prueba de resistencia contra el resultado de tu prueba de Cruzar Bifrost para activar esta habilidad. Si supera la prueba, ignora cualquier efecto de esta habilidad. Une tu material genetico con el del objetivo y crea una descendencia viable en el interior de quien tenga capacidad de gestar (a tu eleccion).",
+  "Prueba": "CruzarBifrost 18+",
+  "Descripcion": "El objetivo tocado puede hacer una prueba de resistencia contra el resultado de tu prueba de CruzarBifrost para activar esta habilidad. Si supera la prueba, ignora cualquier efecto de esta habilidad. Une tu material genetico con el del objetivo y crea una descendencia viable en el interior de quien tenga capacidad de gestar (a tu eleccion).",
   "Column6": "No",
   "Atractivo": 20,
   "Medicina": 20
@@ -2243,7 +2243,7 @@
   "Nombre": "Maldicion de Fulla",
   "Lanzamiento": "Normal",
   "Bifrost": 70,
-  "Prueba": "Cruzar Bifrost 17+",
+  "Prueba": "CruzarBifrost 17+",
   "Descripcion": "Realiza una prueba en medicina y anota el resultado multiplicado por dos. Hasta que el objetivo tocado sea tratado durante 1 semana superando en una tirada de medicina tu resultado, no puede concebir.",
   "Column6": "No",
   "Atractivo": 24,
@@ -2261,7 +2261,7 @@
   "Nombre": "Bendicion de Fulla",
   "Lanzamiento": "1 hora",
   "Bifrost": 100,
-  "Prueba": "Cruzar Bifrost 18+",
+  "Prueba": "CruzarBifrost 18+",
   "Descripcion": "El objetivo capaz de gestar queda embarazado de forma viable como si se hubiese reproducido consigo mismo. No hay mutaciones no deseadas y tampoco es un clon. A tu eleccion, en vez de descender del objetivo, puede descender de ti. Tu tambien puedes ser el objetivo de esta habilidad.",
   "Column6": "No",
   "Atractivo": 30,
@@ -2280,10 +2280,10 @@
   "Nombre": "Confundir mando",
   "Lanzamiento": "Inst",
   "Bifrost": 5,
-  "Prueba": "Engaño 14+",
+  "Prueba": "Enganno 14+",
   "Descripcion": "Si un objetivo hace una tirada de liderazgo, falla automaticamente",
   "Column6": "No",
-  "Engaño": 8,
+  "Enganno": 8,
   "Liderazgo": 8
  },
  {
@@ -2310,7 +2310,7 @@
   "Nombre": "Enviado diplomatico",
   "Lanzamiento": "Normal",
   "Bifrost": 30,
-  "Prueba": "Cruzar Bifrost 11+",
+  "Prueba": "CruzarBifrost 11+",
   "Descripcion": "Desde que uses esta habilidad hasta un maximo de 1 minuto o hasta que realices alguna accion hostil, no puedes ser objetivo de habilidades hostiles.",
   "Column6": "No",
   "Diplomacia": 9,
@@ -2398,7 +2398,7 @@
   "Nombre": "Lider invisible",
   "Lanzamiento": "Inst",
   "Bifrost": "5 * X",
-  "Prueba": "Cruzar Bifrost 14+",
+  "Prueba": "CruzarBifrost 14+",
   "Descripcion": "En el momendo de superar una tirada para esconderte, designa X objetivos. Cada objetivo debe hacer una tirada de Sentir Yggdrasil 14+. Cada uno que haya superado, no deja de tenerte localizado y es como si superase todas las pruebas para localizarte hasta que vuelvas a esconderte de nuevo.",
   "Column6": "No",
   "Esconderse": 13,
@@ -2511,7 +2511,7 @@
   "Nombre": "Lider digital",
   "Lanzamiento": "Normal",
   "Bifrost": 20,
-  "Prueba": "Cruzar Bifrost 13+",
+  "Prueba": "CruzarBifrost 13+",
   "Descripcion": "Las entidades digitales te perciben durante 1 hora como un lider viable.",
   "Column6": "No",
   "Informatica": 16,
@@ -2540,7 +2540,7 @@
   "Nombre": "ordenes silenciosas",
   "Lanzamiento": "Inst",
   "Bifrost": 5,
-  "Prueba": "Cruzar Bifrost 14+",
+  "Prueba": "CruzarBifrost 14+",
   "Descripcion": "Si el objetivo te considera su lider, lo que vas a decir solo lo oye el.",
   "Column6": "No",
   "Esconderse": 18,
@@ -2560,7 +2560,7 @@
   "Nombre": "Control de enjambre robotico",
   "Lanzamiento": "15 minutos",
   "Bifrost": 50,
-  "Prueba": "Cruzar Bifrost 16+",
+  "Prueba": "CruzarBifrost 16+",
   "Descripcion": "Selecciona un enjambre de robots. Durante una semana puedes controlar mentalmente dicho enjambre.",
   "Column6": "No",
   "Informatica": 20,
@@ -2618,17 +2618,17 @@
   "Nombre": "Imitar mando",
   "Lanzamiento": "Mantener",
   "Bifrost": "25 + 1 al turno",
-  "Prueba": "Engaño 19+",
+  "Prueba": "Enganno 19+",
   "Descripcion": "Selecciona un objetivo. Puedes realizar tiradas de liderazgo que seran interpretadas como si las hubiese hecho el objetivo, pero deberas hacer la tirada dos veces y quedarte con la peor. Estas pruebas reciben un -10. Por cada habilidad de liderazgo que haya usado el objetivo desde que le has visto, obtienes un +1 a las pruebas de imitarlo.",
   "Column6": "No",
-  "Engaño": 20,
+  "Enganno": 20,
   "Liderazgo": 20
  },
  {
   "Nombre": "Orden diplomatica",
   "Lanzamiento": "Normal",
   "Bifrost": 80,
-  "Prueba": "Cruzar Bifrost 13+",
+  "Prueba": "CruzarBifrost 13+",
   "Descripcion": "Selecciona a un objetivo indiferente o mas amistoso que nunca haya sido objetivo de esta habilidad. Das una orden que debe cumplir (limitado por sus propias capacidades). No hay limite de tiempo para cumplir la orden. Durante el tiempo en que actue impelido para cumplir la orden, no guardara recuerdos.",
   "Column6": "No",
   "Diplomacia": 20,
@@ -2678,8 +2678,8 @@
   "Nombre": "Morid por mi",
   "Lanzamiento": "Normal\/2",
   "Bifrost": 30,
-  "Prueba": "Cruzar Bifrost 16+",
-  "Descripcion": "Durante 2 turnos todos los aliados situados a 30 casillas ignoran los efectos de todo daño que reciban (pero no ignoran el daño), pudiendo permanecer conscientes aunque sus puntos de vida no lo permitiesen.",
+  "Prueba": "CruzarBifrost 16+",
+  "Descripcion": "Durante 2 turnos todos los aliados situados a 30 casillas ignoran los efectos de todo danno que reciban (pero no ignoran el danno), pudiendo permanecer conscientes aunque sus puntos de vida no lo permitiesen.",
   "Column6": "No",
   "Atractivo": 20,
   "Liderazgo": 20
@@ -2727,7 +2727,7 @@
   "Nombre": "Detectar palabras",
   "Lanzamiento": "Inst",
   "Bifrost": 7,
-  "Prueba": "Cruzar Bifrost 12+",
+  "Prueba": "CruzarBifrost 12+",
   "Descripcion": "Sabes lo que iria a decir el objetivo en los siguientes segundos.",
   "Column6": "No",
   "Norna": 12,
@@ -2754,13 +2754,13 @@
   "Labia": 10
  },
  {
-  "Nombre": "Pequeñas mentirijillas",
+  "Nombre": "Pequennas mentirijillas",
   "Lanzamiento": "Inst\/1",
   "Bifrost": 5,
   "Prueba": "Labia 14+",
-  "Descripcion": "Repite una tirada de engaño para una mentira menor. Quedate con la segunda tirada.",
+  "Descripcion": "Repite una tirada de enganno para una mentira menor. Quedate con la segunda tirada.",
   "Column6": "No",
-  "Engaño": 10,
+  "Enganno": 10,
   "Labia": 10
  },
  {
@@ -2797,10 +2797,10 @@
   "Nombre": "Palabra de poder",
   "Lanzamiento": "Normal",
   "Bifrost": 20,
-  "Prueba": "Cruzar Bifrost 15+",
-  "Descripcion": "Provoca 45 daño a un objetivo a alcance auditivo. No puede ser detenido por escudos ni armadura, pero es daño fisico.",
+  "Prueba": "CruzarBifrost 15+",
+  "Descripcion": "Provoca 45 danno a un objetivo a alcance auditivo. No puede ser detenido por escudos ni armadura, pero es danno fisico.",
   "Column6": "No",
-  "Cruzar Bifrost": 13,
+  "CruzarBifrost": 13,
   "Diplomacia": 13,
   "Labia": 13
  },
@@ -2821,7 +2821,7 @@
   "Prueba": "Informatica 14+",
   "Descripcion": "Crea una identidad digital completa y compleja en todos los sistemas en los que tienes acceso. Consigues crear evidencias de que la persona existe realmente.",
   "Column6": "No",
-  "Engaño": 14,
+  "Enganno": 14,
   "Informatica": 14,
   "Labia": 14
  },
@@ -2829,8 +2829,8 @@
   "Nombre": "Quemar por dentro",
   "Lanzamiento": "Normal",
   "Bifrost": 15,
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "Das un discurso tan ardiente que el objetivo se quema por dentro, sufriendo 20 de daño por las quemaduras internas. Si en el turno anterior usaste esta misma habilidad, reduce en 5 su coste. Si fue en los dos ultimos turnos, 10, y si fue en los tres o mas, 15.",
+  "Prueba": "CruzarBifrost 14+",
+  "Descripcion": "Das un discurso tan ardiente que el objetivo se quema por dentro, sufriendo 20 de danno por las quemaduras internas. Si en el turno anterior usaste esta misma habilidad, reduce en 5 su coste. Si fue en los dos ultimos turnos, 10, y si fue en los tres o mas, 15.",
   "Column6": "No",
   "Fisica\/Quimica": 14,
   "Labia": 14
@@ -2839,7 +2839,7 @@
   "Nombre": "Ventriloquia",
   "Lanzamiento": "Inst",
   "Bifrost": 5,
-  "Prueba": "Cruzar Bifrost 16+",
+  "Prueba": "CruzarBifrost 16+",
   "Descripcion": "Puedes hacere que tu voz se emita desde cualquier punto situado a, como maximo, 5 metros.",
   "Column6": "No",
   "Esconderse": 14,
@@ -2849,10 +2849,10 @@
   "Nombre": "Privar del don de Ve",
   "Lanzamiento": "Normal",
   "Bifrost": 30,
-  "Prueba": "Cruzar Bifrost 15+",
-  "Descripcion": "Das la orden al objetivo de silenciarse por orden de Ve. El objetivo no puede hablar durante 10 minutos o hasta que el lanzador lo decida. Al inicio de cada turno, el objetivo puede intentar deshacerse de este efecto realizando una prueba de Cruzar Bifrost 20+",
+  "Prueba": "CruzarBifrost 15+",
+  "Descripcion": "Das la orden al objetivo de silenciarse por orden de Ve. El objetivo no puede hablar durante 10 minutos o hasta que el lanzador lo decida. Al inicio de cada turno, el objetivo puede intentar deshacerse de este efecto realizando una prueba de CruzarBifrost 20+",
   "Column6": "No",
-  "Cruzar Bifrost": 14,
+  "CruzarBifrost": 14,
   "Labia": 14
  },
  {
@@ -2868,7 +2868,7 @@
  {
   "Nombre": "Utilidad de la labia",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Obtienes un bono permanente de +4 al engaño y la diplomacia",
+  "Descripcion": "Obtienes un bono permanente de +4 al enganno y la diplomacia",
   "Column6": "No",
   "Labia": 14
  },
@@ -2888,7 +2888,7 @@
   "Descripcion": "Obtienes un bono permanente de +5 al liderazgo",
   "Column6": "No",
   "Diplomacia": 15,
-  "Engaño": 15,
+  "Enganno": 15,
   "Labia": 15
  },
  {
@@ -2913,7 +2913,7 @@
   "Nombre": "Maldicion de Bragi",
   "Lanzamiento": "Normal",
   "Bifrost": 15,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "El objetivo se siente impelido a hablar en verso. Siempre que no hable en verso, tiene un penalizador de 4 a toda prueba social.",
   "Column6": "No",
   "Atractivo": 16,
@@ -2933,7 +2933,7 @@
   "Nombre": "Hackeo vocal",
   "Lanzamiento": "Normal",
   "Bifrost": 20,
-  "Prueba": "Cruzar Bifrost 14+",
+  "Prueba": "CruzarBifrost 14+",
   "Descripcion": "El sistema de deteccion de voz te percibe con una voz distinta a la tuya. Puedes hacer que te perciba con una voz indeterminada, cambiar rasgos generales de tu voz o emular una voz conocida.",
   "Column6": "No",
   "Informatica": 20,
@@ -2964,7 +2964,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": 10,
   "Prueba": "Sentir Yggdrasil 13+",
-  "Descripcion": "Esta habilidad solo puede utilizarse cuando un objetivo vaya a realizar una prueba de atractivo, diplomacia, engaño, intimidar, labia o provocar contra ti. Haz una prueba de Labia, tu tirada es la nueva dificultad de la prueba del objetivo.",
+  "Descripcion": "Esta habilidad solo puede utilizarse cuando un objetivo vaya a realizar una prueba de atractivo, diplomacia, enganno, intimidar, labia o provocar contra ti. Haz una prueba de Labia, tu tirada es la nueva dificultad de la prueba del objetivo.",
   "Column6": "No",
   "Esquiva": 20,
   "Labia": 20
@@ -2986,7 +2986,7 @@
   "Prueba": "Labia 14+",
   "Descripcion": "Camuflas una mentira en medio del discurso de 1 minuto que requiere esta habilidad. Si esta mentira no es creida, no se le da mayor importancia y pasa desapercibida.",
   "Column6": "No",
-  "Engaño": 20,
+  "Enganno": 20,
   "Labia": 20
  },
  {
@@ -3079,7 +3079,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": 10,
   "Prueba": "Destreza 18+",
-  "Descripcion": "Cancela el daño del ataque cuerpo a cuerpo que fueses a realizar y que impactase en un punto vital. En vez de esto, realiza una prueba de intimidar sumando las decenas del daño que no has provocado debido a usar esta habilidad.",
+  "Descripcion": "Cancela el danno del ataque cuerpo a cuerpo que fueses a realizar y que impactase en un punto vital. En vez de esto, realiza una prueba de intimidar sumando las decenas del danno que no has provocado debido a usar esta habilidad.",
   "Column6": "No",
   "Destreza": 8,
   "Intimidar": 8
@@ -3097,7 +3097,7 @@
   "Lanzamiento": "Normal",
   "Bifrost": 15,
   "Prueba": "Einherjer 11+",
-  "Descripcion": "Si tu anterior accion de este turno fue un ataque cuerpo a cuerpo que llego a hacer daño al objetivo, haz una prueba para intimidar al objetivo sumando el daño provocado\/10 al resultado.",
+  "Descripcion": "Si tu anterior accion de este turno fue un ataque cuerpo a cuerpo que llego a hacer danno al objetivo, haz una prueba para intimidar al objetivo sumando el danno provocado\/10 al resultado.",
   "Column6": "No",
   "Destreza": 12,
   "Intimidar": 12
@@ -3125,7 +3125,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": 30,
   "Prueba": "Einherjer 14+",
-  "Descripcion": "Esta habilidad solo puede ser utilizada antes de declarar un ataque sorpresivo. En vez de provocar daño con este ataque, haz una prueba de intimidar sumando el daño que habrias causado \/ 10,",
+  "Descripcion": "Esta habilidad solo puede ser utilizada antes de declarar un ataque sorpresivo. En vez de provocar danno con este ataque, haz una prueba de intimidar sumando el danno que habrias causado \/ 10,",
   "Column6": "No",
   "Esconderse": 13,
   "Intimidar": 13
@@ -3145,7 +3145,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": 5,
   "Prueba": "Einherjer 12+",
-  "Descripcion": "Esta habilidad solo puede ser utilizada despues de hacer daño cuerpo a cuerpo. Obtienes un +1 a las pruebas de intimidar contra este objetivo durante 1 dia.",
+  "Descripcion": "Esta habilidad solo puede ser utilizada despues de hacer danno cuerpo a cuerpo. Obtienes un +1 a las pruebas de intimidar contra este objetivo durante 1 dia.",
   "Column6": "No",
   "Destreza": 14,
   "Intimidar": 14
@@ -3154,10 +3154,10 @@
   "Nombre": "Aullido de Fenrir",
   "Lanzamiento": "Normal",
   "Bifrost": 20,
-  "Prueba": "Cruzar Bifrost  15+",
+  "Prueba": "CruzarBifrost  15+",
   "Descripcion": "Gritas con todas tus fuerzas. Realizas una prueba de intimidar contra todos los objetivos que conozcan tu posicion (el grito puede darla a conocer). Si tienes exito, caen al suelo perdiendo 3 turnos.",
   "Column6": "No",
-  "Cruzar Bifrost": 14,
+  "CruzarBifrost": 14,
   "Intimidar": 14
  },
  {
@@ -3190,7 +3190,7 @@
   "Nombre": "Terror informatico",
   "Lanzamiento": "Inst",
   "Bifrost": 15,
-  "Prueba": "Cruzar Bifrost 14+",
+  "Prueba": "CruzarBifrost 14+",
   "Descripcion": "Esta habilidad solo puede ser utilizada cuando vayas a realizar una prueba de Intimidar contra un objetivo con una inteligencia artificial. Realiza la prueba 3 veces y quedate con el resultado que quieras de entre los obtenidos.",
   "Column6": "No",
   "Informatica": 20,
@@ -3246,7 +3246,7 @@
   "Nombre": "Loco peligroso al volante",
   "Lanzamiento": "Normal",
   "Bifrost": 30,
-  "Prueba": "Cruzar Bifrost 13+",
+  "Prueba": "CruzarBifrost 13+",
   "Descripcion": "Mientras conduces un vehiculo, selecciona como objetivo a otro conductor. Realiza una prueba enfrentada de intimidar contra su conduccion. Si superas, aplica la diferencia como penalizador a todas sus tiradas de conduccion mientras te mantenga a la vista, te intente seguir o huir de ti.",
   "Column6": "No",
   "Conduccion": 20,
@@ -3336,7 +3336,7 @@
   "Descripcion": "Toda interaccion social realizada por tu parte parece realizada por una inteligencia artificial.",
   "Column6": "No",
   "Diplomacia": 13,
-  "Engaño": 13,
+  "Enganno": 13,
   "Informatica": 13
  },
  {
@@ -3354,7 +3354,7 @@
   "Lanzamiento": "Mantener",
   "Bifrost": "20 + 1 al minuto",
   "Prueba": "Sentir Yggdrasil 14+",
-  "Descripcion": "Nada a 1 metro de no emite ningun tipo de energia ni señal que peuda ser detectada. No es valido con objetivos que esten diseñados para emitir señales. Por ejemplo, un ordenador seguira funcionando, pero no podra su corriente electrica y radiacion no podra ser detectada.",
+  "Descripcion": "Nada a 1 metro de no emite ningun tipo de energia ni sennal que peuda ser detectada. No es valido con objetivos que esten disennados para emitir sennales. Por ejemplo, un ordenador seguira funcionando, pero no podra su corriente electrica y radiacion no podra ser detectada.",
   "Column6": "No",
   "Esconderse": 14,
   "Informatica": 14
@@ -3363,10 +3363,10 @@
   "Nombre": "Sobrecarga",
   "Lanzamiento": "Normal",
   "Bifrost": 10,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Provocas una sobrecarga energetica en el sistema tocado",
   "Column6": "No",
-  "Cruzar Bifrost": 14,
+  "CruzarBifrost": 14,
   "Informatica": 14
  },
  {
@@ -3391,10 +3391,10 @@
   "Nombre": "Interferir ondas",
   "Lanzamiento": "Mantener",
   "Bifrost": "40 + 1 al minuto",
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Interfieres las ondas de una frecuencia hasta las microondas.",
   "Column6": "No",
-  "Cruzar Bifrost": 10,
+  "CruzarBifrost": 10,
   "Fisica\/Quimica": 15,
   "Informatica": 15
  },
@@ -3463,10 +3463,10 @@
   "Nombre": "Criptografia cuantica",
   "Lanzamiento": "5 minutos",
   "Bifrost": 50,
-  "Prueba": "Cruzar Bifrost 16+",
+  "Prueba": "CruzarBifrost 16+",
   "Descripcion": "El sistema informatico que estes tocando para a poder hacer operaciones criptograficas a velocidad de procesamiento cuantico, siempre y cuando permanezcas manteniendo contacto fisico con la maquina.",
   "Column6": "No",
-  "Engaño": 20,
+  "Enganno": 20,
   "Informatica": 20
  },
  {
@@ -3482,7 +3482,7 @@
   "Lanzamiento": "Inst\/3",
   "Bifrost": 130,
   "Prueba": "Einherjer 13+",
-  "Descripcion": "Tu siguiente ataque cuerpo a cuerpo provoca el doble de daño a una maquina. Esta habilidad debe ser utilizada antes de declarar el ataque.",
+  "Descripcion": "Tu siguiente ataque cuerpo a cuerpo provoca el doble de danno a una maquina. Esta habilidad debe ser utilizada antes de declarar el ataque.",
   "Column6": "No",
   "Destreza": 20,
   "Informatica": 20
@@ -3501,10 +3501,10 @@
   "Nombre": "Impulso electromagnetico",
   "Lanzamiento": "Normal",
   "Bifrost": 20,
-  "Prueba": "Cruzar Bifrost 14+",
+  "Prueba": "CruzarBifrost 14+",
   "Descripcion": "Lanzas un impulso electromagnetico que alcanza los 500 m de distancia (todas direcciones).\nTodos los aparatos electronicos simples se apagan durante  48 horas. Los aparatos electronicos complejos se rompen. Los aparatos de Bifrost no se ven afectados.",
   "Column6": "No",
-  "Cruzar Bifrost": 20,
+  "CruzarBifrost": 20,
   "Informatica": 20
  },
  {
@@ -3559,11 +3559,11 @@
   "Informatica": 30
  },
  {
-  "Nombre": "Puñetazo extra",
+  "Nombre": "Punnetazo extra",
   "Lanzamiento": "Inst\/5",
   "Bifrost": 5,
   "Prueba": "Einherjer 14+",
-  "Descripcion": "Esta habilidad solo se puede usar junto con una accion de ataque cuerpo a cuerpo en el que puedas dar un puñetazo. Haz un ataque adicional con tus puños.",
+  "Descripcion": "Esta habilidad solo se puede usar junto con una accion de ataque cuerpo a cuerpo en el que puedas dar un punnetazo. Haz un ataque adicional con tus punnos.",
   "Column6": "No",
   "Destreza": 8,
   "Fuerza": 8
@@ -3583,17 +3583,17 @@
   "Lanzamiento": "Normal",
   "Bifrost": 5,
   "Prueba": "Einherjer 12+",
-  "Descripcion": "El daño de tu ataques cuerpo a cuerpo se reduce a un tercio. Como accion inmediata cancelas esta habilidad.",
+  "Descripcion": "El danno de tu ataques cuerpo a cuerpo se reduce a un tercio. Como accion inmediata cancelas esta habilidad.",
   "Column6": "No",
-  "Engaño": 10,
+  "Enganno": 10,
   "Fuerza": 10
  },
  {
-  "Nombre": "Puñetazo brutal",
+  "Nombre": "Punnetazo brutal",
   "Lanzamiento": "Normal\/3",
   "Bifrost": 20,
   "Prueba": "Einherjer 12+",
-  "Descripcion": "Haces un ataque cuerpo a cuerpo con tus puños que provoca un 50% de daño adicional.",
+  "Descripcion": "Haces un ataque cuerpo a cuerpo con tus punnos que provoca un 50% de danno adicional.",
   "Column6": "No",
   "Destreza": 12,
   "Fuerza": 12
@@ -3609,42 +3609,42 @@
   "Fuerza": 12
  },
  {
-  "Nombre": "Puñetazo aturdidor",
+  "Nombre": "Punnetazo aturdidor",
   "Lanzamiento": "Normal",
   "Bifrost": 10,
   "Prueba": "Einherjer 13+",
-  "Descripcion": "Golpeas con un puñetazo.\nSi fueses a causar daño, en vez de esto, el golpeado tiene que hacer una prueba de resistencia (bono +3) frente a tu fuerza. Si falla queda K.O. durante 2d4 turnos.",
+  "Descripcion": "Golpeas con un punnetazo.\nSi fueses a causar danno, en vez de esto, el golpeado tiene que hacer una prueba de resistencia (bono +3) frente a tu fuerza. Si falla queda K.O. durante 2d4 turnos.",
   "Column6": "No",
   "Fuerza": 12
  },
  {
-  "Nombre": "Puños energeticos",
+  "Nombre": "Punnos energeticos",
   "Lanzamiento": "Mantener",
   "Bifrost": "15 + 10 al turno",
   "Prueba": "Einherjer 14+",
-  "Descripcion": "Tus puños pueden dañar escudos, y lo hacen al doble de daño normal.",
+  "Descripcion": "Tus punnos pueden dannar escudos, y lo hacen al doble de danno normal.",
   "Column6": "No",
   "Fisica\/Quimica": 14,
   "Fuerza": 14
  },
  {
-  "Nombre": "Esquiva y puñetazo",
+  "Nombre": "Esquiva y punnetazo",
   "Lanzamiento": "Inst\/5",
   "Bifrost": 10,
   "Prueba": "Sentir Yggdrasil 16+",
-  "Descripcion": "Si el objetivo ha fallado un ataque cuerpo a cuerpo contra ti, tu siguiente ataque cuerpo a cuerpo que le dañe, provoca un 25% mas de daño.",
+  "Descripcion": "Si el objetivo ha fallado un ataque cuerpo a cuerpo contra ti, tu siguiente ataque cuerpo a cuerpo que le danne, provoca un 25% mas de danno.",
   "Column6": "No",
   "Esquiva": 14,
   "Fuerza": 14
  },
  {
-  "Nombre": "Fortalecer puños",
+  "Nombre": "Fortalecer punnos",
   "Lanzamiento": "Mantener",
   "Bifrost": "10+5 alt urno",
-  "Prueba": "Cruzar Bifrost 17+",
-  "Descripcion": "Tus puños obtienen un bono de daño +30\/+20\/+10\/+5 mientras se mantenga esta habilidad",
+  "Prueba": "CruzarBifrost 17+",
+  "Descripcion": "Tus punnos obtienen un bono de danno +30\/+20\/+10\/+5 mientras se mantenga esta habilidad",
   "Column6": "No",
-  "Cruzar Bifrost": 14,
+  "CruzarBifrost": 14,
   "Fuerza": 14
  },
  {
@@ -3662,7 +3662,7 @@
   "Lanzamiento": "Normal",
   "Bifrost": 15,
   "Prueba": "Einherjer 14+",
-  "Descripcion": "Momentaneamente tu fuerza se triplica. Si la siguiente accion es un ataque cuerpo a cuerpo, daña el triple.",
+  "Descripcion": "Momentaneamente tu fuerza se triplica. Si la siguiente accion es un ataque cuerpo a cuerpo, danna el triple.",
   "Column6": "No",
   "Einherjer": 15,
   "Fuerza": 15
@@ -3670,7 +3670,7 @@
  {
   "Nombre": "Cortes profundos",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Aumenta en 10\/5\/5\/5 el daño de tus armas cortantes",
+  "Descripcion": "Aumenta en 10\/5\/5\/5 el danno de tus armas cortantes",
   "Column6": "No",
   "Destreza": 16,
   "Fuerza": 16
@@ -3690,7 +3690,7 @@
   "Lanzamiento": "Normal\/hora",
   "Bifrost": 5,
   "Prueba": "Einherjer 16+",
-  "Descripcion": "Triplica tu fuerza para la siguiente accion que realices. En caso de ser un ataque cuerpo a cuerop, triplica el daño.",
+  "Descripcion": "Triplica tu fuerza para la siguiente accion que realices. En caso de ser un ataque cuerpo a cuerop, triplica el danno.",
   "Column6": "No",
   "Einherjer": 17,
   "Fuerza": 17
@@ -3700,7 +3700,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": 20,
   "Prueba": "Einherjer 15+",
-  "Descripcion": "Quintuplica tu fuerza para la siguiente accion. Si fuese un ataque cuerpo a cuerpo, multiplica el daño por cinco. Despues de tu siguiente accion haz 10 pruebas de Resistencia 22+. Por cada fallo, sufres -1d y -1 a toda prueba fisica hasta que descanses.",
+  "Descripcion": "Quintuplica tu fuerza para la siguiente accion. Si fuese un ataque cuerpo a cuerpo, multiplica el danno por cinco. Despues de tu siguiente accion haz 10 pruebas de Resistencia 22+. Por cada fallo, sufres -1d y -1 a toda prueba fisica hasta que descanses.",
   "Column6": "No",
   "Fisica\/Quimica": 20,
   "Fuerza": 20
@@ -3710,7 +3710,7 @@
   "Lanzamiento": "2 acciones",
   "Bifrost": 40,
   "Prueba": "Einherjer 16+",
-  "Descripcion": "Selecciona un objetivo. Cada vez que falle un ataque contra ti, anota el daño que te hubiese hecho. Hasta el final de tu proximo turno, si le fueses a provocar algun daño por un ataque cuerpo a cuerpo, añade la mitad del daño anotado.",
+  "Descripcion": "Selecciona un objetivo. Cada vez que falle un ataque contra ti, anota el danno que te hubiese hecho. Hasta el final de tu proximo turno, si le fueses a provocar algun danno por un ataque cuerpo a cuerpo, annade la mitad del danno anotado.",
   "Column6": "No",
   "Esquiva": 20,
   "Fuerza": 20
@@ -3732,7 +3732,7 @@
   "Prueba": "Einherjer 13+",
   "Descripcion": "Reduce tu atributo mayor Fisico y todos los atributos menores que dependan de Fisico al valor que consideres (cada cual puede ser distinto). Cuando quieras, como accion estandar recuperas las puntuaciones normales.",
   "Column6": "No",
-  "Engaño": 20,
+  "Enganno": 20,
   "Fuerza": 20
  },
  {
@@ -3740,7 +3740,7 @@
   "Lanzamiento": "Normal\/5",
   "Bifrost": 30,
   "Prueba": "Einherjer 15+",
-  "Descripcion": "Haces un ataque cuerpo a cuerpo que provoca el doble de daño.",
+  "Descripcion": "Haces un ataque cuerpo a cuerpo que provoca el doble de danno.",
   "Column6": "No",
   "Destreza": 20,
   "Fuerza": 20
@@ -3761,7 +3761,7 @@
   "Lanzamiento": "Normal",
   "Bifrost": 10,
   "Prueba": "Einherjer 17+",
-  "Descripcion": "Arroja un objeto del tamaño de un balon que causa daño 90\/45\/25\/20,",
+  "Descripcion": "Arroja un objeto del tamanno de un balon que causa danno 90\/45\/25\/20,",
   "Column6": "No",
   "Deporte": 20,
   "Fuerza": 20
@@ -3783,16 +3783,16 @@
   "Fuerza": 20
  },
  {
-  "Nombre": "Puñetazo aturdidor mejorado",
+  "Nombre": "Punnetazo aturdidor mejorado",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Eliminas el bono del golpeado al utilizar la habilidad puñetazo aturdidor. Ademas dejas K.O. durante una cantidad de minutos igual a la diferencia de la prueba enfrentada.",
+  "Descripcion": "Eliminas el bono del golpeado al utilizar la habilidad punnetazo aturdidor. Ademas dejas K.O. durante una cantidad de minutos igual a la diferencia de la prueba enfrentada.",
   "Column6": "No",
   "Fuerza": 20
  },
  {
   "Nombre": "Fuerza Bergisar",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Todo el daño cuerpo a cuerpo que provoques se incrementa un 50%.",
+  "Descripcion": "Todo el danno cuerpo a cuerpo que provoques se incrementa un 50%.",
   "Column6": "Si",
   "Fuerza": 20
  },
@@ -3800,11 +3800,11 @@
   "Nombre": "Amenaza de bomba",
   "Lanzamiento": "Normal",
   "Bifrost": "X",
-  "Prueba": "Cruzar Bifrost 15+",
-  "Descripcion": "X puede ser 5 o 50. Crea una esfera presuntamente explosiva en la mano que peudes lanzar como si fuese una granada con una accion. Si X es 5, la esfera desaparece al iniciar tu siguiente turno. Si X es 50, explota dañando 400\/150\/-20",
+  "Prueba": "CruzarBifrost 15+",
+  "Descripcion": "X puede ser 5 o 50. Crea una esfera presuntamente explosiva en la mano que peudes lanzar como si fuese una granada con una accion. Si X es 5, la esfera desaparece al iniciar tu siguiente turno. Si X es 50, explota dannando 400\/150\/-20",
   "Column6": "No",
-  "Cruzar Bifrost": 16,
-  "Engaño": 16,
+  "CruzarBifrost": 16,
+  "Enganno": 16,
   "Fisica\/Quimica": 8
  },
  {
@@ -3821,7 +3821,7 @@
   "Nombre": "Uso de venenos",
   "Lanzamiento": "Inst",
   "Bifrost": 10,
-  "Prueba": "Cruzar Bifrost 11+",
+  "Prueba": "CruzarBifrost 11+",
   "Descripcion": "Usa esta habilidad mientras aplicas un veneno a un arma cuerpo a cuerpo. Eres inmune al veneno que has puesto en tu propia arma. (El mismo veneno en otro arma si te afecta)",
   "Column6": "No",
   "Destreza": 9,
@@ -3831,7 +3831,7 @@
   "Nombre": "Crear combustible",
   "Lanzamiento": "X minutos",
   "Bifrost": "5 * X",
-  "Prueba": "Cruzar Bifrost 14+",
+  "Prueba": "CruzarBifrost 14+",
   "Descripcion": "Creas X * 5 litros de combustible para un vehiculo (gasolina o similar)",
   "Column6": "No",
   "Conduccion": 10,
@@ -3841,10 +3841,10 @@
   "Nombre": "Camuflar olor",
   "Lanzamiento": "Normal",
   "Bifrost": 5,
-  "Prueba": "Cruzar Bifrost 12+",
+  "Prueba": "CruzarBifrost 12+",
   "Descripcion": "Durante 1 minuto eliminas tu olor corporal de los objetos que lleves y no desprendes nuevos olores.",
   "Column6": "No",
-  "Engaño": 12,
+  "Enganno": 12,
   "Fisica\/Quimica": 12
  },
  {
@@ -3861,7 +3861,7 @@
   "Nombre": "Indetectabilidad quimica",
   "Lanzamiento": "Mantener",
   "Bifrost": "30 + 1 al minuto",
-  "Prueba": "Cruzar Bifrost 14+",
+  "Prueba": "CruzarBifrost 14+",
   "Descripcion": "Mientras mantengas la habilidad, la sustancia objetivo a menos de un metro de ti es detectada como si fuese cualquier otra sustancia inocua a tu eleccion.",
   "Column6": "No",
   "Esconderse": 13,
@@ -3871,10 +3871,10 @@
   "Nombre": "Transformar gas",
   "Lanzamiento": "Inst\/10",
   "Bifrost": 30,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Transformas el gas objetivo a tu alrededor en otro gas. (Volumen maximo 5m^3 )",
   "Column6": "No",
-  "Cruzar Bifrost": 14,
+  "CruzarBifrost": 14,
   "Fisica\/Quimica": 14
  },
  {
@@ -3901,10 +3901,10 @@
   "Nombre": "Integrar",
   "Lanzamiento": "2 acciones * X",
   "Bifrost": "2 * X",
-  "Prueba": "Cruzar Bifrost 19+",
-  "Descripcion": "Puedes dar forma a materia de pequeño tamaño. Dependiendo de la complejidad de lo que quieras hacer se dara un valor a X.",
+  "Prueba": "CruzarBifrost 19+",
+  "Descripcion": "Puedes dar forma a materia de pequenno tamanno. Dependiendo de la complejidad de lo que quieras hacer se dara un valor a X.",
   "Column6": "No",
-  "Cruzar Bifrost": 20,
+  "CruzarBifrost": 20,
   "Fisica\/Quimica": 15
  },
  {
@@ -3921,28 +3921,28 @@
   "Nombre": "Camuflaje cutaneo",
   "Lanzamiento": "2 acciones",
   "Bifrost": 10,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Esta habilidad puede usarse consecutivamente y sus efectos se apilan. Tu piel se mimetizaa con el entorno, consiguiendo el equivalente un 10% de transparencia. Si alguien intenta localizarte, tiene -1d -1. Esta habilidad no camufla nada que no sea tu propio cuerpo biologico. Puedes ser percibido con normalidad con cualquier sentido que no sea la vista. Los efectos de esta habilidad se pierden cuando te muevas significativamente de tu posicion.",
   "Column6": "No",
   "Esconderse": 20,
   "Fisica\/Quimica": 20
  },
  {
-  "Nombre": "Engañar gravedad",
+  "Nombre": "Engannar gravedad",
   "Lanzamiento": "Mantener",
   "Bifrost": "15 + 10 al turno",
   "Prueba": "Einherjer 14+",
   "Descripcion": "Reduce a una cuarta parte el influjo de la gravedad contra ti.",
   "Column6": "No",
-  "Engaño": 20,
+  "Enganno": 20,
   "Fisica\/Quimica": 20
  },
  {
   "Nombre": "Hoja relampagueante",
   "Lanzamiento": "X",
   "Bifrost": "5 * X",
-  "Prueba": "Cruzar Bifrost 15+",
-  "Descripcion": "Una vez termines de lanzar la habilidad, durante T turnos tu arma cuerpo a cuerop provoca 20 de daño electrico adicional por golpe",
+  "Prueba": "CruzarBifrost 15+",
+  "Descripcion": "Una vez termines de lanzar la habilidad, durante T turnos tu arma cuerpo a cuerop provoca 20 de danno electrico adicional por golpe",
   "Column6": "No",
   "Destreza": 20,
   "Fisica\/Quimica": 20
@@ -3961,7 +3961,7 @@
   "Nombre": "Combustible viviente",
   "Lanzamiento": "Mantener",
   "Bifrost": "20 * 10 x minuto",
-  "Prueba": "Cruzar Bifrost 18+",
+  "Prueba": "CruzarBifrost 18+",
   "Descripcion": "Puedes emitir energia  para alimentar un vehiculo. El motor del vehiculo en contacto contigo recibe hasta 100 Kwh.",
   "Column6": "No",
   "Conduccion": 20,
@@ -3971,8 +3971,8 @@
   "Nombre": "Quebrar materia agrietada",
   "Lanzamiento": "Normal",
   "Bifrost": 20,
-  "Prueba": "Cruzar Bifrost 15+",
-  "Descripcion": "El objeto mineral a 15 casillas recibe 125 puntos de daño.",
+  "Prueba": "CruzarBifrost 15+",
+  "Descripcion": "El objeto mineral a 15 casillas recibe 125 puntos de danno.",
   "Column6": "No",
   "Buscar": 20,
   "Fisica\/Quimica": 20
@@ -3990,7 +3990,7 @@
   "Lanzamiento": "1 minuto",
   "Bifrost": 50,
   "Prueba": "Sentir Yggdrasil 15+",
-  "Descripcion": "Conoces informacion sobre el dispositivo tocado. Funcionamiento, diseño, planos…",
+  "Descripcion": "Conoces informacion sobre el dispositivo tocado. Funcionamiento, disenno, planos…",
   "Column6": "Si",
   "Fisica\/Quimica": 30
  },
@@ -4013,7 +4013,7 @@
   "Lanzamiento": "Inst\/1",
   "Bifrost": 10,
   "Prueba": "Einherjer 13+",
-  "Descripcion": "Reduce en 1 el resultado de una tirada de zona de daño contra ti.",
+  "Descripcion": "Reduce en 1 el resultado de una tirada de zona de danno contra ti.",
   "Column6": "No",
   "Norna": 15,
   "Esquiva": 7
@@ -4093,10 +4093,10 @@
   "Esquiva": 12
  },
  {
-  "Nombre": "Señuelo",
+  "Nombre": "Sennuelo",
   "Lanzamiento": "Normal",
   "Bifrost": 20,
-  "Prueba": "Cruzar Bifrost 14+",
+  "Prueba": "CruzarBifrost 14+",
   "Descripcion": "Selecciona una casilla a 10 de distancia. Hasta el inicio de tu siguiente turno aparentas estar en esta casilla. Quien pueda ver claramente esa localizacion ve que no estas ahi.",
   "Column6": "No",
   "Esconderse": 14,
@@ -4109,7 +4109,7 @@
   "Prueba": "Einherjer 12+",
   "Descripcion": "Reduce tu defensa en X hasta el principio de tu siguiente turno, siendo X cualquier valor a tu eleccion entre 0 y tu bono de esquiva. En cualquier momento, como accion instantanea puedes sumar 3*X tu defensa contra un unico ataque (Como tendrias defensa-X+3*X, seria defensa+2*X)",
   "Column6": "No",
-  "Engaño": 14,
+  "Enganno": 14,
   "Esquiva": 14
  },
  {
@@ -4127,10 +4127,10 @@
   "Nombre": "Borrosidad",
   "Lanzamiento": "Inst\/5",
   "Bifrost": 20,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Los golpes que te provoquen tienen un 50% de probabilidades de fallar hasta tu siguiente turno.",
   "Column6": "No",
-  "Cruzar Bifrost": 14,
+  "CruzarBifrost": 14,
   "Esquiva": 14
  },
  {
@@ -4157,7 +4157,7 @@
   "Nombre": "Resplandor de Delling",
   "Lanzamiento": "Normal\/10",
   "Bifrost": 50,
-  "Descripcion": "Haz una prueba de Cruzar Bifrost contra cada una de las Resistencias de cualquier criatura que sea capaz de verte. Las criaturas que fallen quedan cegadas tantos turnos como la cuantia del fallo +1. Si, de haberse movido hasta 5 casillas te podrian haber visto, realizan tambien la prueba pero el efecto dura la mitad. Quienes tengan cerrados los ojos, reducen a la mitad el efecto.",
+  "Descripcion": "Haz una prueba de CruzarBifrost contra cada una de las Resistencias de cualquier criatura que sea capaz de verte. Las criaturas que fallen quedan cegadas tantos turnos como la cuantia del fallo +1. Si, de haberse movido hasta 5 casillas te podrian haber visto, realizan tambien la prueba pero el efecto dura la mitad. Quienes tengan cerrados los ojos, reducen a la mitad el efecto.",
   "Column6": "Si",
   "Esquiva": 15
  },
@@ -4195,7 +4195,7 @@
   "Nombre": "Movimiento en sombras",
   "Lanzamiento": "Inst",
   "Bifrost": 40,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Esta habilidad solo se puede utilizar cuando estes escondido y un objetivo te localice. Te teleportas a una localizacion a como maximo 20 casillas y en la cual siguieses escondido para el objetivo.",
   "Column6": "No",
   "Esconderse": 20,
@@ -4206,9 +4206,9 @@
   "Lanzamiento": "Inst\/1",
   "Bifrost": 40,
   "Prueba": "Einherjer 19+",
-  "Descripcion": "Te desplazas una casilla para alejarte de la fuente del daño que fueses a sufrir. Si estando en esta nueva casilla no hubieses sufrido daño, no lo sufres.",
+  "Descripcion": "Te desplazas una casilla para alejarte de la fuente del danno que fueses a sufrir. Si estando en esta nueva casilla no hubieses sufrido danno, no lo sufres.",
   "Column6": "No",
-  "Engaño": 20,
+  "Enganno": 20,
   "Esquiva": 20
  },
  {
@@ -4264,7 +4264,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": 2,
   "Prueba": "Einherjer 15+",
-  "Descripcion": "Cancela el daño que fueses a sufrir. Sufres una herida horrible que reduce tu atractivo de forma permanente en 1 punto, y en otro punto adicional por cada 50 de daño que no hayas sufrido gracias a esta habilidad.",
+  "Descripcion": "Cancela el danno que fueses a sufrir. Sufres una herida horrible que reduce tu atractivo de forma permanente en 1 punto, y en otro punto adicional por cada 50 de danno que no hayas sufrido gracias a esta habilidad.",
   "Column6": "No",
   "Atractivo": 20,
   "Esquiva": 20
@@ -4283,9 +4283,9 @@
   "Lanzamiento": "Inst\/1",
   "Bifrost": 5,
   "Prueba": "Einherjer 11+",
-  "Descripcion": "Si tu ataque (no habilidad) impacto a un objetivo que no esperaba recibir este ataque, le dañas un 25% mas",
+  "Descripcion": "Si tu ataque (no habilidad) impacto a un objetivo que no esperaba recibir este ataque, le dannas un 25% mas",
   "Column6": "No",
-  "Engaño": 10,
+  "Enganno": 10,
   "Esconderse": 10
  },
  {
@@ -4330,9 +4330,9 @@
   "Lanzamiento": "Inst\/1",
   "Bifrost": 5,
   "Prueba": "Einherjer 11+",
-  "Descripcion": "Si tu ataque (no habilidad) impacto a un objetivo que no esperaba recibir este ataque, le dañas un 25% mas",
+  "Descripcion": "Si tu ataque (no habilidad) impacto a un objetivo que no esperaba recibir este ataque, le dannas un 25% mas",
   "Column6": "No",
-  "Engaño": 15,
+  "Enganno": 15,
   "Esconderse": 15
  },
  {
@@ -4340,10 +4340,10 @@
   "Lanzamiento": "5 minutos",
   "Bifrost": 15,
   "Prueba": "Conducir 14+",
-  "Descripcion": "Realiza una prueba enfrentada de Engaño contra la Mente o el Buscar del objetivo que te este persiguiendo al volante. Si superas, te pierde.",
+  "Descripcion": "Realiza una prueba enfrentada de Enganno contra la Mente o el Buscar del objetivo que te este persiguiendo al volante. Si superas, te pierde.",
   "Column6": "No",
   "Conduccion": 16,
-  "Engaño": 16,
+  "Enganno": 16,
   "Esconderse": 16
  },
  {
@@ -4361,7 +4361,7 @@
   "Lanzamiento": "Normal",
   "Bifrost": "X",
   "Prueba": "Esconderse 8+",
-  "Descripcion": "Golpeas cuerpo a cuerpo al objetivo y le causas X de daño. Si el objetivo no esperaba el golpe, duplica el daño.",
+  "Descripcion": "Golpeas cuerpo a cuerpo al objetivo y le causas X de danno. Si el objetivo no esperaba el golpe, duplica el danno.",
   "Column6": "Si",
   "Alfar": 5,
   "Esconderse": 17
@@ -4371,19 +4371,19 @@
   "Lanzamiento": "Inst\/1",
   "Bifrost": 5,
   "Prueba": "Einherjer 11+",
-  "Descripcion": "Si tu ataque (no habilidad) impacto a un objetivo que no esperaba recibir este ataque, le dañas un 25% mas",
+  "Descripcion": "Si tu ataque (no habilidad) impacto a un objetivo que no esperaba recibir este ataque, le dannas un 25% mas",
   "Column6": "No",
-  "Engaño": 20,
+  "Enganno": 20,
   "Esconderse": 20
  },
  {
   "Nombre": "Apariencia de Loki",
   "Lanzamiento": "Hora",
   "Bifrost": 75,
-  "Prueba": "Engaño 16+",
+  "Prueba": "Enganno 16+",
   "Descripcion": "Adoptas la forma objetivo durante un dia entero. En esta forma eres capaz de comunicarte normalmente. No cuentas con mejores habilidades por cambiar de forma y tus atributos se mantienen.",
   "Column6": "Si",
-  "Engaño": 20,
+  "Enganno": 20,
   "Esconderse": 20
  },
  {
@@ -4400,7 +4400,7 @@
   "Nombre": "Arma invisible",
   "Lanzamiento": "Mantenida",
   "Bifrost": "15 + 5 o +10 al turno",
-  "Prueba": "Cruzar Bifrost 13+",
+  "Prueba": "CruzarBifrost 13+",
   "Descripcion": "El arma cuerpo a cuerpo que portes esta perfectamente oculta mientras mantengas la habilidad. El coste de mantenimiento es 5 si es un arma a una mano o 10 si es a dos manos.",
   "Column6": "No",
   "Destreza": 20,
@@ -4420,7 +4420,7 @@
   "Nombre": "Despistar al volante",
   "Lanzamiento": "X",
   "Bifrost": 50,
-  "Prueba": "Engaño 17+",
+  "Prueba": "Enganno 17+",
   "Descripcion": "Todos los objetivos que te esten persiguiendo te pierden de vista durante X.",
   "Column6": "No",
   "Conduccion": 20,
@@ -4474,37 +4474,37 @@
   "Descripcion": "Si tu siguiente accion es un ataque cuerpo a cuerpo, puedes repetir la tirada de destreza y quedarte con el nuevo resultado.",
   "Column6": "No",
   "Destreza": 8,
-  "Engaño": 8
+  "Enganno": 8
  },
  {
   "Nombre": "Buscar confianza",
   "Lanzamiento": "Normal",
   "Bifrost": 20,
   "Prueba": "Buscar 13+",
-  "Descripcion": "Conoces al objetivo mas propenso a tus tiradas de engañar entre los objetivos designados a menos de 20 metros de ti y que puedas ver.",
+  "Descripcion": "Conoces al objetivo mas propenso a tus tiradas de engannar entre los objetivos designados a menos de 20 metros de ti y que puedas ver.",
   "Column6": "No",
   "Buscar": 10,
-  "Engaño": 10
+  "Enganno": 10
  },
  {
-  "Nombre": "Rectificar engaño",
+  "Nombre": "Rectificar enganno",
   "Lanzamiento": "Inst",
   "Bifrost": 15,
   "Prueba": "Sentir Yggdrasil 13+",
-  "Descripcion": "Esta habilidad solo se puede utilizar despues de una prueba de engaño. Haz una prueba de diplomacia. Si con el resultado de la prueba de diplomacia hubieses superado la dificultad del engaño, el objetivo no se toma mal tu intento de engaño.",
+  "Descripcion": "Esta habilidad solo se puede utilizar despues de una prueba de enganno. Haz una prueba de diplomacia. Si con el resultado de la prueba de diplomacia hubieses superado la dificultad del enganno, el objetivo no se toma mal tu intento de enganno.",
   "Column6": "No",
   "Diplomacia": 11,
-  "Engaño": 11
+  "Enganno": 11
  },
  {
   "Nombre": "Baja forma",
   "Lanzamiento": "Mantener",
   "Bifrost": "2 al turno",
-  "Prueba": "Engaño 15+",
+  "Prueba": "Enganno 15+",
   "Descripcion": "Hasta que canceles esta habilidad, parece que tu puntuacion de deporte es la mitad de la real.",
   "Column6": "No",
   "Deporte": 11,
-  "Engaño": 11
+  "Enganno": 11
  },
  {
   "Nombre": "Encontrar imprecisiones",
@@ -4514,7 +4514,7 @@
   "Descripcion": "Sabes si las indicaciones recibidas sobre una localizacion son intencionadamente falsas, ambiguas, aproximadas o ciertas.",
   "Column6": "No",
   "Buscar": 12,
-  "Engaño": 12
+  "Enganno": 12
  },
  {
   "Nombre": "Planear ataque",
@@ -4524,43 +4524,43 @@
   "Descripcion": "Realiza las tiradas como si fueses a realizar un ataque cuerpo a cuerpo sin llegar a realizarlo. Si asi lo quieres, tu siguiente accion puede ser realizar un ataque cuerpo a cuerpo con esta tirada. Si no realizas el ataque, realmente tan solo has pensado en atacar.",
   "Column6": "No",
   "Destreza": 13,
-  "Engaño": 13
+  "Enganno": 13
  },
  {
   "Nombre": "Disfraz de Loki",
   "Lanzamiento": "Normal",
   "Bifrost": 80,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Durante una hora, cambia tu apariencia por la deseada. No puede cambiar sensiblemente tu morfologia, pero si rasgos menores y todo atuendo.",
   "Column6": "No",
-  "Cruzar Bifrost": 14,
-  "Engaño": 14
+  "CruzarBifrost": 14,
+  "Enganno": 14
  },
  {
-  "Nombre": "Utilidad del engaño",
+  "Nombre": "Utilidad del enganno",
   "Lanzamiento": "Pasiva",
   "Descripcion": "Obtienes un bono permanente de +4 a la labia y la diplomacia",
   "Column6": "No",
-  "Engaño": 14
+  "Enganno": 14
  },
  {
-  "Nombre": "Pequeñas mentirijillas",
+  "Nombre": "Pequennas mentirijillas",
   "Lanzamiento": "Inst",
   "Bifrost": 15,
   "Prueba": "Sentir Yggdrasil 13+",
-  "Descripcion": "Esta habilidad solo se puede utilizar tras una prueba de diplomacia y antes de conocer el resultado. Haz una prueba de engañar y divide el resultado entre 10. Suma este numero a tu prueba de diplomacia.",
+  "Descripcion": "Esta habilidad solo se puede utilizar tras una prueba de diplomacia y antes de conocer el resultado. Haz una prueba de engannar y divide el resultado entre 10. Suma este numero a tu prueba de diplomacia.",
   "Column6": "No",
   "Diplomacia": 15,
-  "Engaño": 15
+  "Enganno": 15
  },
  {
-  "Nombre": "Camuflar engaño",
+  "Nombre": "Camuflar enganno",
   "Lanzamiento": "1 minuto",
   "Prueba": "Diplomacia 18+",
-  "Descripcion": "Estas un minuto hablando. Puedes repetir la tirada de engañar que hagas inmediatamente despues contra los mismos que estuviese hablando.",
+  "Descripcion": "Estas un minuto hablando. Puedes repetir la tirada de engannar que hagas inmediatamente despues contra los mismos que estuviese hablando.",
   "Column6": "No",
   "Diplomacia": 16,
-  "Engaño": 16
+  "Enganno": 16
  },
  {
   "Nombre": "Redirigir golpe",
@@ -4570,63 +4570,63 @@
   "Descripcion": "Repite la tirada de localizacion de tu ataque cuerpo a cuerpo. Quedate con el nuevo resultado.",
   "Column6": "No",
   "Destreza": 16,
-  "Engaño": 16
+  "Enganno": 16
  },
  {
   "Nombre": "Detectar mentira",
   "Lanzamiento": "Inst",
   "Bifrost": 5,
   "Prueba": "Buscar 13+",
-  "Descripcion": "Obliga a repetir una tirada de engañar contra ti o repite tu tirada para detectar una mentira. Si resulta que no hay mentira, se repetira igualemente una prueba falsa de engañar o repetiras tu prueba para detectar la mentira que no existe.",
+  "Descripcion": "Obliga a repetir una tirada de engannar contra ti o repite tu tirada para detectar una mentira. Si resulta que no hay mentira, se repetira igualemente una prueba falsa de engannar o repetiras tu prueba para detectar la mentira que no existe.",
   "Column6": "No",
   "Buscar": 16,
-  "Engaño": 16
+  "Enganno": 16
  },
  {
   "Nombre": "A mi no me mientes",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Puedes usar una tirada de Diplomacia para enfrentarte a cualquier tirada de Engañar del objetivo.",
+  "Descripcion": "Puedes usar una tirada de Diplomacia para enfrentarte a cualquier tirada de Engannar del objetivo.",
   "Column6": "No",
   "Diplomacia": 20,
-  "Engaño": 20
+  "Enganno": 20
  },
  {
   "Nombre": "Golpe fantasma",
   "Lanzamiento": "Inst\/2",
   "Bifrost": 5,
   "Prueba": "Einherjer 16+",
-  "Descripcion": "Cancela tu ataque cuerpo a cuerpo que acabes de realizar. Esta habilidad puede utilizrse hasta justo antes de provocar daño. Puedes volver a realizar el ataque o realizar otra accion si solo hiciste un ataque. Todas las reacciones que hayan ocurrido por el ataque cancelado, ocurren realmente",
+  "Descripcion": "Cancela tu ataque cuerpo a cuerpo que acabes de realizar. Esta habilidad puede utilizrse hasta justo antes de provocar danno. Puedes volver a realizar el ataque o realizar otra accion si solo hiciste un ataque. Todas las reacciones que hayan ocurrido por el ataque cancelado, ocurren realmente",
   "Column6": "No",
   "Destreza": 20,
-  "Engaño": 20
+  "Enganno": 20
  },
  {
   "Nombre": "Quiebro a ultima hora",
   "Lanzamiento": "Inst",
   "Bifrost": 10,
-  "Prueba": "Engaño 17+",
+  "Prueba": "Enganno 17+",
   "Descripcion": "Si durante tu ultimo turno usaste 2 acciones para moverte, cambia tu posicion actual a una a 3 casillas como maximo de la actual pero a la que pudieses haber llegado con tu ultimo movimiento.",
   "Column6": "No",
   "Deporte": 20,
-  "Engaño": 20
+  "Enganno": 20
  },
  {
   "Nombre": "Dejar rastros falsos",
   "Lanzamiento": "Normal",
   "Bifrost": "X",
-  "Prueba": "Engaño 17+",
-  "Descripcion": "Dejas un rastro falso al volante, cualqueira que quiera seguir tu rastro debe hacer una prueba en mente con dificultad X\/2 para darse cuenta del engaño y no seguir el rastro falso.",
+  "Prueba": "Enganno 17+",
+  "Descripcion": "Dejas un rastro falso al volante, cualqueira que quiera seguir tu rastro debe hacer una prueba en mente con dificultad X\/2 para darse cuenta del enganno y no seguir el rastro falso.",
   "Column6": "No",
   "Conduccion": 20,
-  "Engaño": 20
+  "Enganno": 20
  },
  {
   "Nombre": "Detector de mentiras viviente",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Sabes cuando alguien esta haciendo una prueba de engañar contra ti.",
+  "Descripcion": "Sabes cuando alguien esta haciendo una prueba de engannar contra ti.",
   "Column6": "No",
   "Buscar": 20,
-  "Engaño": 20
+  "Enganno": 20
  },
  {
   "Nombre": "Viuda negra",
@@ -4636,14 +4636,14 @@
   "Descripcion": "El objetivo con el que estes teniendo sexo debe realizar una prueba de Resistencia enfrentada a tu atractivo. Si falla, muere y parece por causas naturales.",
   "Column6": "No",
   "Atractivo": 20,
-  "Engaño": 20
+  "Enganno": 20
  },
  {
   "Nombre": "Lanza de Tyr",
   "Lanzamiento": "Normal",
   "Bifrost": 50,
   "Prueba": "Einherjer 10+",
-  "Descripcion": "Invocas una lanza de energia en una de tus manos, aunque debe ser empuñada con dos manos.\n150\/80\/60\/40, 2 golpes, +6 al golpear. Si golpea ademas de hacer la tirada de resistencia oportuna se hace una prueba enfrentada de destreza vs resistencia. Si ganas el miembro es cercenado si fuese posible (El torso por ejemplo no puede ser cercenado)",
+  "Descripcion": "Invocas una lanza de energia en una de tus manos, aunque debe ser empunnada con dos manos.\n150\/80\/60\/40, 2 golpes, +6 al golpear. Si golpea ademas de hacer la tirada de resistencia oportuna se hace una prueba enfrentada de destreza vs resistencia. Si ganas el miembro es cercenado si fuese posible (El torso por ejemplo no puede ser cercenado)",
   "Column6": "Si",
   "Destreza": 15,
   "Einherjer": 5
@@ -4664,7 +4664,7 @@
   "Lanzamiento": "Inst\/5",
   "Bifrost": 10,
   "Prueba": "Einherjer 10+",
-  "Descripcion": "Esta habilidad solo puede usarse cuando vaya a ocurrir una explosion. Toda criatura aliada en el area de efecto de la explosion debe decidir si ser objetivo de esta habilidad o no, incluido tu. Todos los objetivos deben moverse hasta la mitad de su velocidad para evitar lo maximo posible el daño de la explosion.",
+  "Descripcion": "Esta habilidad solo puede usarse cuando vaya a ocurrir una explosion. Toda criatura aliada en el area de efecto de la explosion debe decidir si ser objetivo de esta habilidad o no, incluido tu. Todos los objetivos deben moverse hasta la mitad de su velocidad para evitar lo maximo posible el danno de la explosion.",
   "Column6": "No",
   "Norna": 8,
   "Einherjer": 5
@@ -4683,7 +4683,7 @@
   "Lanzamiento": "Normal",
   "Bifrost": 15,
   "Prueba": "Einherjer 7+",
-  "Descripcion": "Triplica tu capacidad de salto (y no sufres daño de caida por este exceso de salto)",
+  "Descripcion": "Triplica tu capacidad de salto (y no sufres danno de caida por este exceso de salto)",
   "Column6": "No",
   "Einherjer": 5
  },
@@ -4710,7 +4710,7 @@
   "Lanzamiento": "Normal",
   "Bifrost": 15,
   "Prueba": "Einherjer 8+",
-  "Descripcion": "Mueves el objetio de menos de 3 kg a volutad. Si esta sujeto hay que hacer una prueba de cruzar bifrost contra quien lo este sujetando y contra el atributo que lo sujete.",
+  "Descripcion": "Mueves el objetio de menos de 3 kg a volutad. Si esta sujeto hay que hacer una prueba de CruzarBifrost contra quien lo este sujetando y contra el atributo que lo sujete.",
   "Column6": "No",
   "Mnt": 16,
   "Einherjer": 8
@@ -4720,7 +4720,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": "X\/2",
   "Prueba": "Einherjer 9+",
-  "Descripcion": "No sufres daño por caer desde hasta X metros de altura (con gravedad terrestre).",
+  "Descripcion": "No sufres danno por caer desde hasta X metros de altura (con gravedad terrestre).",
   "Column6": "No",
   "Alfar": 15,
   "Einherjer": 10
@@ -4760,7 +4760,7 @@
   "Bifrost": 20,
   "Descripcion": "Aumenta en 1 el resultado de una prueba de Einherjer que acabes de realizar",
   "Column6": "No",
-  "Cruzar Bifrost": 14,
+  "CruzarBifrost": 14,
   "Einherjer": 14
  },
  {
@@ -4795,7 +4795,7 @@
   "Lanzamiento": "Normal",
   "Bifrost": 30,
   "Prueba": "Einherjer 10+",
-  "Descripcion": "Mueves el objetio de menos de 30 kg a volutad. Si esta sujeto hay que hacer una prueba de cruzar bifrost contra quien lo este sujetando y contra el atributo que lo sujete.",
+  "Descripcion": "Mueves el objetio de menos de 30 kg a volutad. Si esta sujeto hay que hacer una prueba de CruzarBifrost contra quien lo este sujetando y contra el atributo que lo sujete.",
   "Column6": "No",
   "Mnt": 22,
   "Einherjer": 15
@@ -4829,7 +4829,7 @@
   "Nombre": "Servicio de Gullinkambi",
   "Lanzamiento": "Normal",
   "Bifrost": 50,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Crea una especie de criatura aviar de puro Bifrost. La criatura vigila un lugar durante 24 horas, y emitira un agudo chillido si detecta algo que considera un peligro.",
   "Column6": "Si",
   "Einherjer": 19
@@ -4838,20 +4838,20 @@
   "Nombre": "Muro de energia",
   "Lanzamiento": "Normal",
   "Bifrost": 40,
-  "Prueba": "Cruzar Bifrost 14+",
+  "Prueba": "CruzarBifrost 14+",
   "Descripcion": "Convoca durante 30 minutos un escudo vertical de 5 casillas de ancho x 2 de alto. 700 de energia.",
   "Column6": "No",
-  "Cruzar Bifrost": 20,
+  "CruzarBifrost": 20,
   "Einherjer": 20
  },
  {
   "Nombre": "Salto por el Valhalla (B)",
   "Lanzamiento": "Normal",
   "Bifrost": 40,
-  "Prueba": "Cruzar Bifrost 8+",
+  "Prueba": "CruzarBifrost 8+",
   "Descripcion": "Te teleportas hasta la casilla visible que este situada hasta a 15 casillas de distancia.",
   "Column6": "No",
-  "Cruzar Bifrost": 20,
+  "CruzarBifrost": 20,
   "Einherjer": 20
  },
  {
@@ -4859,7 +4859,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": "X",
   "Prueba": "Einherjer 12+",
-  "Descripcion": "No sufres daño por caer desde hasta X metros de altura (con gravedad terrestre).",
+  "Descripcion": "No sufres danno por caer desde hasta X metros de altura (con gravedad terrestre).",
   "Column6": "No",
   "Einherjer": 20
  },
@@ -4878,20 +4878,20 @@
   "Nombre": "Suelo de energia",
   "Lanzamiento": "Normal",
   "Bifrost": 40,
-  "Prueba": "Cruzar Bifrost 14+",
+  "Prueba": "CruzarBifrost 14+",
   "Descripcion": "Convocas durante 30 minutos un escudo de energia horizontal de hasta 10 x 5 casillas. 700 de energia. Se puede caminar sobre el a la mitad de velocidad normal.",
   "Column6": "No",
-  "Cruzar Bifrost": 25,
+  "CruzarBifrost": 25,
   "Einherjer": 25
  },
  {
   "Nombre": "Salto por el Valhalla mayor (B)",
   "Lanzamiento": "Normal",
   "Bifrost": 100,
-  "Prueba": "Cruzar Bifrost 11+",
+  "Prueba": "CruzarBifrost 11+",
   "Descripcion": "Te teleportas hasta la casilla visible que este situada hasta a 1 km de distancia.",
   "Column6": "No",
-  "Cruzar Bifrost": 35,
+  "CruzarBifrost": 35,
   "Einherjer": 27
  },
  {
@@ -4901,7 +4901,7 @@
   "Prueba": "Cruzar 14+",
   "Descripcion": "Convoca durante 30 minutos 30 casillas de superficie. Puedes colocar cada casilla como consideres, siempre que este en contacto con otra. No puede haber \"islas\". 700 de energia.",
   "Column6": "No",
-  "Cruzar Bifrost": 30,
+  "CruzarBifrost": 30,
   "Einherjer": 30
  },
  {
@@ -4945,7 +4945,7 @@
   "Nombre": "Voz del fragil",
   "Lanzamiento": "Inst",
   "Bifrost": 10,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Obtienes un bono de +3 a tu siguiente prueba de diplomacia.",
   "Column6": "No",
   "Atractivo": 12,
@@ -4955,16 +4955,16 @@
   "Nombre": "Juramento de Forseti",
   "Lanzamiento": "Inst",
   "Bifrost": 150,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "El objetivo debe decidir si jurar por el nombre de Froseti lo que el usuario indique. En caso de que lo jure, no puede faltar a su palabra voluntariamente ni pude buscar resquicios para hacerlo.",
   "Column6": "No",
-  "Cruzar Bifrost": 14,
+  "CruzarBifrost": 14,
   "Diplomacia": 14
  },
  {
   "Nombre": "Utilidad de la diplomacia",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Obtienes un bono permanente de +4 al engaño y la labia",
+  "Descripcion": "Obtienes un bono permanente de +4 al enganno y la labia",
   "Column6": "No",
   "Diplomacia": 14
  },
@@ -4972,10 +4972,10 @@
   "Nombre": "Palabra de Froseti",
   "Lanzamiento": "Inst\/mes",
   "Bifrost": 150,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Calmas al instane una situacion violenta. Puede volver a generarse violencia.",
   "Column6": "Si",
-  "Cruzar Bifrost": 5,
+  "CruzarBifrost": 5,
   "Diplomacia": 15
  },
  {
@@ -5031,7 +5031,7 @@
   "Lanzamiento": "2 acciones",
   "Bifrost": 10,
   "Prueba": "Einherjer 16+",
-  "Descripcion": "Te mueves hasta tu velocidad hacia el objetivo y realizas un ataque cuerpo a cuerpo automaticamente que causa un 25% extra de daño.",
+  "Descripcion": "Te mueves hasta tu velocidad hacia el objetivo y realizas un ataque cuerpo a cuerpo automaticamente que causa un 25% extra de danno.",
   "Column6": "No",
   "Deporte": 8,
   "Destreza": 8
@@ -5059,10 +5059,10 @@
   "Nombre": "Cargar de Bifrost",
   "Lanzamiento": "Mantener",
   "Bifrost": "15 + 5 al turno",
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "El arma cuerpo a cuerpo no invocada obtiene un bono de +30\/+20\/+10\/+5 mientras se mantenga esta habilidad.",
   "Column6": "No",
-  "Cruzar Bifrost": 14,
+  "CruzarBifrost": 14,
   "Destreza": 14
  },
  {
@@ -5078,7 +5078,7 @@
   "Nombre": "Espada Balmung",
   "Lanzamiento": "Normal",
   "Bifrost": 50,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Permite invocar un arma cortante a dos manos de 200\/90\/70\/50 (x1).\nLa espada Balmung ignora las coberturas fisicas y puede cortarlo todo.",
   "Column6": "Si",
   "Heroe": 40,
@@ -5090,7 +5090,7 @@
   "Lanzamiento": "2 acciones",
   "Bifrost": 20,
   "Prueba": "Einherjer 18+",
-  "Descripcion": "Te mueves hasta tu velocidad hacia el objetivo y realizas un ataque cuerpo a cuerpo automaticamente que causa un 50% extra de daño.",
+  "Descripcion": "Te mueves hasta tu velocidad hacia el objetivo y realizas un ataque cuerpo a cuerpo automaticamente que causa un 50% extra de danno.",
   "Column6": "No",
   "Deporte": 16,
   "Destreza": 16
@@ -5136,7 +5136,7 @@
  {
   "Nombre": "Maestro de esgrima",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Aumenta en 20\/15\/10\/5 el daño que provocas con armas cuerpo a cuerpo.",
+  "Descripcion": "Aumenta en 20\/15\/10\/5 el danno que provocas con armas cuerpo a cuerpo.",
   "Column6": "No",
   "Alfar": 17,
   "Valkiria": 17,
@@ -5156,7 +5156,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": "X",
   "Prueba": "Einherjer 15+",
-  "Descripcion": "Te lanzas de un vehiculo en marcha. Recude en X el daño adicional que recibirias por hacerlo. (Por la caida, si caes en acido el acido te daña igual, y si te tiras desde un coche avion, el daño de altura lo recibes igual)",
+  "Descripcion": "Te lanzas de un vehiculo en marcha. Recude en X el danno adicional que recibirias por hacerlo. (Por la caida, si caes en acido el acido te danna igual, y si te tiras desde un coche avion, el danno de altura lo recibes igual)",
   "Column6": "No",
   "Conduccion": 8,
   "Deporte": 8
@@ -5185,10 +5185,10 @@
   "Nombre": "Carrera energetica",
   "Lanzamiento": "2 acciones",
   "Bifrost": "X * 10",
-  "Prueba": "Cruzar Bifrost 14+",
+  "Prueba": "CruzarBifrost 14+",
   "Descripcion": "Te desplazas hasta X casillas como si hubieses corrido por esas casillas.",
   "Column6": "No",
-  "Cruzar Bifrost": 14,
+  "CruzarBifrost": 14,
   "Deporte": 14
  },
  {
@@ -5236,10 +5236,10 @@
   "Nombre": "Lanza de energia (A)",
   "Lanzamiento": "Normal",
   "Bifrost": 13,
-  "Prueba": "Cruzar Bifrost 12+",
-  "Descripcion": "A 25 de distancia, provoca 45 de daño.",
+  "Prueba": "CruzarBifrost 12+",
+  "Descripcion": "A 25 de distancia, provoca 45 de danno.",
   "Column6": "No",
-  "Cruzar Bifrost": 4
+  "CruzarBifrost": 4
  },
  {
   "Nombre": "Sleipnir",
@@ -5248,17 +5248,17 @@
   "Column6": "Si",
   "Astronavegar": 15,
   "Conduccion": 15,
-  "Cruzar Bifrost": 5
+  "CruzarBifrost": 5
  },
  {
   "Nombre": "Escudo de Yggdrasil (A)",
   "Lanzamiento": "Normal\/5",
   "Bifrost": 60,
-  "Prueba": "Cruzar Bifrost 11+",
+  "Prueba": "CruzarBifrost 11+",
   "Descripcion": "Invocas en el objetivo un escudo de 250 de energia durante 5 minutos.\nNo puedes volver a invocar el escudo sobre el mismo objetivo hasta pasados 5 turnos de la perdida de este escudo por parte de ese objetivo",
   "Column6": "No",
   "Valkiria": 16,
-  "Cruzar Bifrost": 10
+  "CruzarBifrost": 10
  },
  {
   "Nombre": "Apresurar la batalla",
@@ -5268,16 +5268,16 @@
   "Descripcion": "Obtienes +4 a la prueba de iniciativa que acabes de realizar.",
   "Column6": "No",
   "Norna": 20,
-  "Cruzar Bifrost": 10
+  "CruzarBifrost": 10
  },
  {
   "Nombre": "Granada de energia (B)",
   "Lanzamiento": "Normal",
   "Bifrost": 9,
   "Prueba": "Cruzar Biffrost 11+",
-  "Descripcion": "Invocas una granada de energia de daño 150\/80\/-20 en tu mano. Explota al finalizar la siguiente accion normal, independientemente del jugador del que sea. (Debes lanzarla para que no te explote como accion normal)",
+  "Descripcion": "Invocas una granada de energia de danno 150\/80\/-20 en tu mano. Explota al finalizar la siguiente accion normal, independientemente del jugador del que sea. (Debes lanzarla para que no te explote como accion normal)",
   "Column6": "No",
-  "Cruzar Bifrost": 10
+  "CruzarBifrost": 10
  },
  {
   "Nombre": "Convozar Skinfaxi",
@@ -5287,7 +5287,7 @@
   "Descripcion": "Creas un vehiculo personal similar en cuanto a funciones con una moto, aunque puedes moldear su apariencia exclusivamente con fines esteticos. El vehiculo desaparece 1 hora despues de que lo abandones.",
   "Column6": "No",
   "Conduccion": 14,
-  "Cruzar Bifrost": 14
+  "CruzarBifrost": 14
  },
  {
   "Nombre": "Buscar en el Bifrost",
@@ -5297,7 +5297,7 @@
   "Descripcion": "Puedes localizar una energia concreta en el Valhalla y conocer su ubicacion.",
   "Column6": "No",
   "Buscar": 14,
-  "Cruzar Bifrost": 14
+  "CruzarBifrost": 14
  },
  {
   "Nombre": "Alma Jotun",
@@ -5306,17 +5306,17 @@
   "Column6": "Si",
   "Risa": 30,
   "Dvergr": 30,
-  "Cruzar Bifrost": 15
+  "CruzarBifrost": 15
  },
  {
   "Nombre": "Proteccion del Valhalla",
   "Lanzamiento": "Normal",
   "Bifrost": 40,
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "Durante 5 turnos, el objetivo recibe 10 menos de daño de todas las fuentes fisicas.",
+  "Prueba": "CruzarBifrost 14+",
+  "Descripcion": "Durante 5 turnos, el objetivo recibe 10 menos de danno de todas las fuentes fisicas.",
   "Column6": "No",
   "Valkiria": 15,
-  "Cruzar Bifrost": 15
+  "CruzarBifrost": 15
  },
  {
   "Nombre": "Alma Vanir",
@@ -5325,7 +5325,7 @@
   "Column6": "Si",
   "Alfar": 30,
   "Valkiria": 30,
-  "Cruzar Bifrost": 15
+  "CruzarBifrost": 15
  },
  {
   "Nombre": "Alma Aesir",
@@ -5334,184 +5334,184 @@
   "Column6": "Si",
   "Heroe": 30,
   "Norna": 30,
-  "Cruzar Bifrost": 15
+  "CruzarBifrost": 15
  },
  {
   "Nombre": "Rafaga de viento",
   "Lanzamiento": "Inst",
   "Bifrost": 8,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Creas una rafaga de viento de 75 km\/h",
   "Column6": "No",
-  "Cruzar Bifrost": 15
+  "CruzarBifrost": 15
  },
  {
   "Nombre": "Rayo blanco (B)",
   "Lanzamiento": "Normal",
   "Bifrost": 30,
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "Provocas 45 de daño a todos los objetivos en una linea recta a tu eleccion hasta una distancia de 25 casillas.",
+  "Prueba": "CruzarBifrost 14+",
+  "Descripcion": "Provocas 45 de danno a todos los objetivos en una linea recta a tu eleccion hasta una distancia de 25 casillas.",
   "Column6": "No",
-  "Cruzar Bifrost": 17
+  "CruzarBifrost": 17
  },
  {
   "Nombre": "Vincuso simpatico",
   "Lanzamiento": "Mantener",
   "Bifrost": "50 al turno",
-  "Prueba": "Cruzar Bifrost 15+",
-  "Descripcion": "Selecciona un objetivo primario y uno secundario, ambos deben ser aliados y ninguno de ellos puedes ser tu. Siempre que el objetivo primario fuese a sufrir daño, no lo sufre. En su lugar, el objetivo secundario recibe el 50% de dicho daño.",
+  "Prueba": "CruzarBifrost 15+",
+  "Descripcion": "Selecciona un objetivo primario y uno secundario, ambos deben ser aliados y ninguno de ellos puedes ser tu. Siempre que el objetivo primario fuese a sufrir danno, no lo sufre. En su lugar, el objetivo secundario recibe el 50% de dicho danno.",
   "Column6": "No",
   "Valkiria": 18,
-  "Cruzar Bifrost": 20
+  "CruzarBifrost": 20
  },
  {
   "Nombre": "Atravesar el Bifrost",
   "Lanzamiento": "Inst",
   "Bifrost": 30,
-  "Prueba": "Cruzar Bifrost  15+",
+  "Prueba": "CruzarBifrost  15+",
   "Descripcion": "Realizas el doble de acciones durante este turno y el siguiente; ademas las habilidades que utilices tendran un coste de Bifrost reducido a la mitad y tendras un bono de +1 para activarlas. Cuando la habilidad acabe tienes que hacer una prueba de Mnt 14+ para no quedar aturdido 1d4 asaltos, y una prueba de Fis 18+ para que tus musculos no se debilites (-1d a toda prueba fisica hasta descansar)",
   "Column6": "No",
   "Alfar": 30,
-  "Cruzar Bifrost": 20
+  "CruzarBifrost": 20
  },
  {
   "Nombre": "Escudo de Yggdrasil (B)",
   "Lanzamiento": "Normal\/5",
   "Bifrost": 60,
-  "Prueba": "Cruzar Bifrost 11+",
+  "Prueba": "CruzarBifrost 11+",
   "Descripcion": "Invocas en el objetivo un escudo de 250 de energia durante 5 minutos.\nNo puedes volver a invocar el escudo sobre el mismo objetivo hasta pasados 5 turnos de la perdida de este escudo por parte de ese objetivo",
   "Column6": "No",
-  "Cruzar Bifrost": 20
+  "CruzarBifrost": 20
  },
  {
   "Nombre": "Visitantes del Valhalla",
   "Lanzamiento": "1 minuto",
   "Bifrost": 33,
-  "Prueba": "Cruzar Bifrost 18+",
+  "Prueba": "CruzarBifrost 18+",
   "Descripcion": "Puedes hacer cruzar al valhalla hasta a tres individuos no violentos contigo que esten a una distancia de 30 metros y al alcance de la vista. Tu tambien cruzas, y cuando salgas, el resto tambien lo hace.",
   "Column6": "No",
   "Valkiria": 15,
-  "Cruzar Bifrost": 21
+  "CruzarBifrost": 21
  },
  {
   "Nombre": "Empujon gravitacional",
   "Lanzamiento": "Normal",
   "Bifrost": 30,
-  "Prueba": "Cruzar Bifrost 16+",
-  "Descripcion": "Debes golpear al objetivo con un ataque cuerpo a cuerpo. Si lo haces, le dañas 15D10 adicional y es empujado 15 casillas.",
+  "Prueba": "CruzarBifrost 16+",
+  "Descripcion": "Debes golpear al objetivo con un ataque cuerpo a cuerpo. Si lo haces, le dannas 15D10 adicional y es empujado 15 casillas.",
   "Column6": "No",
-  "Cruzar Bifrost": 22
+  "CruzarBifrost": 22
  },
  {
   "Nombre": "Lanza de energia mejorada",
   "Lanzamiento": "Inst",
   "Bifrost": 30,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Aumenta al doble el efecto de la siguiente habilidad “lanza de energia” que uses durante el turno",
   "Column6": "No",
   "Risa": 26,
-  "Cruzar Bifrost": 24
+  "CruzarBifrost": 24
  },
  {
   "Nombre": "Lanza de energia poderosa",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Tus lanzas de energia provocan 10 mas de daño",
+  "Descripcion": "Tus lanzas de energia provocan 10 mas de danno",
   "Column6": "No",
-  "Cruzar Bifrost": 24
+  "CruzarBifrost": 24
  },
  {
   "Nombre": "Bola de energia",
   "Lanzamiento": "Normal",
   "Bifrost": 40,
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "Provocas 80 de daño. 20 distancia. Si quieres apuntar a algun lugar especifico requiere una prueba de punteria dependiendo de las circunstancias.",
+  "Prueba": "CruzarBifrost 14+",
+  "Descripcion": "Provocas 80 de danno. 20 distancia. Si quieres apuntar a algun lugar especifico requiere una prueba de punteria dependiendo de las circunstancias.",
   "Column6": "No",
   "Risa": 35,
-  "Cruzar Bifrost": 25
+  "CruzarBifrost": 25
  },
  {
   "Nombre": "Desmaterializar",
   "Lanzamiento": "2 acciones",
   "Bifrost": 45,
-  "Prueba": "Cruzar Bifrost 16+",
+  "Prueba": "CruzarBifrost 16+",
   "Descripcion": "Desintegras el objetivo tocado hasta de un volumen equivalente a un balon inflado.",
   "Column6": "No",
-  "Cruzar Bifrost": 25
+  "CruzarBifrost": 25
  },
  {
   "Nombre": "Circulo Bifrost personal",
   "Lanzamiento": "1 hora",
   "Bifrost": 100,
-  "Prueba": "Cruzar Bifrost 20+",
-  "Descripcion": "Crea un circulo Bifrost de uso personal. Solo tu y quien te acompañe en el momento de usarlo, pueden utilizarlo.",
+  "Prueba": "CruzarBifrost 20+",
+  "Descripcion": "Crea un circulo Bifrost de uso personal. Solo tu y quien te acompanne en el momento de usarlo, pueden utilizarlo.",
   "Column6": "Si",
-  "Cruzar Bifrost": 25
+  "CruzarBifrost": 25
  },
  {
   "Nombre": "Crear circulo de Bifrost",
   "Lanzamiento": "5 horas",
   "Bifrost": 300,
-  "Prueba": "Cruzar Bifrost 18+",
+  "Prueba": "CruzarBifrost 18+",
   "Descripcion": "Crea un circulo Bifrost.",
   "Column6": "Si",
-  "Cruzar Bifrost": 25
+  "CruzarBifrost": 25
  },
  {
   "Nombre": "Bomba de energia",
   "Lanzamiento": "Normal",
   "Bifrost": 30,
-  "Prueba": "Cruzar Bifrost 15+",
-  "Descripcion": "Invocas una granada de energia de daño 400\/150\/-20 en tu mano. Explota tras 4-8 acciones normales (Tu decision al usar la habilidad), independientemente de quien realice dichas acciones. (Lanzarla  es una accion diferente a esta habilidad).",
+  "Prueba": "CruzarBifrost 15+",
+  "Descripcion": "Invocas una granada de energia de danno 400\/150\/-20 en tu mano. Explota tras 4-8 acciones normales (Tu decision al usar la habilidad), independientemente de quien realice dichas acciones. (Lanzarla  es una accion diferente a esta habilidad).",
   "Column6": "No",
   "Risa": 28,
-  "Cruzar Bifrost": 26
+  "CruzarBifrost": 26
  },
  {
   "Nombre": "Provocar dolor",
   "Lanzamiento": "Normal",
   "Bifrost": 40,
-  "Descripcion": "Haces una prueba enfrentada de Cruzar Bifrost vs Resistencia del objetivo. Si pierde sufre 60 de daño. Haz una prueba de Resistencia 16+ cada inicio de turno hasta que supere. Mientras falle, pierde el turno.",
+  "Descripcion": "Haces una prueba enfrentada de CruzarBifrost vs Resistencia del objetivo. Si pierde sufre 60 de danno. Haz una prueba de Resistencia 16+ cada inicio de turno hasta que supere. Mientras falle, pierde el turno.",
   "Column6": "No",
-  "Cruzar Bifrost": 26
+  "CruzarBifrost": 26
  },
  {
   "Nombre": "Vinculo antipatico",
   "Lanzamiento": "Mantener",
   "Bifrost": "75 al turno",
-  "Prueba": "Cruzar Bifrost 16+",
-  "Descripcion": "Selecciona dos objetivos. Siempre que uno fuese a sufrir daño, el sufre el 50% del daño y el otro objetivo el otro 50%.",
+  "Prueba": "CruzarBifrost 16+",
+  "Descripcion": "Selecciona dos objetivos. Siempre que uno fuese a sufrir danno, el sufre el 50% del danno y el otro objetivo el otro 50%.",
   "Column6": "No",
   "Valkiria": 21,
-  "Cruzar Bifrost": 30
+  "CruzarBifrost": 30
  },
  {
   "Nombre": "Dominar mente",
   "Lanzamiento": "Mantener",
   "Bifrost": 75,
-  "Prueba": "Cruzar Bifrost 17+",
+  "Prueba": "CruzarBifrost 17+",
   "Descripcion": "Realizas una prueba enfrentada en mente, si ganas al objetivo le controlas un numero de turnos maximo que igual a la diferencia obtenida,",
   "Column6": "No",
   "Mnt": 35,
-  "Cruzar Bifrost": 35
+  "CruzarBifrost": 35
  },
  {
   "Nombre": "Oleada de lanzas de energia",
   "Lanzamiento": "2 acciones",
-  "Prueba": "Cruzar Bifrost 19+",
-  "Descripcion": "Al realizar esta accion pueden utilizar 3+X veces la habilidad “lanza de energia” ignorando su tiempo de lanzamiento. Por cada lanza adicional a 3 que quieras utilizar, aumenta su coste de Bifrost en 10 x (numero ya lanzado). Si fallas una prueba de activacion de Lanza de energia, sufres tu el daño y termina esta habilidad.",
+  "Prueba": "CruzarBifrost 19+",
+  "Descripcion": "Al realizar esta accion pueden utilizar 3+X veces la habilidad “lanza de energia” ignorando su tiempo de lanzamiento. Por cada lanza adicional a 3 que quieras utilizar, aumenta su coste de Bifrost en 10 x (numero ya lanzado). Si fallas una prueba de activacion de Lanza de energia, sufres tu el danno y termina esta habilidad.",
   "Column6": "No",
   "Risa": 40,
-  "Cruzar Bifrost": 37
+  "CruzarBifrost": 37
  },
  {
   "Nombre": "Dominar mente prlongado",
   "Lanzamiento": "Normal",
   "Bifrost": 50,
-  "Prueba": "Cruzar Bifrost 19+",
+  "Prueba": "CruzarBifrost 19+",
   "Descripcion": "Realizas una prueba enfrentada en mente contra un objetivo dominado, si ganas al objetivo aumenta la duracion de Dominar Mente un numero de turnos maximo que igual a la diferencia obtenida o la duracion restante (el menor entre ambos)",
   "Column6": "No",
   "Mnt": 45,
-  "Cruzar Bifrost": 45
+  "CruzarBifrost": 45
  },
  {
   "Nombre": "Giro 180º",
@@ -5603,7 +5603,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": 10,
   "Prueba": "Atractivo 22+",
-  "Descripcion": "Si el objetivo fuese a golpearte y pudiese sentirse atraido fisicamente por ti, no te causa ningun daño durante este turno. Esta habilidad no funciona dos veces en el mismo objetivo hasta que lo haya olvidado.",
+  "Descripcion": "Si el objetivo fuese a golpearte y pudiese sentirse atraido fisicamente por ti, no te causa ningun danno durante este turno. Esta habilidad no funciona dos veces en el mismo objetivo hasta que lo haya olvidado.",
   "Column6": "No",
   "Atractivo": 15
  },
@@ -5611,7 +5611,7 @@
   "Nombre": "Otorgar bendicion de Hnoss",
   "Lanzamiento": "Normal",
   "Bifrost": 50,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "El objetivo obtiene un bono permanente al Atractivo igual a una quinta parte de tu puntuacion. No puede sobrepasar tu puntuacion de Atractivo en el momento de ser lanzada esta habilidad. No puedes afectar mas de una vez a un mismo objetivo con esta habilidad.",
   "Column6": "Si",
   "Atractivo": 20
@@ -5627,7 +5627,7 @@
   "Nombre": "Golpe de apoyo",
   "Lanzamiento": "Normal\/5",
   "Bifrost": 10,
-  "Prueba": "Cruzar Bifrost 14+",
+  "Prueba": "CruzarBifrost 14+",
   "Descripcion": "Si el aliado tocado tiene vida negativa pero aun esta vivo, le dejas con 1 de PV (El aliado tiene que ser voluntario o estar inconsciente)",
   "Column6": "No",
   "Valkiria": 6,
@@ -5636,7 +5636,7 @@
  {
   "Nombre": "Cuerpo armado",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Reduce en 5 el daño de fuentes fisicas siempre que no lleves equipada una pieza de armadura.",
+  "Descripcion": "Reduce en 5 el danno de fuentes fisicas siempre que no lleves equipada una pieza de armadura.",
   "Column6": "No",
   "Valkiria": 9,
   "Dvergr": 9
@@ -5654,7 +5654,7 @@
   "Nombre": "Otorgar la vida",
   "Lanzamiento": "Normal",
   "Bifrost": 20,
-  "Prueba": "Cruzar Bifrost 10+",
+  "Prueba": "CruzarBifrost 10+",
   "Descripcion": "Intercambia tu vida actual con la del aliado moribundo hasta a 20 casillas. No puede superar su vida maxima.",
   "Column6": "No",
   "Valkiria": 11,
@@ -5665,7 +5665,7 @@
   "Lanzamiento": "2 acciones",
   "Bifrost": 10,
   "Prueba": "Deporte 8+",
-  "Descripcion": "Te desplazas el doble de tu velocidad. Reduces en 10 todos los daños que recibas hasta el inicio de tu siguiente turno.",
+  "Descripcion": "Te desplazas el doble de tu velocidad. Reduces en 10 todos los dannos que recibas hasta el inicio de tu siguiente turno.",
   "Column6": "No",
   "Heroe": 10,
   "Dvergr": 12
@@ -5674,8 +5674,8 @@
   "Nombre": "Imbuir arma",
   "Lanzamiento": "Mantener",
   "Bifrost": "10+ 10 al turno",
-  "Prueba": "Cruzar Bifrost 12+",
-  "Descripcion": "Agrega a tu arma de proyectiles los siguientes daños: +25\/+15\/+10\/+5.",
+  "Prueba": "CruzarBifrost 12+",
+  "Descripcion": "Agrega a tu arma de proyectiles los siguientes dannos: +25\/+15\/+10\/+5.",
   "Column6": "No",
   "Heroe": 22,
   "Dvergr": 12
@@ -5684,7 +5684,7 @@
   "Nombre": "Otorgar salud",
   "Lanzamiento": "Normal",
   "Bifrost": 5,
-  "Prueba": "Cruzar Bifrost 13+",
+  "Prueba": "CruzarBifrost 13+",
   "Descripcion": "Pierdes X de vida. El objetivo no moribundo en contacto contigo se cura esa misma cantidad.",
   "Column6": "No",
   "Valkiria": 13,
@@ -5695,7 +5695,7 @@
   "Lanzamiento": "Inst\/1",
   "Bifrost": 10,
   "Prueba": "Einherjer 12+",
-  "Descripcion": "Debes usar esta habilidad antes de disparar con un arma de cadencia 2 o mas, puedes disparar el doble de veces de lo normal, pero tienes un penalizador al dar de -8. Por cada disparo que le hagas (no tienes que dañar) le das un penalizador de -1 a su disparo.",
+  "Descripcion": "Debes usar esta habilidad antes de disparar con un arma de cadencia 2 o mas, puedes disparar el doble de veces de lo normal, pero tienes un penalizador al dar de -8. Por cada disparo que le hagas (no tienes que dannar) le das un penalizador de -1 a su disparo.",
   "Column6": "No",
   "Heroe": 20,
   "Dvergr": 13
@@ -5740,7 +5740,7 @@
  {
   "Nombre": "Fuego en combate cerrado",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Si combates cuerpo a cuerpo con un arma de fuego pequeña puedes tratar de golpear cuerpo a cuerpo con ellas. De conseguirlo dañas con las armas con un daño un 50% superior.",
+  "Descripcion": "Si combates cuerpo a cuerpo con un arma de fuego pequenna puedes tratar de golpear cuerpo a cuerpo con ellas. De conseguirlo dannas con las armas con un danno un 50% superior.",
   "Column6": "No",
   "Heroe": 16,
   "Dvergr": 16
@@ -5786,7 +5786,7 @@
   "Lanzamiento": "2 acciones",
   "Bifrost": 10,
   "Prueba": "Einherjer 9+",
-  "Descripcion": "Reduce a la mitad el daño fisico recibido hasta el iniciio de tu siguiente turno.",
+  "Descripcion": "Reduce a la mitad el danno fisico recibido hasta el iniciio de tu siguiente turno.",
   "Column6": "No",
   "Dvergr": 20
  },
@@ -5814,7 +5814,7 @@
   "Nombre": "Canalizar energia vital",
   "Lanzamiento": "2 acciones",
   "Bifrost": 0,
-  "Prueba": "Cruzar Bifrost 18+",
+  "Prueba": "CruzarBifrost 18+",
   "Descripcion": "Pierdes 100 de vida que no puede sanarse en 5 dias.\nRecupera todo tu Bifrost.\nAl finalizar tu proximo turno, recuperas todo tu Bifrost.",
   "Column6": "Si",
   "Risa": 25,
@@ -5835,7 +5835,7 @@
   "Lanzamiento": "Inst\/10",
   "Bifrost": 100,
   "Prueba": "Sentir Yggdrasil 15+",
-  "Descripcion": "Cancela todo el daño que fuese a ser causado a tus aliados al alcance de tu voz.",
+  "Descripcion": "Cancela todo el danno que fuese a ser causado a tus aliados al alcance de tu voz.",
   "Column6": "Si",
   "Norna": 25,
   "Dvergr": 25
@@ -5860,7 +5860,7 @@
  {
   "Nombre": "Gracia de Hel",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Siempre que vayas a sufrir daño, recibes 10 menos. Ademas, tiene otro efecto desconocido.",
+  "Descripcion": "Siempre que vayas a sufrir danno, recibes 10 menos. Ademas, tiene otro efecto desconocido.",
   "Column6": "Si",
   "Dvergr": 25
  },
@@ -5918,7 +5918,7 @@
   "Nombre": "Curacion revitalizante",
   "Lanzamiento": "Inst",
   "Bifrost": 10,
-  "Prueba": "Cruzar Bifrost 13+",
+  "Prueba": "CruzarBifrost 13+",
   "Descripcion": "Si una habilidad que has usado fuese a sanar a un objetivo por encima de su vida maxima, puedes aumentar su vida maxima hasta esa cantidad durante 10 minutos.",
   "Column6": "No",
   "Valkiria": 38,
@@ -5953,7 +5953,7 @@
   "Nombre": "Cirujia brutal",
   "Lanzamiento": "Normal",
   "Bifrost": 15,
-  "Prueba": "Cruzar Bifrost 13+",
+  "Prueba": "CruzarBifrost 13+",
   "Descripcion": "El objetivo cura los efectos de haber falaldo una tirada en resistencia fallida que sean curables. Pierde 30 de vida.",
   "Column6": "No",
   "Valkiria": 46,
@@ -5964,7 +5964,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": 10,
   "Prueba": "Einherjer 14+",
-  "Descripcion": "Solo puedes usar esta habilidad tras haber sufrido daño por una fuente fisica. El objetivo adyacente sana tanta vida como daño hayas sufrido.",
+  "Descripcion": "Solo puedes usar esta habilidad tras haber sufrido danno por una fuente fisica. El objetivo adyacente sana tanta vida como danno hayas sufrido.",
   "Column6": "No",
   "Valkiria": 52,
   "Dvergr": 52
@@ -5979,7 +5979,7 @@
  {
   "Nombre": "Alimentase de Biftrost",
   "Lanzamiento": "Normal",
-  "Prueba": "Cruzar Bifrost 13+",
+  "Prueba": "CruzarBifrost 13+",
   "Descripcion": "Tu y toda criatura situada a un maximo de 5 casillas de distancia podeis gastar cuanto Bifrost como querais. Te curas en vida la cantidad total de Bifrost gastada.",
   "Column6": "No",
   "Valkiria": 58,
@@ -6004,7 +6004,7 @@
  {
   "Nombre": "Dökkalfar",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Te moelsta la luz solar, por lo que reduce a la mitad tus bonos de Percepcion bajo la luz solar.\nTu aspecto se vuelve intimidante, obtienes un +5 permanente a Intimidar.\nObtienes, de forma permanente: Bifrost: +50, Agilidad:+5, Fuerza:+2, Mente:+2, Percepcion: +2, Destreza:+5, Deporte:+5, Cruzar Bifrost: +5, Einherjer:+10.",
+  "Descripcion": "Te moelsta la luz solar, por lo que reduce a la mitad tus bonos de Percepcion bajo la luz solar.\nTu aspecto se vuelve intimidante, obtienes un +5 permanente a Intimidar.\nObtienes, de forma permanente: Bifrost: +50, Agilidad:+5, Fuerza:+2, Mente:+2, Percepcion: +2, Destreza:+5, Deporte:+5, CruzarBifrost: +5, Einherjer:+10.",
   "Column6": "Si",
   "Alfar": 60,
   "Dvergr": 60
@@ -6013,8 +6013,8 @@
   "Nombre": "Endurecer la piel",
   "Lanzamiento": "Inst\/2",
   "Bifrost": 5,
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "No sufres daño de ete golpe",
+  "Prueba": "CruzarBifrost 14+",
+  "Descripcion": "No sufres danno de ete golpe",
   "Column6": "Si",
   "Norna": 60,
   "Dvergr": 60
@@ -6034,17 +6034,17 @@
   "Lanzamiento": "Mantener",
   "Bifrost": "10+25 al turno",
   "Prueba": "Einherjer 13+",
-  "Descripcion": "Todo el daño que sufras tambien lo sufre el que lo provoco",
+  "Descripcion": "Todo el danno que sufras tambien lo sufre el que lo provoco",
   "Column6": "No",
   "Valkiria": 32,
   "Dvergr": 62
  },
  {
-  "Nombre": "Neutralizar daño",
+  "Nombre": "Neutralizar danno",
   "Lanzamiento": "Inst\/dia",
   "Bifrost": 15,
   "Prueba": "Resistencia 19+",
-  "Descripcion": "Anula el proximo daño que fuese a sufrir.",
+  "Descripcion": "Anula el proximo danno que fuese a sufrir.",
   "Column6": "No",
   "Dvergr": 64
  },
@@ -6060,7 +6060,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": 5,
   "Prueba": "Einherjer 14+",
-  "Descripcion": "Solo puedes usar esta habilidad tras hacer una prueba exitosa de resistencia contra un daño que hayas sufrido. Te curas tanta vida como el resultado de la prueba, siempre que no exceda el daño sufrido.",
+  "Descripcion": "Solo puedes usar esta habilidad tras hacer una prueba exitosa de resistencia contra un danno que hayas sufrido. Te curas tanta vida como el resultado de la prueba, siempre que no exceda el danno sufrido.",
   "Column6": "No",
   "Valkiria": 68,
   "Dvergr": 68
@@ -6098,7 +6098,7 @@
   "Lanzamiento": "Normal",
   "Bifrost": 5,
   "Prueba": "Sentir Yggdrasil 10+",
-  "Descripcion": "Repeles la materia en contacto con la palma de tu mano. Empujas 4 casillas al objetivo a mele. Este recibe un daño igual a 5D10.",
+  "Descripcion": "Repeles la materia en contacto con la palma de tu mano. Empujas 4 casillas al objetivo a mele. Este recibe un danno igual a 5D10.",
   "Column6": "No",
   "Risa": 4
  },
@@ -6114,7 +6114,7 @@
   "Nombre": "Disparo ariete",
   "Lanzamiento": "Inst",
   "Bifrost": 15,
-  "Prueba": "Cruzar Bifrost 14+",
+  "Prueba": "CruzarBifrost 14+",
   "Descripcion": "Si tu siguiente disparo impacta, empuja 4 casillas al impactado.",
   "Column6": "No",
   "Heroe": 6,
@@ -6124,8 +6124,8 @@
   "Nombre": "Punzada de energia (B)",
   "Lanzamiento": "Normal",
   "Bifrost": 15,
-  "Prueba": "Cruzar Bifrost 10+",
-  "Descripcion": "Provocas 10 de daño que ignora cualquier escudo o armadura. Solo requiere señalar con un dedo y puedes intentar camuflar este ataque.",
+  "Prueba": "CruzarBifrost 10+",
+  "Descripcion": "Provocas 10 de danno que ignora cualquier escudo o armadura. Solo requiere sennalar con un dedo y puedes intentar camuflar este ataque.",
   "Column6": "No",
   "Risa": 6
  },
@@ -6143,7 +6143,7 @@
   "Nombre": "Transmitir sabiduria",
   "Lanzamiento": "Normal",
   "Bifrost": 10,
-  "Prueba": "Cruzar Bifrost 12+",
+  "Prueba": "CruzarBifrost 12+",
   "Descripcion": "Pierde X de Bifrost. El objetivo a 30 casillas recupera X de Bifrost.",
   "Column6": "No",
   "Norna": 10,
@@ -6152,7 +6152,7 @@
  {
   "Nombre": "Lenguaje Galdr",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Obtienes el atributo menor \"Galdr\". La puntuacion maxima de Galdr es la minima entre tus punuacion de Cruzar Bifrost, Einherjer y Sentir Yggdrasil. Cada 3 puntos el Galdr, obtiene 1 dado. Cada 5 puntos, obtiene un bono +1. Eres capaz de aprender y enseñar habilidades que requieran una prueba en Galdr. Cada vez que uses un Galdr, aumente en 2 su dificultad por cada Galdr que hayas usado en el ultimo dia.",
+  "Descripcion": "Obtienes el atributo menor \"Galdr\". La puntuacion maxima de Galdr es la minima entre tus punuacion de CruzarBifrost, Einherjer y Sentir Yggdrasil. Cada 3 puntos el Galdr, obtiene 1 dado. Cada 5 puntos, obtiene un bono +1. Eres capaz de aprender y ensennar habilidades que requieran una prueba en Galdr. Cada vez que uses un Galdr, aumente en 2 su dificultad por cada Galdr que hayas usado en el ultimo dia.",
   "Column6": "No",
   "Heroe": 10,
   "Risa": 10
@@ -6162,7 +6162,7 @@
   "Lanzamiento": "Normal",
   "Bifrost": 30,
   "Prueba": "Galdr 15+",
-  "Descripcion": "Durane la escena, cuando vayas a hacer una prueba de Cruzar Bifrost, Einherjer o Sentir Yggdrasil para activar una habilidad, lanza 1d10 adicional y quedate con el mejor valor.",
+  "Descripcion": "Durane la escena, cuando vayas a hacer una prueba de CruzarBifrost, Einherjer o Sentir Yggdrasil para activar una habilidad, lanza 1d10 adicional y quedate con el mejor valor.",
   "Column6": "No",
   "Heroe": 10,
   "Risa": 10
@@ -6181,8 +6181,8 @@
   "Nombre": "Disparo energetico",
   "Lanzamiento": "2 acciones",
   "Bifrost": "50 * X",
-  "Prueba": "Cruzar Bifrost 12+",
-  "Descripcion": "Disparas tu arma. Multiplicas el daño de tu arma en 1+X. Si el turno anterior realizaste un disparo energetico y gastas la misma cantidad de Birrost, el multiplicador aumenta en 1 respecto al del turno anterior.",
+  "Prueba": "CruzarBifrost 12+",
+  "Descripcion": "Disparas tu arma. Multiplicas el danno de tu arma en 1+X. Si el turno anterior realizaste un disparo energetico y gastas la misma cantidad de Birrost, el multiplicador aumenta en 1 respecto al del turno anterior.",
   "Column6": "No",
   "Heroe": 25,
   "Risa": 10
@@ -6191,8 +6191,8 @@
   "Nombre": "Lanza de energia (B)",
   "Lanzamiento": "Normal",
   "Bifrost": 13,
-  "Prueba": "Cruzar Bifrost 12+",
-  "Descripcion": "A 25 de distancia, provoca 45 de daño.",
+  "Prueba": "CruzarBifrost 12+",
+  "Descripcion": "A 25 de distancia, provoca 45 de danno.",
   "Column6": "No",
   "Risa": 10
  },
@@ -6269,7 +6269,7 @@
   "Lanzamiento": "Normal\/10",
   "Bifrost": 30,
   "Prueba": "Galdr 15+",
-  "Descripcion": "El objetivo a 15 casillas se prende de fuego. Causa 20 de daño al turno.",
+  "Descripcion": "El objetivo a 15 casillas se prende de fuego. Causa 20 de danno al turno.",
   "Column6": "Si",
   "Heroe": 15,
   "Risa": 15
@@ -6279,7 +6279,7 @@
   "Lanzamiento": "Normal",
   "Bifrost": 9,
   "Prueba": "Cruzar Biffrost 11+",
-  "Descripcion": "Invocas una granada de energia de daño 150\/80\/-20 en tu mano. Explota al finalizar la siguiente accion normal, independientemente del jugador del que sea. (Debes lanzarla para que no te explote como accion normal)",
+  "Descripcion": "Invocas una granada de energia de danno 150\/80\/-20 en tu mano. Explota al finalizar la siguiente accion normal, independientemente del jugador del que sea. (Debes lanzarla para que no te explote como accion normal)",
   "Column6": "No",
   "Risa": 15
  },
@@ -6287,8 +6287,8 @@
   "Nombre": "Disparar lanza de energia",
   "Lanzamiento": "Normal",
   "Bifrost": 10,
-  "Prueba": "Cruzar Bifrost 13+",
-  "Descripcion": "Junto con esta habilidad debes activar una Lanza de energia ingorando el tiempo de lanzamiento. En vez de lanzar \"Lanza de energia\" de forma normal, sispara tu arma de fuego y suma a su daño el de la lanza de energia.",
+  "Prueba": "CruzarBifrost 13+",
+  "Descripcion": "Junto con esta habilidad debes activar una Lanza de energia ingorando el tiempo de lanzamiento. En vez de lanzar \"Lanza de energia\" de forma normal, sispara tu arma de fuego y suma a su danno el de la lanza de energia.",
   "Column6": "No",
   "Heroe": 16,
   "Risa": 16
@@ -6365,8 +6365,8 @@
   "Nombre": "Perforacion de energia",
   "Lanzamiento": "Normal",
   "Bifrost": 40,
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "Provocas 30 de daño que ignora cualquier escudo o armadura. Solo requiere señalar con un dedo y puedes intentar camuflar este ataque.",
+  "Prueba": "CruzarBifrost 14+",
+  "Descripcion": "Provocas 30 de danno que ignora cualquier escudo o armadura. Solo requiere sennalar con un dedo y puedes intentar camuflar este ataque.",
   "Column6": "No",
   "Heroe": 18,
   "Risa": 18
@@ -6376,7 +6376,7 @@
   "Lanzamiento": "Normal",
   "Bifrost": 30,
   "Prueba": "Galdr 15+",
-  "Descripcion": "El escudo objetivo sufre 100 de daño.",
+  "Descripcion": "El escudo objetivo sufre 100 de danno.",
   "Column6": "No",
   "Heroe": 19,
   "Risa": 19
@@ -6423,8 +6423,8 @@
   "Nombre": "Proyectil de energia",
   "Lanzamiento": "Normal",
   "Bifrost": 30,
-  "Prueba": "Cruzar Bifrost 15+",
-  "Descripcion": "Lanza un proyectil de energia al objetivo. Provocas 60 de daño a 10 casillas de distancia.",
+  "Prueba": "CruzarBifrost 15+",
+  "Descripcion": "Lanza un proyectil de energia al objetivo. Provocas 60 de danno a 10 casillas de distancia.",
   "Column6": "No",
   "Heroe": 20,
   "Risa": 20
@@ -6443,8 +6443,8 @@
   "Nombre": "Quebranto de escudos",
   "Lanzamiento": "Normal",
   "Bifrost": 25,
-  "Prueba": "Cruzar Bifrost 13+",
-  "Descripcion": "El escudo objetivo sufre 15D10 de daño.",
+  "Prueba": "CruzarBifrost 13+",
+  "Descripcion": "El escudo objetivo sufre 15D10 de danno.",
   "Column6": "No",
   "Risa": 21
  },
@@ -6482,7 +6482,7 @@
   "Nombre": "Salto por el Valhalla (A)",
   "Lanzamiento": "Normal",
   "Bifrost": 40,
-  "Prueba": "Cruzar Bifrost 8+",
+  "Prueba": "CruzarBifrost 8+",
   "Descripcion": "Te teleportas hasta la casilla visible que este situada hasta a 15 casillas de distancia.",
   "Column6": "No",
   "Risa": 23
@@ -6492,7 +6492,7 @@
   "Lanzamiento": "30 minutos",
   "Bifrost": 30,
   "Prueba": "Galdr 15+",
-  "Descripcion": "Durante 24 horas, el arma de proyectiles objetivo aumenta su daño en +20\/+10\/+10\/+5.",
+  "Descripcion": "Durante 24 horas, el arma de proyectiles objetivo aumenta su danno en +20\/+10\/+10\/+5.",
   "Column6": "No",
   "Heroe": 24,
   "Risa": 24
@@ -6501,8 +6501,8 @@
   "Nombre": "Golpe gravitacional",
   "Lanzamiento": "Normal",
   "Bifrost": 30,
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "Empujas 15 casillas al objetivo en mele. Daña 15D10. Si golpea con algo, ambos sufren daño.",
+  "Prueba": "CruzarBifrost 14+",
+  "Descripcion": "Empujas 15 casillas al objetivo en mele. Danna 15D10. Si golpea con algo, ambos sufren danno.",
   "Column6": "No",
   "Risa": 24
  },
@@ -6510,7 +6510,7 @@
   "Nombre": "Dominio de la vida y la muerte",
   "Lanzamiento": "2 turnos",
   "Bifrost": 100,
-  "Descripcion": "Si te mantienes en contacto fisico con el objetivo durante 2 turnos sin hacer nada mas, al 3º puedes resucitarlo con toda la vida (Siempre y cuando sus PV no sean inferiores a -50 y no este mutilado) o causarle 500 de daño.",
+  "Descripcion": "Si te mantienes en contacto fisico con el objetivo durante 2 turnos sin hacer nada mas, al 3º puedes resucitarlo con toda la vida (Siempre y cuando sus PV no sean inferiores a -50 y no este mutilado) o causarle 500 de danno.",
   "Column6": "Si",
   "Valkiria": 25,
   "Risa": 25
@@ -6519,8 +6519,8 @@
   "Nombre": "Cortar hilo de la vida",
   "Lanzamiento": "3 turnos",
   "Bifrost": 200,
-  "Prueba": "Cruzar Bifrost 20+",
-  "Descripcion": "El objetivo muere. Si durante el lanzamiento de esta habilidad recibes daño, puedes perder la concentracion.",
+  "Prueba": "CruzarBifrost 20+",
+  "Descripcion": "El objetivo muere. Si durante el lanzamiento de esta habilidad recibes danno, puedes perder la concentracion.",
   "Column6": "Si",
   "Norna": 25,
   "Risa": 25
@@ -6539,8 +6539,8 @@
   "Nombre": "Nivelung Valesti",
   "Lanzamiento": "Normal\/dia",
   "Bifrost": 150,
-  "Prueba": "Cruzar Bifrost 15+",
-  "Descripcion": "Te desplazas hasta un enemigo situado a 3 casillas o menos de distancia. Invocas una lanza de energia con la que atacas a tu enemigo causando 200 de daño. En vez de atacar con este arma puedes, como accion inmediata, invocar otro arma que conozcas haciendo que el golpe sea en la cabeza de forma automatica y siendo el coste de invocacion 150 menos (hasta un minimo de 0).",
+  "Prueba": "CruzarBifrost 15+",
+  "Descripcion": "Te desplazas hasta un enemigo situado a 3 casillas o menos de distancia. Invocas una lanza de energia con la que atacas a tu enemigo causando 200 de danno. En vez de atacar con este arma puedes, como accion inmediata, invocar otro arma que conozcas haciendo que el golpe sea en la cabeza de forma automatica y siendo el coste de invocacion 150 menos (hasta un minimo de 0).",
   "Column6": "Si",
   "Heroe": 25,
   "Risa": 25
@@ -6550,7 +6550,7 @@
   "Lanzamiento": "Normal",
   "Bifrost": 30,
   "Prueba": "Galdr 15+",
-  "Descripcion": "En un cono de 3 casillas desde tu posicion, lanza una ola de fuego que daña 50.",
+  "Descripcion": "En un cono de 3 casillas desde tu posicion, lanza una ola de fuego que danna 50.",
   "Column6": "No",
   "Heroe": 25,
   "Risa": 25
@@ -6586,7 +6586,7 @@
   "Lanzamiento": "Normal",
   "Bifrost": 30,
   "Prueba": "Galdr 15+",
-  "Descripcion": "Provoca 100 de daño en el objeto inerte objetivo.",
+  "Descripcion": "Provoca 100 de danno en el objeto inerte objetivo.",
   "Column6": "No",
   "Heroe": 26,
   "Risa": 26
@@ -6615,8 +6615,8 @@
   "Nombre": "Rayo blanco (A)",
   "Lanzamiento": "Normal",
   "Bifrost": 30,
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "Provocas 45 de daño a todos los objetivos en una linea recta a tu eleccion hasta una distancia de 25 casillas.",
+  "Prueba": "CruzarBifrost 14+",
+  "Descripcion": "Provocas 45 de danno a todos los objetivos en una linea recta a tu eleccion hasta una distancia de 25 casillas.",
   "Column6": "No",
   "Risa": 28
  },
@@ -6645,7 +6645,7 @@
   "Lanzamiento": "Normal",
   "Bifrost": 10,
   "Prueba": "Galdr 15+",
-  "Descripcion": "Lanza un rayo de energia al objetivo a 40 casillas de distancia y causa 60 de daño.",
+  "Descripcion": "Lanza un rayo de energia al objetivo a 40 casillas de distancia y causa 60 de danno.",
   "Column6": "No",
   "Heroe": 30,
   "Risa": 30
@@ -6654,8 +6654,8 @@
   "Nombre": "Vortice",
   "Lanzamiento": "2 acciones",
   "Bifrost": 60,
-  "Prueba": "Cruzar Bifrost 15+",
-  "Descripcion": "Cres un vortice en una casilla a menos de 40 casillas de ti. Toda criatura a 5 distancia del vortice debe superar una prueba de fuerza 18+. Si falla se ve empujada hasta la casilla del vortice. Cada criatura empujada al centro choca contra las que ya hubiesen alli y cada una (la que impacta y las que esten ahi), sufren 2d10 de daño por cada criatura desplazada.",
+  "Prueba": "CruzarBifrost 15+",
+  "Descripcion": "Cres un vortice en una casilla a menos de 40 casillas de ti. Toda criatura a 5 distancia del vortice debe superar una prueba de fuerza 18+. Si falla se ve empujada hasta la casilla del vortice. Cada criatura empujada al centro choca contra las que ya hubiesen alli y cada una (la que impacta y las que esten ahi), sufren 2d10 de danno por cada criatura desplazada.",
   "Column6": "No",
   "Risa": 30
  },
@@ -6664,7 +6664,7 @@
   "Lanzamiento": "2 acciones",
   "Bifrost": 60,
   "Prueba": "Galdr 15+",
-  "Descripcion": "Selecciona una casilla a 30 de distancia donde se provoca una explosion de fuego. Toda las criaturas a 5 de distancia de la casilla seleccionada o en la propia casilla, son objetivos de esta habilidad. El objetivo debe superar una prueba de Esquiva 18+ o sufrir 80 de daño de fuego.",
+  "Descripcion": "Selecciona una casilla a 30 de distancia donde se provoca una explosion de fuego. Toda las criaturas a 5 de distancia de la casilla seleccionada o en la propia casilla, son objetivos de esta habilidad. El objetivo debe superar una prueba de Esquiva 18+ o sufrir 80 de danno de fuego.",
   "Column6": "No",
   "Heroe": 32,
   "Risa": 32
@@ -6674,7 +6674,7 @@
   "Lanzamiento": "Normal",
   "Bifrost": 40,
   "Prueba": "Cruzar 15+",
-  "Descripcion": "En un cono  de 30’ (5 casillas) (Origen en contacto con lanzador), empuja todo lo que haya 10 casillas y daña 10D10.",
+  "Descripcion": "En un cono  de 30’ (5 casillas) (Origen en contacto con lanzador), empuja todo lo que haya 10 casillas y danna 10D10.",
   "Column6": "No",
   "Risa": 32
  },
@@ -6692,7 +6692,7 @@
   "Nombre": "Salto por el Valhalla mayor (A)",
   "Lanzamiento": "Normal",
   "Bifrost": 100,
-  "Prueba": "Cruzar Bifrost 11+",
+  "Prueba": "CruzarBifrost 11+",
   "Descripcion": "Te teleportas hasta la casilla visible que este situada hasta a 1 km de distancia.",
   "Column6": "No",
   "Risa": 33
@@ -6711,7 +6711,7 @@
   "Nombre": "Deuda de Bifrost",
   "Lanzamiento": "Inst\/5",
   "Prueba": "Sentir Yggdrasil 16+",
-  "Descripcion": "La habilidad que estes activando no consume Bifrost. Dentro de dos turnos tuyos, al final del mismo, debes consumir esa cantidad de Bifrost. Si no puedes hacerlo, sufres el doble como daño.",
+  "Descripcion": "La habilidad que estes activando no consume Bifrost. Dentro de dos turnos tuyos, al final del mismo, debes consumir esa cantidad de Bifrost. Si no puedes hacerlo, sufres el doble como danno.",
   "Column6": "No",
   "Norna": 35,
   "Risa": 35
@@ -6728,8 +6728,8 @@
   "Nombre": "Explosion de separacion",
   "Lanzamiento": "2 acciones",
   "Bifrost": 40,
-  "Prueba": "Cruzar Bifrost 15+",
-  "Descripcion": "Empuja todo lo que haya a 4 casillas o menos de ti (pero no en tu casilla) para separarlo de ti hasta 10 casillas. Daña 10D10,",
+  "Prueba": "CruzarBifrost 15+",
+  "Descripcion": "Empuja todo lo que haya a 4 casillas o menos de ti (pero no en tu casilla) para separarlo de ti hasta 10 casillas. Danna 10D10,",
   "Column6": "No",
   "Risa": 35
  },
@@ -6737,7 +6737,7 @@
   "Nombre": "Implosion",
   "Lanzamiento": "Normal",
   "Bifrost": 35,
-  "Descripcion": "Haces una prueba enfrentada de Cruzar Bifrost vs Resistencia del objetivo. Si pierde sufre 100 de daño.",
+  "Descripcion": "Haces una prueba enfrentada de CruzarBifrost vs Resistencia del objetivo. Si pierde sufre 100 de danno.",
   "Column6": "No",
   "Risa": 35
  },
@@ -6755,8 +6755,8 @@
   "Nombre": "Inmolacion",
   "Lanzamiento": "2 acciones + 2*X",
   "Bifrost": "TODO",
-  "Prueba": "Cruzar Bifrost 15+",
-  "Descripcion": "Al usar esta habilidad pudes añadir X turnos extra (en cualquier momento puedes decidir dejar de añadir turnos y dispara la habilidad). En un radio de 30 casillas provocas una explosion de 150\/150\/-5. Por cada turno adicional aumenta en 100 el daño y en 20 la distancia.",
+  "Prueba": "CruzarBifrost 15+",
+  "Descripcion": "Al usar esta habilidad pudes annadir X turnos extra (en cualquier momento puedes decidir dejar de annadir turnos y dispara la habilidad). En un radio de 30 casillas provocas una explosion de 150\/150\/-5. Por cada turno adicional aumenta en 100 el danno y en 20 la distancia.",
   "Column6": "No",
   "Risa": 37
  },
@@ -6812,8 +6812,8 @@
   "Nombre": "Alfheim",
   "Lanzamiento": "Normal\/5",
   "Bifrost": 35,
-  "Prueba": "Cruzar Bifrost 18+",
-  "Descripcion": "Crea una linea de 10 casillas de largo y 3 de ancho. Causa 100 de daño a toda criatura en esa area.",
+  "Prueba": "CruzarBifrost 18+",
+  "Descripcion": "Crea una linea de 10 casillas de largo y 3 de ancho. Causa 100 de danno a toda criatura en esa area.",
   "Column6": "Si",
   "Heroe": 60,
   "Risa": 60
@@ -6822,8 +6822,8 @@
   "Nombre": "Cobertura de plumas",
   "Lanzamiento": "Inst\/10",
   "Bifrost": 80,
-  "Prueba": "Cruzar Bifrost 21+",
-  "Descripcion": "Pierdes tu proximo turno. Cancela el daño que fuesen a recibir cualquier criatura (tu incluido) a 5 casillas o menos de ti.",
+  "Prueba": "CruzarBifrost 21+",
+  "Descripcion": "Pierdes tu proximo turno. Cancela el danno que fuesen a recibir cualquier criatura (tu incluido) a 5 casillas o menos de ti.",
   "Column6": "No",
   "Valkiria": 64,
   "Risa": 64
@@ -6832,8 +6832,8 @@
   "Nombre": "Apresurar habilidad",
   "Lanzamiento": "Inst\/10",
   "Bifrost": 20,
-  "Prueba": "Cruzar Bifrost 22+",
-  "Descripcion": "La siguiente habilidad que requiera una tirada de Cruzar Bifrost, Sentir Yggdrasil o Einherjer, con coste Normal pasa a tener conste Inst. Si fuese de 2 acciones, pasa a ser Normal.",
+  "Prueba": "CruzarBifrost 22+",
+  "Descripcion": "La siguiente habilidad que requiera una tirada de CruzarBifrost, Sentir Yggdrasil o Einherjer, con coste Normal pasa a tener conste Inst. Si fuese de 2 acciones, pasa a ser Normal.",
   "Column6": "No",
   "Norna": 64,
   "Risa": 64
@@ -6841,7 +6841,7 @@
  {
   "Nombre": "Mago de batalla",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Si este turno usaste una habilidad directamente ofensiva, divide su coste de Bifrost\/5 y suma esa cantidad al daño de tus armas de fuego ese turno.",
+  "Descripcion": "Si este turno usaste una habilidad directamente ofensiva, divide su coste de Bifrost\/5 y suma esa cantidad al danno de tus armas de fuego ese turno.",
   "Column6": "No",
   "Heroe": 64,
   "Risa": 64
@@ -6849,7 +6849,7 @@
  {
   "Nombre": "Punteria de Bifrost",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Obtienes un +3 a todas las tiradas de punteria con habilidades de cruzar Bifrost, Sentir Yggdrasil o Einherjer",
+  "Descripcion": "Obtienes un +3 a todas las tiradas de punteria con habilidades de CruzarBifrost, Sentir Yggdrasil o Einherjer",
   "Column6": "No",
   "Risa": 64
  },
@@ -6884,7 +6884,7 @@
   "Nombre": "Trago de hidromiel",
   "Lanzamiento": "Normal",
   "Bifrost": 5,
-  "Prueba": "Cruzar Bifrost 8+",
+  "Prueba": "CruzarBifrost 8+",
   "Descripcion": "Sanas 40 de vida a ti o al objetivo en contacto contigo",
   "Column6": "No",
   "Valkiria": 5
@@ -6893,8 +6893,8 @@
   "Nombre": "Sanacion preventiva",
   "Lanzamiento": "Normal",
   "Bifrost": 10,
-  "Prueba": "Cruzar Bifrost  9+",
-  "Descripcion": "Hasta el inicio de tu proximo turno, la primera vez que el objetivo fuese a sufrir daño, recibe 80 menos de ese daño.",
+  "Prueba": "CruzarBifrost  9+",
+  "Descripcion": "Hasta el inicio de tu proximo turno, la primera vez que el objetivo fuese a sufrir danno, recibe 80 menos de ese danno.",
   "Column6": "No",
   "Norna": 8,
   "Valkiria": 8
@@ -6902,7 +6902,7 @@
  {
   "Nombre": "Experto en escudo",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Siempre que tu escudo fisico reciba daño, reduce 1\/3 dicho daño.",
+  "Descripcion": "Siempre que tu escudo fisico reciba danno, reduce 1\/3 dicho danno.",
   "Column6": "No",
   "Heroe": 8,
   "Valkiria": 8
@@ -6912,17 +6912,17 @@
   "Lanzamiento": "Inst\/1",
   "Bifrost": 30,
   "Prueba": "Einherjer 14+",
-  "Descripcion": "Despues de que un aliado sufra daño, si utilizas esta habilidad apresuras tu turno a ese instante.",
+  "Descripcion": "Despues de que un aliado sufra danno, si utilizas esta habilidad apresuras tu turno a ese instante.",
   "Column6": "No",
   "Alfar": 10,
   "Valkiria": 10
  },
  {
-  "Nombre": "Predecir daño",
+  "Nombre": "Predecir danno",
   "Lanzamiento": "Inst\/5",
   "Bifrost": 10,
   "Prueba": "Sentir Yggdrasil 14+",
-  "Descripcion": "Cuando un aliado vaya a recibir daño puedes avisarle para que se aparte.\nSi lo desea, el avisado realiza una prueba de Esquiva dependiendo de las circunstancias. Si tiene exito se lanza al suelo y no sufre daño, quedando tumbado a una casilla de distancia.",
+  "Descripcion": "Cuando un aliado vaya a recibir danno puedes avisarle para que se aparte.\nSi lo desea, el avisado realiza una prueba de Esquiva dependiendo de las circunstancias. Si tiene exito se lanza al suelo y no sufre danno, quedando tumbado a una casilla de distancia.",
   "Column6": "No",
   "Norna": 10,
   "Valkiria": 10
@@ -6930,7 +6930,7 @@
  {
   "Nombre": "Experto en armadura",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Siempre que tu armadura reciba daño, reduce 1\/3 dicho daño.",
+  "Descripcion": "Siempre que tu armadura reciba danno, reduce 1\/3 dicho danno.",
   "Column6": "No",
   "Heroe": 11,
   "Valkiria": 11
@@ -6950,7 +6950,7 @@
   "Lanzamiento": "2 turnos",
   "Bifrost": 80,
   "Prueba": "Einherjer 15+",
-  "Descripcion": "Si durante los dos turnos no has sufrido daño, al final del mismo golpear de forma automatica con tu arma cuerpo a cuerpo.\nPuedes repetir hasta 2 veces la tirada de daño.\nMultiplicas por 5 el daño que causaras.",
+  "Descripcion": "Si durante los dos turnos no has sufrido danno, al final del mismo golpear de forma automatica con tu arma cuerpo a cuerpo.\nPuedes repetir hasta 2 veces la tirada de danno.\nMultiplicas por 5 el danno que causaras.",
   "Column6": "No",
   "Alfar": 15,
   "Valkiria": 15
@@ -6980,16 +6980,16 @@
   "Lanzamiento": "Normal",
   "Bifrost": 20,
   "Prueba": "Einherjer 14+",
-  "Descripcion": "Arroja tu escudo a un objetivo a 10 casillas. Haz una tirada de punteria. Impacta siempre en una zona normal y provoca 30 de daño + 1\/10 de la vida actual del escudo.",
+  "Descripcion": "Arroja tu escudo a un objetivo a 10 casillas. Haz una tirada de punteria. Impacta siempre en una zona normal y provoca 30 de danno + 1\/10 de la vida actual del escudo.",
   "Column6": "No",
   "Heroe": 15,
   "Valkiria": 15
  },
  {
-  "Nombre": "Baño de hidromiel",
+  "Nombre": "Banno de hidromiel",
   "Lanzamiento": "Normal",
   "Bifrost": 10,
-  "Prueba": "Cruzar Bifrost 8+",
+  "Prueba": "CruzarBifrost 8+",
   "Descripcion": "El objetivo adyacente se sana 60 de vida.",
   "Column6": "No",
   "Valkiria": 15
@@ -7008,7 +7008,7 @@
   "Nombre": "Aumentar ratio de escudo",
   "Lanzamiento": "Inst",
   "Bifrost": 15,
-  "Prueba": "Cruzar Bifrost 13+",
+  "Prueba": "CruzarBifrost 13+",
   "Descripcion": "Tus escudos tienen un alcance de 1 casilla adicional. Cualquier golpe que pase por ahi es reducido por tus escudos",
   "Column6": "No",
   "Norna": 17,
@@ -7028,7 +7028,7 @@
   "Nombre": "Fortalecer escudo",
   "Lanzamiento": "Normal",
   "Bifrost": 30,
-  "Prueba": "Cruzar Bifrost 14+",
+  "Prueba": "CruzarBifrost 14+",
   "Descripcion": "Anota la vida actual del escudo fisico. Aumenta un 50% la vida maxima y actual de tu escudo fisico durante la escena. Al finalizar, reduce la vida maxima. Si la actual esta por encima de la que anotaste, deja la que anotaste.",
   "Column6": "No",
   "Heroe": 19,
@@ -7053,8 +7053,8 @@
   "Nombre": "Escudo de Valkiria",
   "Lanzamiento": "2 acciones\/hora",
   "Bifrost": 60,
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "Crea un escudo fisico en una de tus manos. Este escudo tiene 200 de vida y reduce en 10 cualquier daño que fuese a recibir.",
+  "Prueba": "CruzarBifrost 14+",
+  "Descripcion": "Crea un escudo fisico en una de tus manos. Este escudo tiene 200 de vida y reduce en 10 cualquier danno que fuese a recibir.",
   "Column6": "No",
   "Heroe": 24,
   "Valkiria": 24
@@ -7062,7 +7062,7 @@
  {
   "Nombre": "Maestro de asesinato",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Siempre que golpees a alguien que  no se lo espere duplicas el daño. (Acumulable y se calcula sobre la base)",
+  "Descripcion": "Siempre que golpees a alguien que  no se lo espere duplicas el danno. (Acumulable y se calcula sobre la base)",
   "Column6": "Si",
   "Alfar": 25,
   "Valkiria": 25
@@ -7076,7 +7076,7 @@
   "Valkiria": 25
  },
  {
-  "Nombre": "Añadir hilo de vida",
+  "Nombre": "Annadir hilo de vida",
   "Lanzamiento": "Inst\/dia",
   "Bifrost": 150,
   "Prueba": "Sentir Yggdrasil 18+",
@@ -7089,7 +7089,7 @@
   "Nombre": "Revivir la batalla de los Heodening",
   "Lanzamiento": "2 acciones\/dia",
   "Bifrost": "50 * X",
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "X es el numero de objetivos, de los cuales tu puedes ser uno.\nTodos los objetivos se curan 50 de vida y 100 de Bifrost (tu no recuperas Bifrost).\nDurante 15 minutos o hasta finalizar un combate, los objetivos obtienen: Un escudo de energia 100; Bono +1 y +1 dado a todas las habilidades.",
   "Column6": "Si",
   "Heroe": 25,
@@ -7106,7 +7106,7 @@
   "Nombre": "Devolver Einherjer al campom de batalla",
   "Lanzamiento": "5 dias",
   "Bifrost": 120,
-  "Prueba": "Cruzar Bifrost 17+",
+  "Prueba": "CruzarBifrost 17+",
   "Descripcion": "Devuelve al objetivo a la vida si sigue de una pieza. Requiere 5 dias de concentracion del lanzador en los que podra detenerse (o desconcentrarse) un maximo de 5 horas diarias.\nEl cuerpo no debe deteriorarse durante el lanzamiento para que surta efecto.",
   "Column6": "No",
   "Valkiria": 25
@@ -7116,7 +7116,7 @@
   "Lanzamiento": "Mantener",
   "Bifrost": "60 al turno",
   "Prueba": "Einherjer 14+",
-  "Descripcion": "Puedes invocar una capa de plumas de cisne que te cubre el cuerpo entero. No puedes sufrir ningun daño mientras uses la capa. Si un objetivo te arrebata una pluma de la capa sufres 100 de daño. El que te haya quitado la pluma de la capa puede decidir no hacerte daño. Si consigue robarte un total de 2 plumas 10 dias, te enamoras de el.",
+  "Descripcion": "Puedes invocar una capa de plumas de cisne que te cubre el cuerpo entero. No puedes sufrir ningun danno mientras uses la capa. Si un objetivo te arrebata una pluma de la capa sufres 100 de danno. El que te haya quitado la pluma de la capa puede decidir no hacerte danno. Si consigue robarte un total de 2 plumas 10 dias, te enamoras de el.",
   "Column6": "Si",
   "Valkiria": 25
  },
@@ -7124,8 +7124,8 @@
   "Nombre": "Armadura del heroe",
   "Lanzamiento": "2 acciones\/hora",
   "Bifrost": "X",
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "Crea una armadura que te cubre el cuerpo. Protege 1,5*X en punto vital, X en normal, 0,75*X en daño leve y 0,5*X en muy leve.",
+  "Prueba": "CruzarBifrost 14+",
+  "Descripcion": "Crea una armadura que te cubre el cuerpo. Protege 1,5*X en punto vital, X en normal, 0,75*X en danno leve y 0,5*X en muy leve.",
   "Column6": "No",
   "Heroe": 28,
   "Valkiria": 28
@@ -7141,7 +7141,7 @@
   "Nombre": "Regenerar escudo",
   "Lanzamiento": "Mantener",
   "Bifrost": "15 + 5 al turno",
-  "Prueba": "Cruzar Bifrost 13+",
+  "Prueba": "CruzarBifrost 13+",
   "Descripcion": "Tu escudo fisico recupera 20 de vida al final de cada uno de tus turnos.",
   "Column6": "No",
   "Heroe": 34,
@@ -7151,7 +7151,7 @@
   "Nombre": "Tyrfing",
   "Lanzamiento": "Normal",
   "Bifrost": 50,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Permite invocar un arma de una mano cortante. 130\/70\/45\/30 (3 Golpes) \nLas heridas que cause  no pueden ser sanadas hasta despues de un mes.\nSi cada vez que invocada, este arme no consigue matar a alguien, al envainarla o desaparecer, el portador sufre dos de sus propios golpes.",
   "Column6": "Si",
   "Alfar": 40,
@@ -7161,8 +7161,8 @@
   "Nombre": "Endurecer escudo",
   "Lanzamiento": "Mantener",
   "Bifrost": "15 + 5 al turno",
-  "Prueba": "Cruzar Bifrost 13+",
-  "Descripcion": "Siempre que tu escudo fisico fuese a recibir daño, reduce en 20 dicho daño.",
+  "Prueba": "CruzarBifrost 13+",
+  "Descripcion": "Siempre que tu escudo fisico fuese a recibir danno, reduce en 20 dicho danno.",
   "Column6": "No",
   "Heroe": 40,
   "Valkiria": 40
@@ -7194,7 +7194,7 @@
   "Lanzamiento": "Noprmal",
   "Bifrost": 20,
   "Prueba": "Einherjer 16+",
-  "Descripcion": "Golpeas cuerpo a cuerpo y dañas 150%",
+  "Descripcion": "Golpeas cuerpo a cuerpo y dannas 150%",
   "Column6": "Si",
   "Alfar": 60,
   "Valkiria": 60
@@ -7204,7 +7204,7 @@
   "Lanzamiento": "2 acciones",
   "Bifrost": 50,
   "Prueba": "Sentir Yggdrasil 17+",
-  "Descripcion": "Selecciona un objetivo. Durante el resto del combate, al principio de cada turno, el objetivo lanza 2D10. Si obtiene 2 veces 1, sufre 100 de daño.",
+  "Descripcion": "Selecciona un objetivo. Durante el resto del combate, al principio de cada turno, el objetivo lanza 2D10. Si obtiene 2 veces 1, sufre 100 de danno.",
   "Column6": "Si",
   "Norna": 60,
   "Valkiria": 60
@@ -7213,8 +7213,8 @@
   "Nombre": "Tormenta del Ragnarok",
   "Lanzamiento": "2 acciones\/mes",
   "Bifrost": 100,
-  "Prueba": "Cruzar Bifrost 20+",
-  "Descripcion": "Durante todo el combate los aliados sufren una regeneracion de 50 PV en tu turno.\nLos enemigos sufren una degeneracion de 50 PV en tu turno. Este daño no se ve afectado por armaduras, escudos ni RD. Debe ser al aire libre.",
+  "Prueba": "CruzarBifrost 20+",
+  "Descripcion": "Durante todo el combate los aliados sufren una regeneracion de 50 PV en tu turno.\nLos enemigos sufren una degeneracion de 50 PV en tu turno. Este danno no se ve afectado por armaduras, escudos ni RD. Debe ser al aire libre.",
   "Column6": "Si",
   "Heroe": 60,
   "Valkiria": 60
@@ -7230,7 +7230,7 @@
   "Nombre": "Cabalgar a la batalla",
   "Lanzamiento": "Inst",
   "Bifrost": 90,
-  "Prueba": "Cruzar Bifrost 20+",
+  "Prueba": "CruzarBifrost 20+",
   "Descripcion": "Cuentas con un turno imediatamente. Este turno solo puede ser utilizado para sanar (o para acciones que esten claramente y de forma directa, tengan como objetivo sanar o facilitar la sanacion durante este turno adicional).",
   "Column6": "No",
   "Valkiria": 64
@@ -7271,11 +7271,11 @@
   "Valkiria": 100
  },
  {
-  "Nombre": "Señal pasada",
+  "Nombre": "Sennal pasada",
   "Lanzamiento": "X * 10 minutos",
   "Bifrost": "5 * X",
   "Prueba": "Sentir Yggdrasil 14+",
-  "Descripcion": "Esta habilidad debe ser utilizada mientras utilizas algun mecanismo que te permita percibir señales. Debes indicar que señal estas buscando o que caracteristicas tiene. Si la señal paso por el area en las ultimas X horas, la recibes.",
+  "Descripcion": "Esta habilidad debe ser utilizada mientras utilizas algun mecanismo que te permita percibir sennales. Debes indicar que sennal estas buscando o que caracteristicas tiene. Si la sennal paso por el area en las ultimas X horas, la recibes.",
   "Column6": "No",
   "Norna": 6,
   "Alfar": 6
@@ -7294,7 +7294,7 @@
   "Nombre": "Llamar sanacion del guerrero",
   "Lanzamiento": "Normal",
   "Bifrost": 10,
-  "Prueba": "Cruzar Bifrost 13+",
+  "Prueba": "CruzarBifrost 13+",
   "Descripcion": "Durante 5 turnos el objetivo se sana 15 de vida al inicio de su turno.",
   "Column6": "No",
   "Alfar": 10
@@ -7372,7 +7372,7 @@
   "Nombre": "Lisiar mejorado",
   "Lanzamiento": "Inst\/2",
   "Bifrost": 10,
-  "Descripcion": "Si por una accion tuya el objetivo tiene que hacer una tirada en resistencia para sufrir un lisiamiento, a la hora de comprobar si se ha lisiado las tiradas se hacen como si el daño fuese el doble.",
+  "Descripcion": "Si por una accion tuya el objetivo tiene que hacer una tirada en resistencia para sufrir un lisiamiento, a la hora de comprobar si se ha lisiado las tiradas se hacen como si el danno fuese el doble.",
   "Column6": "No",
   "Heroe": 10,
   "Alfar": 19
@@ -7434,8 +7434,8 @@
   "Nombre": "Controlar hilos de la edad",
   "Lanzamiento": "10 minutos",
   "Bifrost": "20 * X",
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "El objetivo envejece\/rejuvenece X años, a un ritmo de uno cada 2 horas.\nPuede resultar traumatico crecer y decrecer continuamente, y queda a discrecion del master.",
+  "Prueba": "CruzarBifrost 14+",
+  "Descripcion": "El objetivo envejece\/rejuvenece X annos, a un ritmo de uno cada 2 horas.\nPuede resultar traumatico crecer y decrecer continuamente, y queda a discrecion del master.",
   "Column6": "Si",
   "Norna": 25,
   "Alfar": 25
@@ -7453,7 +7453,7 @@
  {
   "Nombre": "Acostumbrar al halcon",
   "Lanzamiento": "2 semanas",
-  "Descripcion": "No tienes que estar utilizando la habilidad Ojo de halcon.\nEnseñas a un unico aliado que haya sido objetivo de “ojo de halcon” al menos 5 veces; a ser el objetivo de la habilidad. Reduce el coste de todas las habilidades “X de halcon” instantaneas que realices teniendole a el como objetivo de “ojo de halcon” en 5.\nSolo puedes tener entrenado a un aliado a la vez.",
+  "Descripcion": "No tienes que estar utilizando la habilidad Ojo de halcon.\nEnsennas a un unico aliado que haya sido objetivo de “ojo de halcon” al menos 5 veces; a ser el objetivo de la habilidad. Reduce el coste de todas las habilidades “X de halcon” instantaneas que realices teniendole a el como objetivo de “ojo de halcon” en 5.\nSolo puedes tener entrenado a un aliado a la vez.",
   "Column6": "No",
   "Heroe": 25,
   "Alfar": 25
@@ -7469,7 +7469,7 @@
  {
   "Nombre": "Anillo de los nibelungos",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Te aparece una marca en un dedo que parece un anillo. Si por algun motivo esta desapareciese, aparece en otro dedo al cabo de 1 dia si es posible. Mientras no tengas la marca, no se aplica esta habilidad.\nNo envejeces y no necesitas ni comer ni beber.\nObtienes Atractivo +10, Cruzar Bifrost +2, Destreza +3, Diplomacia +5, Einherjer + 3, Engaño +2, Labia + 5, Sentir Yggdrasil +5.",
+  "Descripcion": "Te aparece una marca en un dedo que parece un anillo. Si por algun motivo esta desapareciese, aparece en otro dedo al cabo de 1 dia si es posible. Mientras no tengas la marca, no se aplica esta habilidad.\nNo envejeces y no necesitas ni comer ni beber.\nObtienes Atractivo +10, CruzarBifrost +2, Destreza +3, Diplomacia +5, Einherjer + 3, Enganno +2, Labia + 5, Sentir Yggdrasil +5.",
   "Column6": "Si",
   "Alfar": 25
  },
@@ -7525,7 +7525,7 @@
   "Nombre": "Defensa en el Yggdrasil",
   "Lanzamiento": "Inst\/5",
   "Prueba": "Einherjer 15+",
-  "Descripcion": "Cancela todo el daño que fueses a sufrir este turno, siempre que la accion que provoco el daño requisiera algun coste de Bifrost.",
+  "Descripcion": "Cancela todo el danno que fueses a sufrir este turno, siempre que la accion que provoco el danno requisiera algun coste de Bifrost.",
   "Column6": "Si",
   "Norna": 38,
   "Alfar": 38
@@ -7541,7 +7541,7 @@
   "Nombre": "Arrastrar al Yggdrasil",
   "Lanzamiento": "2 acciones",
   "Bifrost": 50,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "El objetivo cuenta con dos turnos. Si uso estas acciones, cuando la habilidad acabe, el objetivo tiene que hacer una prueba de Mnt 13+ para no quedar aturdido 1d4 asaltos y una pruebas de Fis 15+ para que sus musculos no se debiliten. (-1 dado a toda prueba fisica hasta descansar).",
   "Column6": "No",
   "Norna": 41,
@@ -7551,8 +7551,8 @@
   "Nombre": "Toque del tiempo",
   "Lanzamiento": "1 minuto",
   "Bifrost": 60,
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "El objetivo inorganico envejece 10 años.",
+  "Prueba": "CruzarBifrost 14+",
+  "Descripcion": "El objetivo inorganico envejece 10 annos.",
   "Column6": "No",
   "Norna": 44,
   "Alfar": 44
@@ -7571,8 +7571,8 @@
   "Nombre": "Manipular hilos de la edad",
   "Lanzamiento": "10 minutos",
   "Bifrost": 40,
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "Durante un año el objetivo (que puedes ser tu), no envejece.",
+  "Prueba": "CruzarBifrost 14+",
+  "Descripcion": "Durante un anno el objetivo (que puedes ser tu), no envejece.",
   "Column6": "No",
   "Norna": 55,
   "Alfar": 55
@@ -7693,7 +7693,7 @@
   "Lanzamiento": "Mantener",
   "Bifrost": "1 al minuto",
   "Prueba": "Mente 8+",
-  "Descripcion": "Mientras mantengas la habilidad activada eres capaz de transmitir y recibir señales basicas de alerta (Binario, o no recibes nada o recibes “alerta”) de otros PJ o PNJ que tengan activada la misma habilidad. No disciernes quien ha enviado la señal",
+  "Descripcion": "Mientras mantengas la habilidad activada eres capaz de transmitir y recibir sennales basicas de alerta (Binario, o no recibes nada o recibes “alerta”) de otros PJ o PNJ que tengan activada la misma habilidad. No disciernes quien ha enviado la sennal",
   "Column6": "No",
   "Norna": 8,
   "Mnt": 5
@@ -7703,7 +7703,7 @@
   "Lanzamiento": "Inst\/5",
   "Bifrost": 15,
   "Prueba": "Einherjer 10+",
-  "Descripcion": "Aumenta o reduce en 1 el resultado de una tirada para ver la zona de daño (Antes de conocer el resultado)",
+  "Descripcion": "Aumenta o reduce en 1 el resultado de una tirada para ver la zona de danno (Antes de conocer el resultado)",
   "Column6": "No",
   "Norna": 10
  },
@@ -7722,7 +7722,7 @@
   "Lanzamiento": "Inst\/5",
   "Bifrost": 20,
   "Prueba": "Einherjer 10+",
-  "Descripcion": "Aumenta o reduce en 1 el resultado de una tirada para ver la zona de daño (Incluso despues de conocer el resultado)",
+  "Descripcion": "Aumenta o reduce en 1 el resultado de una tirada para ver la zona de danno (Incluso despues de conocer el resultado)",
   "Column6": "No",
   "Norna": 12
  },
@@ -7768,7 +7768,7 @@
   "Lanzamiento": "Normal",
   "Bifrost": 15,
   "Prueba": "Einherjer 12+",
-  "Descripcion": "Disparas con un arma que no estas empuñando como si la estuvieses empuñando. Si al final de tu siguiente turno no estas empuñando dicho arma, recibes un ataque de dicho arma con toda su cadencia, que impacta automaticamente y golpea en punto vital automaticamente.",
+  "Descripcion": "Disparas con un arma que no estas empunnando como si la estuvieses empunnando. Si al final de tu siguiente turno no estas empunnando dicho arma, recibes un ataque de dicho arma con toda su cadencia, que impacta automaticamente y golpea en punto vital automaticamente.",
   "Column6": "No",
   "Heroe": 24,
   "Norna": 24
@@ -7778,7 +7778,7 @@
   "Lanzamiento": "Inst",
   "Bifrost": 5,
   "Prueba": "Sentir Yggdrasil 14+",
-  "Descripcion": "Esta habilidad solo puede ser utilizada tras causar daño con un ataque a un objetivo. Reduce a la mitad los bonos de esquiva del objetivo a su defensa contra tu proximo golpe.",
+  "Descripcion": "Esta habilidad solo puede ser utilizada tras causar danno con un ataque a un objetivo. Reduce a la mitad los bonos de esquiva del objetivo a su defensa contra tu proximo golpe.",
   "Column6": "Si",
   "Heroe": 25,
   "Norna": 25
@@ -7841,7 +7841,7 @@
   "Nombre": "Cargador infinito",
   "Lanzamiento": "1 minuto",
   "Bifrost": 30,
-  "Prueba": "Cruzar Bifrost 13+",
+  "Prueba": "CruzarBifrost 13+",
   "Descripcion": "Durante 24 horas, el arma de proyectiles objetivo no puede quedarse sin balas y no necesita recargar.",
   "Column6": "No",
   "Heroe": 38,
@@ -7851,7 +7851,7 @@
   "Nombre": "Cargador finito",
   "Lanzamiento": "Normal",
   "Bifrost": 40,
-  "Prueba": "Cruzar Bifrost 13+",
+  "Prueba": "CruzarBifrost 13+",
   "Descripcion": "El arma de proyectiles objetivo se queda sin balas.",
   "Column6": "No",
   "Heroe": 44,
@@ -7891,11 +7891,11 @@
   "Heroe": 5
  },
  {
-  "Nombre": "Tiro dañino (A)",
+  "Nombre": "Tiro dannino (A)",
   "Lanzamiento": "Inst\/3",
   "Bifrost": 9,
   "Prueba": "Punteria 7+",
-  "Descripcion": "La siguiente vez que fueras a hacer usar una accion en disparar, disparas un unico tiro añadiendo 2D10 al daño",
+  "Descripcion": "La siguiente vez que fueras a hacer usar una accion en disparar, disparas un unico tiro annadiendo 2D10 al danno",
   "Column6": "No",
   "Heroe": 10
  },
@@ -7936,8 +7936,8 @@
   "Nombre": "Arma de la victoria",
   "Lanzamiento": "Normal",
   "Bifrost": 50,
-  "Prueba": "Cruzar Bifrost 15+",
-  "Descripcion": "El arma objetivo que portes comienza a moverse siguiendo tu voluntad. Al comienzo de cada turno el debes hacer una prueba de Cruzar Bifrost igual a la del turno anterior + 2. Cuando falles una de estas tiradas tirada, el arma deja de moverse y cae al suelo. La dificultad de la primera tirada es 10+, El arma utiliza los bonos del usuario de la habilidad. Si el arma es cogida por alguien, se cancela el efecto.",
+  "Prueba": "CruzarBifrost 15+",
+  "Descripcion": "El arma objetivo que portes comienza a moverse siguiendo tu voluntad. Al comienzo de cada turno el debes hacer una prueba de CruzarBifrost igual a la del turno anterior + 2. Cuando falles una de estas tiradas tirada, el arma deja de moverse y cae al suelo. La dificultad de la primera tirada es 10+, El arma utiliza los bonos del usuario de la habilidad. Si el arma es cogida por alguien, se cancela el efecto.",
   "Column6": "Si",
   "Heroe": 25
  },
@@ -7969,7 +7969,7 @@
   "Lanzamiento": "Mantener",
   "Bifrost": "1 al minuto",
   "Prueba": "Mente 8+",
-  "Descripcion": "Mientras mantengas la habilidad activada eres capaz de transmitir y recibir señales basicas de alerta (Binario, o no recibes nada o recibes “alerta”) de otros PJ o PNJ que tengan activada la misma habilidad. No disciernes quien ha enviado la señal",
+  "Descripcion": "Mientras mantengas la habilidad activada eres capaz de transmitir y recibir sennales basicas de alerta (Binario, o no recibes nada o recibes “alerta”) de otros PJ o PNJ que tengan activada la misma habilidad. No disciernes quien ha enviado la sennal",
   "Column6": "No",
   "Mnt": 16
  },
@@ -8086,14 +8086,14 @@
   "Lanzamiento": "Normal",
   "Bifrost": 10,
   "Prueba": "Esconderse 8+",
-  "Descripcion": "Disparas a un objetivo que no espere que lo ataques (o que no espera el golpe). Duplica el daño que causases",
+  "Descripcion": "Disparas a un objetivo que no espere que lo ataques (o que no espera el golpe). Duplica el danno que causases",
   "Column6": "No"
  },
  {
   "Nombre": "Duelo mental",
   "Lanzamiento": "2 acciones",
   "Bifrost": 20,
-  "Descripcion": "El objetivo y tu haceis una prueba enfrentada en Mnt. El perdedor sufre 50 de daño. No hay evidencias fisicas de este ataque.",
+  "Descripcion": "El objetivo y tu haceis una prueba enfrentada en Mnt. El perdedor sufre 50 de danno. No hay evidencias fisicas de este ataque.",
   "Column6": "No",
   "Mnt": 15
  },
@@ -8115,7 +8115,7 @@
   "Nombre": "Levitacion",
   "Lanzamiento": "Normal",
   "Bifrost": "10 * X",
-  "Prueba": "Cruzar Bifrost 14+",
+  "Prueba": "CruzarBifrost 14+",
   "Descripcion": "Si en el turno anterior usaste esta habilidad, puedes volver a usarla para no perder altura, siendo en ese caso X igual a 1.",
   "Column6": "No"
  },
@@ -8165,7 +8165,7 @@
   "Nombre": "Potenciar Mente",
   "Lanzamiento": "Mantener",
   "Bifrost": "15 + 7 al turno",
-  "Prueba": "Cruzar Bifrost 10+",
+  "Prueba": "CruzarBifrost 10+",
   "Descripcion": "Obtienes +1 dado y +1 en las pruebas de este atributo",
   "Column6": "No",
   "Mnt": 20
@@ -8174,7 +8174,7 @@
   "Nombre": "Potenciar Estudio",
   "Lanzamiento": "Mantener",
   "Bifrost": "15 + 7 al turno",
-  "Prueba": "Cruzar Bifrost 10+",
+  "Prueba": "CruzarBifrost 10+",
   "Descripcion": "Obtienes +1 dado y +1 en las pruebas de este atributo",
   "Column6": "No",
   "Est": 20
@@ -8212,7 +8212,7 @@
  {
   "Nombre": "Fuerza Hrimbursar",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Todo el daño cuerpo a cuerpo que provoques se incrementa un 25% (Total de 50% si tienes Fuerza Bergisar)",
+  "Descripcion": "Todo el danno cuerpo a cuerpo que provoques se incrementa un 25% (Total de 50% si tienes Fuerza Bergisar)",
   "Column6": "Si"
  },
  {
@@ -8226,7 +8226,7 @@
   "Nombre": "Trastocar hilo del Yggdrasil",
   "Lanzamiento": "Inst",
   "Bifrost": 20,
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "El objetivo debe gastar el doble de Bifrost para activar la habilidad que fuese a activar.",
   "Column6": "No"
  },
@@ -8234,7 +8234,7 @@
   "Nombre": "Contrarrestar Bifrost",
   "Lanzamiento": "Inst",
   "Bifrost": "X",
-  "Prueba": "Cruzar Bifrost 15+",
+  "Prueba": "CruzarBifrost 15+",
   "Descripcion": "Si la habilidad objetivo que se este lanzando tiene un coste de X o menos, cancela todos sus efectos",
   "Column6": "No"
  },
