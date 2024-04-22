@@ -130,7 +130,7 @@
   "Prueba": "Sentir Yggdrasil 12+",
   "Descripcion": "Detectas sustancias peligrosas para ti en un radio de 15 m durante 1 minuto.",
   "Column6": "No",
-  "Fisica\/Quimica": 14,
+  "FisicaQuimica": 14,
   "Sentir Yggdrasil": 14
  },
  {
@@ -291,7 +291,7 @@
   "Prueba": "Sentir Yggdrasil 19+",
   "Descripcion": "X es la vida del objetivo \/ 10, El objetivo a 5 casillas de ti es desintegrado. Para no ser desintegrado debe superar una prueba enfrentada de Resistencia vs Fisica y quimica.",
   "Column6": "No",
-  "Fisica\/Quimica": 15,
+  "FisicaQuimica": 15,
   "Sentir Yggdrasil": 20
  },
  {
@@ -492,7 +492,7 @@
   "Prueba": "Einherjer 15+",
   "Descripcion": "Automaticamente obtienes el resultado maximo en la prueba de resistencia contra un fuego.",
   "Column6": "No",
-  "Fisica\/Quimica": 12,
+  "FisicaQuimica": 12,
   "Resistencia": 12
  },
  {
@@ -574,7 +574,7 @@
   "Descripcion": "Entras en trance durante 5 turnos. Durante este tiempo solo puedes moverte para acercarte a criaturas con el objetivo de atacarlas, y atacarlas cuerpo a cuerpo. Reduce a la mitad el danno que recibas durante este tiempo. Una vez termine el trance, pierdes un turno.",
   "Column6": "No",
   "Destreza": 13,
-  "Fisica\/Quimica": 13,
+  "FisicaQuimica": 13,
   "Resistencia": 13
  },
  {
@@ -704,7 +704,7 @@
   "Prueba": "Einherjer 18+",
   "Descripcion": "Esta habilidad se puede usar cuando estes sudando. Esta habilidad solo puede utilizarse si en el turno anterior hiciste una prueba de deporte. Durante 10 minutos generas una armadura cubriendo todo tu cuerpo, piernas y brazos igual al resultado de la prueba de deporte * 5.",
   "Column6": "No",
-  "Fisica\/Quimica": 16,
+  "FisicaQuimica": 16,
   "Resistencia": 16
  },
  {
@@ -792,7 +792,7 @@
   "Prueba": "Einhjerjer 14+",
   "Descripcion": "Esta habilidad solo puede ser utilizada tras fallar una tirada de resistencia por haber sufrido danno en una localizacion.Durante tantos turnos como por cuanto fallaste la prueba \/ 3 +1, tu sangre se solidifica y reduce a la mitad el danno que fueses a sufrir en esa misma localizacion.",
   "Column6": "No",
-  "Fisica\/Quimica": 20,
+  "FisicaQuimica": 20,
   "Resistencia": 20
  },
  {
@@ -898,7 +898,7 @@
   "Prueba": "CruzarBifrost 13+",
   "Descripcion": "La siguiente bala que dispares emite luz durante 1 minuto como si fuese una antorcha.",
   "Column6": "No",
-  "Fisica\/Quimica": 8,
+  "FisicaQuimica": 8,
   "Punteria": 8
  },
  {
@@ -1030,7 +1030,7 @@
   "Prueba": "CruzarBifrost 14+",
   "Descripcion": "Duplica el alcance del arma de proyectiles que estes utilizando hasta el principio de tu proximo turno o hasta dejar de utilizarla.",
   "Column6": "No",
-  "Fisica\/Quimica": 13,
+  "FisicaQuimica": 13,
   "Punteria": 13
  },
  {
@@ -1272,7 +1272,7 @@
   "Prueba": "CruzarBifrost 18+",
   "Descripcion": "Durante 10 turnos, agrega a tu arma de proyectiles +15\/+10\/+10\/+5 de danno de fuego. Cada vez que alguien reciba danno de fuego de esta forma, debe hacer una tirada de resistencia con una dificultad igual a la mitad del danno de fuego para no prenderse de fuego.",
   "Column6": "No",
-  "Fisica\/Quimica": 20,
+  "FisicaQuimica": 20,
   "Punteria": 20
  },
  {
@@ -1663,9 +1663,9 @@
   "Nombre": "A por el gafotas",
   "Lanzamiento": "Inst",
   "Bifrost": 5,
-  "Descripcion": "Haz una prueba enfrentada en Fisica\/Quimica con el objetivo. Aumenta la duracion de la provocacion del objetivo contra ti en tantos asaltos como el resultado. Una vez usada esta habilidad contra un objetivo provocado, no puede utilizarse de nuevo hasta que no sea provocado de nuevo.",
+  "Descripcion": "Haz una prueba enfrentada en FisicaQuimica con el objetivo. Aumenta la duracion de la provocacion del objetivo contra ti en tantos asaltos como el resultado. Una vez usada esta habilidad contra un objetivo provocado, no puede utilizarse de nuevo hasta que no sea provocado de nuevo.",
   "Column6": "No",
-  "Fisica\/Quimica": 20,
+  "FisicaQuimica": 20,
   "Provocar": 20
  },
  {
@@ -1813,7 +1813,7 @@
   "Descripcion": "Haces un discurso abiertamente pseudocientifico. Haz una prueba de Enganno contra la Percepcion del objetivo. En caso de superar, haz una nueva prueba con la puntuacion de Mente o Estudio del objetivo (no la tuya) a dificultad 18+. Si tienes exito, el objetivo pierde sus proximas acciones, tantas como los puntos por lo que hayas superado la prueba +1.",
   "Column6": "No",
   "Enganno": 18,
-  "Fisica\/Quimica": 18,
+  "FisicaQuimica": 18,
   "Labia": 14,
   "Medicina": 10
  },
@@ -1963,9 +1963,9 @@
   "Lanzamiento": "15 minutos",
   "Bifrost": 30,
   "Prueba": "CruzarBifrost 18+",
-  "Descripcion": "Haz una prueba de Medicina y una de Fisica\/Quimica. Suma el resultado y dividelo entre 10. Selecciona una droga cuya formulacion conozcas o con la que tengas contacto fisico y crea tantas dosis como el resultado. Esta habilidad funciona con cualquier sustancia que altere tus atributos temporalmente o que pueda causar adiccion.",
+  "Descripcion": "Haz una prueba de Medicina y una de FisicaQuimica. Suma el resultado y dividelo entre 10. Selecciona una droga cuya formulacion conozcas o con la que tengas contacto fisico y crea tantas dosis como el resultado. Esta habilidad funciona con cualquier sustancia que altere tus atributos temporalmente o que pueda causar adiccion.",
   "Column6": "No",
-  "Fisica\/Quimica": 13,
+  "FisicaQuimica": 13,
   "Medicina": 13
  },
  {
@@ -2067,7 +2067,7 @@
   "Lanzamiento": "1 hora",
   "Descripcion": "Creas y aprendes la formulacion droga que puedes unir con cualquier otra sustancia sin alterar sus propiedades originales. Cuando la droga es consumida, debe hacerse una prueba de Resistencia con una dificultad 16+. Si falla, se vuelve adicto. Repite la tirada y quedate con el peor resultado tantas veces como veces hayas consumido la droga en los ultimos 3 dias. Una vez usada esta habilidad para originar una droga de esta forma, puedes crear dosis con \"Replicar droga\"",
   "Column6": "No",
-  "Fisica\/Quimica": 17,
+  "FisicaQuimica": 17,
   "Medicina": 17
  },
  {
@@ -2131,7 +2131,7 @@
   "Prueba": "Sentir Yggdrasil 18+",
   "Descripcion": "Creas una dosis de droga que recupera 50 de Bifrost tras su uso. Necesitas acceso a esquipamiento cientifico para usar esta habilidad. Cuando la droga es consumida, debe hacerse una prueba de Resistencia con una dificultad igual a la puntuacion de mente del consumidor. Si falla, se vuelve adicto. Repite la tirada y quedate con el peor resultado tantas veces como veces hayas consumido la droga en los ultimos 3 dias. Esta droga solo puede crearse mediante esta habilidad y cualquier otro intento de replicarla, falla de forma espectacular.",
   "Column6": "No",
-  "Fisica\/Quimica": 20,
+  "FisicaQuimica": 20,
   "Medicina": 20
  },
  {
@@ -2583,15 +2583,15 @@
   "Prueba": "Einherjer 14+",
   "Descripcion": "La criatura objetivo tocada queda en un estado de sumision quimica. Si el objetivo presente con mayor puntuacion de liderazgo realiza una accion social contra una criatura afectada, lanza 1d10 adicional y selecciona el que mas le convenga. Si una criatura afectada trata de resistirse a una accion social de la criatura con mayor liderazgo presente, lanza 1d10 adicional y se queda el peor. Cada vez que ocurra esto, la criatura afectada puede hacer una tirada de Resistencia 20+ para librarse del efecto. El efecto desaparece tras un maximo de una hora.",
   "Column6": "No",
-  "Fisica\/Quimica": 20,
+  "FisicaQuimica": 20,
   "Liderazgo": 20
  },
  {
   "Nombre": "Lider cientifico",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Si lideras una investigacion cientifica, el equipo tiene que hacer alguna prueba al respecto y tu puntuacion es mayor a la suya, suman la mitad de los bonos que tengais de diferencia. (Ejemplo: lideras con 4d+3 de Fisica\/Quimica y tu ayudante con 2d+1 tiene que hacer una prueba. Sumaria +1d+1 adicional)",
+  "Descripcion": "Si lideras una investigacion cientifica, el equipo tiene que hacer alguna prueba al respecto y tu puntuacion es mayor a la suya, suman la mitad de los bonos que tengais de diferencia. (Ejemplo: lideras con 4d+3 de FisicaQuimica y tu ayudante con 2d+1 tiene que hacer una prueba. Sumaria +1d+1 adicional)",
   "Column6": "No",
-  "Fisica\/Quimica": 20,
+  "FisicaQuimica": 20,
   "Liderazgo": 20
  },
  {
@@ -2748,9 +2748,9 @@
   "Lanzamiento": "Normal",
   "Bifrost": 15,
   "Prueba": "Labia 14+",
-  "Descripcion": "Abrumas al los oyentes con datos cientificos. Haz una prueba de Fisica\/Quimica, cada oyente hace una con tu resultado como dificultad. Si fallan se sienten abrumados e inentaran no hacer preguntas ni discutirte al respecto.",
+  "Descripcion": "Abrumas al los oyentes con datos cientificos. Haz una prueba de FisicaQuimica, cada oyente hace una con tu resultado como dificultad. Si fallan se sienten abrumados e inentaran no hacer preguntas ni discutirte al respecto.",
   "Column6": "No",
-  "Fisica\/Quimica": 10,
+  "FisicaQuimica": 10,
   "Labia": 10
  },
  {
@@ -2832,7 +2832,7 @@
   "Prueba": "CruzarBifrost 14+",
   "Descripcion": "Das un discurso tan ardiente que el objetivo se quema por dentro, sufriendo 20 de danno por las quemaduras internas. Si en el turno anterior usaste esta misma habilidad, reduce en 5 su coste. Si fue en los dos ultimos turnos, 10, y si fue en los tres o mas, 15.",
   "Column6": "No",
-  "Fisica\/Quimica": 14,
+  "FisicaQuimica": 14,
   "Labia": 14
  },
  {
@@ -2954,9 +2954,9 @@
   "Lanzamiento": "2 acciones",
   "Bifrost": 10,
   "Prueba": "Labia 14+",
-  "Descripcion": "Haz una prueba enfrentada de Fisica\/Quimica con el objetivo. El perdedor pierde sus dos proximos turnos.",
+  "Descripcion": "Haz una prueba enfrentada de FisicaQuimica con el objetivo. El perdedor pierde sus dos proximos turnos.",
   "Column6": "No",
-  "Fisica\/Quimica": 20,
+  "FisicaQuimica": 20,
   "Labia": 20
  },
  {
@@ -3211,7 +3211,7 @@
   "Prueba": "Einherjer 14+",
   "Descripcion": "Durante 10 asaltos expulsas feromonas que, excepto a ti, afectan a cualquier criatura biologica capaz de percibirlas a 10 casillas. Toda prueba de intimidar contra estas criaturas lanza 1d10 adicional y se queda con el mejor valor.",
   "Column6": "No",
-  "Fisica\/Quimica": 20,
+  "FisicaQuimica": 20,
   "Intimidar": 20
  },
  {
@@ -3325,7 +3325,7 @@
   "Descripcion": "Detectas cual es la fuente de energia mas potente en un radio de 20 m de ti.",
   "Column6": "No",
   "Buscar": 12,
-  "Fisica\/Quimica": 12,
+  "FisicaQuimica": 12,
   "Informatica": 12
  },
  {
@@ -3395,7 +3395,7 @@
   "Descripcion": "Interfieres las ondas de una frecuencia hasta las microondas.",
   "Column6": "No",
   "CruzarBifrost": 10,
-  "Fisica\/Quimica": 15,
+  "FisicaQuimica": 15,
   "Informatica": 15
  },
  {
@@ -3436,7 +3436,7 @@
   "Prueba": "Einherjer 18+",
   "Descripcion": "Puedes interactuar con un sistema informatico en contacto contigo sin necesidad de usar un interfaz. Eso te permite manipularlo sin la restriccion de velocidad que tuviese cualquier otro interfaz.",
   "Column6": "No",
-  "Fisica\/Quimica": 20,
+  "FisicaQuimica": 20,
   "Informatica": 20
  },
  {
@@ -3624,7 +3624,7 @@
   "Prueba": "Einherjer 14+",
   "Descripcion": "Tus punnos pueden dannar escudos, y lo hacen al doble de danno normal.",
   "Column6": "No",
-  "Fisica\/Quimica": 14,
+  "FisicaQuimica": 14,
   "Fuerza": 14
  },
  {
@@ -3702,7 +3702,7 @@
   "Prueba": "Einherjer 15+",
   "Descripcion": "Quintuplica tu fuerza para la siguiente accion. Si fuese un ataque cuerpo a cuerpo, multiplica el danno por cinco. Despues de tu siguiente accion haz 10 pruebas de Resistencia 22+. Por cada fallo, sufres -1d y -1 a toda prueba fisica hasta que descanses.",
   "Column6": "No",
-  "Fisica\/Quimica": 20,
+  "FisicaQuimica": 20,
   "Fuerza": 20
  },
  {
@@ -3805,7 +3805,7 @@
   "Column6": "No",
   "CruzarBifrost": 16,
   "Enganno": 16,
-  "Fisica\/Quimica": 8
+  "FisicaQuimica": 8
  },
  {
   "Nombre": "Encontrar aire",
@@ -3815,7 +3815,7 @@
   "Descripcion": "Detectas si una localizacion a un maximo de 20 m tiene aire respirable por ti",
   "Column6": "No",
   "Buscar": 8,
-  "Fisica\/Quimica": 8
+  "FisicaQuimica": 8
  },
  {
   "Nombre": "Uso de venenos",
@@ -3825,7 +3825,7 @@
   "Descripcion": "Usa esta habilidad mientras aplicas un veneno a un arma cuerpo a cuerpo. Eres inmune al veneno que has puesto en tu propia arma. (El mismo veneno en otro arma si te afecta)",
   "Column6": "No",
   "Destreza": 9,
-  "Fisica\/Quimica": 9
+  "FisicaQuimica": 9
  },
  {
   "Nombre": "Crear combustible",
@@ -3835,7 +3835,7 @@
   "Descripcion": "Creas X * 5 litros de combustible para un vehiculo (gasolina o similar)",
   "Column6": "No",
   "Conduccion": 10,
-  "Fisica\/Quimica": 10
+  "FisicaQuimica": 10
  },
  {
   "Nombre": "Camuflar olor",
@@ -3845,17 +3845,17 @@
   "Descripcion": "Durante 1 minuto eliminas tu olor corporal de los objetos que lleves y no desprendes nuevos olores.",
   "Column6": "No",
   "Enganno": 12,
-  "Fisica\/Quimica": 12
+  "FisicaQuimica": 12
  },
  {
   "Nombre": "Lanzamiento largo",
   "Lanzamiento": "Inst",
   "Bifrost": 10,
-  "Prueba": "Fisica\/Quimica 14+",
+  "Prueba": "FisicaQuimica 14+",
   "Descripcion": "Aumenta al doble la distancia a la que estas lanzando un objeto",
   "Column6": "No",
   "Deporte": 12,
-  "Fisica\/Quimica": 12
+  "FisicaQuimica": 12
  },
  {
   "Nombre": "Indetectabilidad quimica",
@@ -3865,7 +3865,7 @@
   "Descripcion": "Mientras mantengas la habilidad, la sustancia objetivo a menos de un metro de ti es detectada como si fuese cualquier otra sustancia inocua a tu eleccion.",
   "Column6": "No",
   "Esconderse": 13,
-  "Fisica\/Quimica": 13
+  "FisicaQuimica": 13
  },
  {
   "Nombre": "Transformar gas",
@@ -3875,7 +3875,7 @@
   "Descripcion": "Transformas el gas objetivo a tu alrededor en otro gas. (Volumen maximo 5m^3 )",
   "Column6": "No",
   "CruzarBifrost": 14,
-  "Fisica\/Quimica": 14
+  "FisicaQuimica": 14
  },
  {
   "Nombre": "Detectar presencia quimica",
@@ -3885,17 +3885,17 @@
   "Descripcion": "Detectas la presencia de una sustancia concreta conocida en un radio maximo de 15 metros (puedes decidir usarlo en menos distancia). Si tienes una muestra, el alcance es de hasta 30 metros.",
   "Column6": "No",
   "Buscar": 14,
-  "Fisica\/Quimica": 14
+  "FisicaQuimica": 14
  },
  {
   "Nombre": "Competencias fisicas",
   "Lanzamiento": "Inst",
   "Bifrost": 10,
-  "Prueba": "Fisica\/Quimica 14+",
+  "Prueba": "FisicaQuimica 14+",
   "Descripcion": "Si estas realizado una prueba de deporte en que claramente una sapiencia fisica te pueda ayudar, obtienes +2 a esta prueba. Puedes preguntar si esta habilidad surtiria efecto antes de utilizarla.",
   "Column6": "No",
   "Deporte": 15,
-  "Fisica\/Quimica": 15
+  "FisicaQuimica": 15
  },
  {
   "Nombre": "Integrar",
@@ -3905,7 +3905,7 @@
   "Descripcion": "Puedes dar forma a materia de pequenno tamanno. Dependiendo de la complejidad de lo que quieras hacer se dara un valor a X.",
   "Column6": "No",
   "CruzarBifrost": 20,
-  "Fisica\/Quimica": 15
+  "FisicaQuimica": 15
  },
  {
   "Nombre": "Magnetizarse",
@@ -3915,7 +3915,7 @@
   "Descripcion": "Esta habilidad solo puede utilizarse antes de que se realice una tirada de localizacio contra ti. Elige una zona de impacto. Si la tirada dista 1 de impactar en la localizacion seleccionada, impacta en esta.",
   "Column6": "No",
   "Esquiva": 20,
-  "Fisica\/Quimica": 20
+  "FisicaQuimica": 20
  },
  {
   "Nombre": "Camuflaje cutaneo",
@@ -3925,7 +3925,7 @@
   "Descripcion": "Esta habilidad puede usarse consecutivamente y sus efectos se apilan. Tu piel se mimetizaa con el entorno, consiguiendo el equivalente un 10% de transparencia. Si alguien intenta localizarte, tiene -1d -1. Esta habilidad no camufla nada que no sea tu propio cuerpo biologico. Puedes ser percibido con normalidad con cualquier sentido que no sea la vista. Los efectos de esta habilidad se pierden cuando te muevas significativamente de tu posicion.",
   "Column6": "No",
   "Esconderse": 20,
-  "Fisica\/Quimica": 20
+  "FisicaQuimica": 20
  },
  {
   "Nombre": "Engannar gravedad",
@@ -3935,7 +3935,7 @@
   "Descripcion": "Reduce a una cuarta parte el influjo de la gravedad contra ti.",
   "Column6": "No",
   "Enganno": 20,
-  "Fisica\/Quimica": 20
+  "FisicaQuimica": 20
  },
  {
   "Nombre": "Hoja relampagueante",
@@ -3945,7 +3945,7 @@
   "Descripcion": "Una vez termines de lanzar la habilidad, durante T turnos tu arma cuerpo a cuerop provoca 20 de danno electrico adicional por golpe",
   "Column6": "No",
   "Destreza": 20,
-  "Fisica\/Quimica": 20
+  "FisicaQuimica": 20
  },
  {
   "Nombre": "Lanzamiento de jabalina",
@@ -3955,7 +3955,7 @@
   "Descripcion": "Arroja un objeto hasta 4 veces mas lejos de lo normal.",
   "Column6": "No",
   "Deporte": 20,
-  "Fisica\/Quimica": 20
+  "FisicaQuimica": 20
  },
  {
   "Nombre": "Combustible viviente",
@@ -3965,7 +3965,7 @@
   "Descripcion": "Puedes emitir energia  para alimentar un vehiculo. El motor del vehiculo en contacto contigo recibe hasta 100 Kwh.",
   "Column6": "No",
   "Conduccion": 20,
-  "Fisica\/Quimica": 20
+  "FisicaQuimica": 20
  },
  {
   "Nombre": "Quebrar materia agrietada",
@@ -3975,7 +3975,7 @@
   "Descripcion": "El objeto mineral a 15 casillas recibe 125 puntos de danno.",
   "Column6": "No",
   "Buscar": 20,
-  "Fisica\/Quimica": 20
+  "FisicaQuimica": 20
  },
  {
   "Nombre": "Olor a rosas",
@@ -3983,7 +3983,7 @@
   "Descripcion": "Modifica el olor que desprendes a voluntad. Puede ser tan agradable o desagradable como consideres, pero es claramente artificial (como si te hubieses echado un perfume)",
   "Column6": "No",
   "Atractivo": 20,
-  "Fisica\/Quimica": 20
+  "FisicaQuimica": 20
  },
  {
   "Nombre": "Conocimiento de Asgard",
@@ -3992,7 +3992,7 @@
   "Prueba": "Sentir Yggdrasil 15+",
   "Descripcion": "Conoces informacion sobre el dispositivo tocado. Funcionamiento, disenno, planos…",
   "Column6": "Si",
-  "Fisica\/Quimica": 30
+  "FisicaQuimica": 30
  },
  {
   "Nombre": "Evolucion del norte",
