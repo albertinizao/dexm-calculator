@@ -361,7 +361,7 @@
   "Prueba": "Medicina 25+",
   "Descripcion": "El objetivo obtiene o pierde, a tu eleccion +1 a un atributo principal o +2 a uno secundario.\nSi duplicas en nivel al objetivo,  se duplica el efecto.\nEl mismo individuo no puede ser objetivo de esta habilidad de nuevo hasta pasado un mes.\nSi fallas la prueba de medicina, el efecto es contrario al deseado.\nAumenta en 1 el resultado de la prueba por cada nivel que excedas el nivel del objetivo.",
   "Column6": "No",
-  "Evolutivo Curva": 15,
+  "EvolutivoCurva": 15,
   "Medicina": 20,
   "Sentir Yggdrasil": 25
  },
@@ -2142,7 +2142,7 @@
   "Descripcion": "Si el objetivo tuviese menos nivel que tu, obtiene un nivel.\nSi duplicas su nivel, obtiene dos niveles. Si aun habiendo subido ese nivel le sigues duplicando, otro. Y asi hasta conseguir un maximo de 4 niveles.",
   "Column6": "No",
   "CruzarBifrost": 25,
-  "Evolutivo Curva": 15,
+  "EvolutivoCurva": 15,
   "Medicina": 20
  },
  {
@@ -3999,14 +3999,14 @@
   "Lanzamiento": "Pasiva",
   "Descripcion": "Obtienes un punto de genetica extra al subir de nivel.",
   "Column6": "Si",
-  "Evolutivo Curva": 15
+  "EvolutivoCurva": 15
  },
  {
   "Nombre": "Evolucion del norte mejorada",
   "Lanzamiento": "Pasiva",
   "Descripcion": "Cada vez que subas de nivel obtienes 5 puntos de evolucion adicionales",
   "Column6": "Si",
-  "Evolutivo Curva": 25
+  "EvolutivoCurva": 25
  },
  {
   "Nombre": "Esquiva intuitiva",
