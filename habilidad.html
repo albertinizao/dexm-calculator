@@ -1,0 +1,92 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--a-->
+    <title>Deus ex Machina</title>
+    <style type="text/css">
+        body { color:#ffd800; background-color:black; }
+        table { margin-top:8px; margin-top:8px; }
+        table tr td p { font-family: "Arno Pro Caption", "Adobe Caslon Pro"; vertical-align:middle}
+        table tr td span { font-family: "Arno Pro Caption", "Adobe Caslon Pro"; vertical-align:middle}
+        p { text-align: center;  font-variant:small-caps; }
+        input { text-align: center; font-variant:small-caps ; font-family: "Adobe Caslon Pro"; background-color:silver /*color:#530404; font-weight:bold*/ }
+        textarea { font-family: "Adobe Caslon Pro"; background-color:silver; font-size:13; }
+        td { text-align: center }
+        td .nombreCampo { text-align: left;  font-weight:bold; font-variant:small-caps; font-family: "Copperplate Gothic Light" }
+        .sobrepasadoMaximo { color:red; text-decoration:blink; font-weight:bold;  }
+        thead {}
+        thead tr td p { padding-left:10px; font-variant:small-caps; font-family: "Adobe Caslon Pro"; font-size:22 }
+        table tbody tr td p { font-family: "Arno Pro Caption", "Adobe Caslon Pro"; vertical-align:middle}
+        h1 { text-align: center;  font-weight:bold; font-variant:small-caps; font-family: "Adobe Caslon Pro" }
+        h2 { text-align: center;  font-weight:bold; font-variant:small-caps; font-family: "Adobe Caslon Pro" }
+        .filaSeparacion { height:35px }
+        .listadoHabilidades { font-variant:small-caps ; font-family: "Adobe Caslon Pro"; vertical-align:middle; }
+        .footer {
+          position: fixed;
+          left: 0;
+          bottom: 0;
+          width: 100%;
+          text-align: center;
+        }
+        .header {
+          position: fixed;
+          left: 0;
+          top: 0;
+          width: 100%;
+          text-align: center;
+        }
+    </style>
+    <script type="text/javascript" src="./hashCode.js"></script>
+    <script type="text/javascript">
+        function initHabilidadPage(){
+            var prmstr = window.location.search.split("=");
+            var abilityName = prmstr[1];
+            fetch('https://albertinizao.github.io/dexm-calculator/CompendioHabilidadesExport.json')
+                .then((response) => response.json())
+                .then((json) => json.forEach((element) => {
+                    if (hashCode(element.Nombre)==abilityName){
+                        document.getElementById("habilidadNombre").innerHTML=element.Nombre?element.Nombre:"—"
+                        document.getElementById("accion").innerHTML=element.Lanzamiento?element.Lanzamiento:"—"
+                        document.getElementById("bifrost").innerHTML=element.Bifrost?element.Bifrost:"—"
+                        document.getElementById("prueba").innerHTML=element.Prueba?element.Prueba:"—"
+                        document.getElementById("descripcion").innerHTML=element.Descripcion?element.Descripcion:"—"
+                    }
+                }));
+        }
+    </script>
+</head>
+
+<body background="./fondoDark.png" onload="initHabilidadPage()">
+    <img src="./logo.png" class="header">
+    <div style="margin-top:75px"/>
+        <h1 align="center"id="habilidadNombre"></h1>
+        <div align="center">
+            <table>
+                <thead>
+                    <tr>
+                        <td><p>Lanzamiento</p></td>
+                        <td><p>Bifrost</p></td>
+                        <td><p>Prueba</p></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><p id="accion"></p> </td>
+                        <td><p id="bifrost"></p></td>
+                        <td><p id="prueba"></p></td>
+                    </tr>
+                </tbody>                
+                <thead>
+                    <tr>
+                        <td colspan="4"><p>Descripción</p></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="4"><p id="descripcion"></p></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    <img src="./sublogo.png" class="footer">
+</body>
