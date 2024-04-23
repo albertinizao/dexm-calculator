@@ -1,8 +1,8 @@
-﻿<html>
+<html>
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <!--a-->
-    <title>Deus ex Machina</title>
+    <title>PERSONAS</title>
     <style type="text/css">
         body { color:#ffd800; background-color:black }
         table { margin-top:8px; margin-top:8px; }
@@ -19,32 +19,10 @@
         h1 { text-align: center;  font-weight:bold; font-variant:small-caps; font-family: "Adobe Caslon Pro" }
         h2 { text-align: center;  font-weight:bold; font-variant:small-caps; font-family: "Adobe Caslon Pro" }
         .filaSeparacion { height:35px }
-        .listadoHab1 { font-variant:small-caps ; font-family: "Adobe Caslon Pro"; vertical-align:middle; display: grid; grid-template-columns: auto;}
-        .listadoHab2 { font-variant:small-caps ; font-family: "Adobe Caslon Pro"; vertical-align:middle; display: grid; grid-template-columns: auto auto;}
-        .listadoHab3 { font-variant:small-caps ; font-family: "Adobe Caslon Pro"; vertical-align:middle; display: grid; grid-template-columns: auto auto auto;}
-        .listadoHab4 { font-variant:small-caps ; font-family: "Adobe Caslon Pro"; vertical-align:middle; display: grid; grid-template-columns: auto auto auto auto;}
-        .listadoHab5 { font-variant:small-caps ; font-family: "Adobe Caslon Pro"; vertical-align:middle; display: grid; grid-template-columns: auto auto auto auto auto;}
-        .valign { display: table-cell; vertical-align: middle; text-align: center;}
-        .abilityName {
-            margin-top: 5px;
-            margin-left: 5px;
-            margin-right: 5px;
-            vertical-align:middle;
-            background-image: radial-gradient(closest-side, rgba(0, 0, 0, 1) 50%, rgba(80, 80, 80, 0.0) );
-        }
-        .abilityName:hover {
-            margin-top: 5px;
-            margin-left: 5px;
-            margin-right: 5px;
-            vertical-align:middle;
-            cursor: default;
-            background-image: radial-gradient(closest-side, rgba(20, 20, 20, 1) 100%, rgba(80, 80, 80, 0.0) );
-        }
+        .listadoHabilidades { font-variant:small-caps ; font-family: "Adobe Caslon Pro"; vertical-align:middle; }
     </style>
     <script type="text/javascript" src="./calc2.js"></script>
     <script type="text/javascript" src="./calc3.js"></script>
-    <script type="text/javascript" src="./calc4.js"></script>
-    <script type="text/javascript" src="./hashCode.js"></script>
     <script type="text/javascript" src="./getElementsByClassName-1.0.1.js"></script>
     <script>
         var puntosEvolucionGastados = 0;
@@ -163,7 +141,6 @@
             var valorTotal = (1*valorNormal) + (1*valorExtra);
             document.getElementById(nombreAtributo+"Total").innerHTML = valorTotal;
         }
-        
         function calcularMaximos(){
             var elementoMaximos= new Array();
             elementosMaximos = getElementsByClassName("valoresMaximos");
@@ -189,28 +166,28 @@
                 }
                 
                 if(formula.search("especial")){
-                    var max = fisico*1;
-                    var menor = fisico*1;
-                    if (max<agilidad*1)
-                        max=agilidad*1;
-                    if (menor>agilidad*1)
-                        menor=agilidad*1
-                    if (max<percepcion*1)
-                        max=percepcion*1;
-                    if (menor>percepcion*1)
-                        menor=percepcion*1
-                    if (max<mente*1)
-                        max=mente*1;
-                    if (menor>mente*1)
-                        menor=mente*1
-                    if (max<estudio*1)
-                        max=estudio*1;
-                    if (menor>estudio*1)
-                        menor=estudio*1
-                    if (max<carisma*1)
-                        max=carisma*1;
-                    if (menor>carisma*1)
-                        menor=carisma*1
+                    var max = fisico;
+                    var menor = fisico;
+                    if (max<agilidad)
+                        max=agilidad;
+                    if (menor>agilidad)
+                        menor=agilidad
+                    if (max<percepcion)
+                        max=percepcion;
+                    if (menor>percepcion)
+                        menor=percepcion
+                    if (max<mente)
+                        max=mente;
+                    if (menor>mente)
+                        menor=mente
+                    if (max<estudio)
+                        max=estudio;
+                    if (menor>estudio)
+                        menor=estudio
+                    if (max<carisma)
+                        max=carisma;
+                    if (menor>carisma)
+                        menor=carisma
                     formula=formula.replace("especial", (0.5*menor)+(0.5*max));
                 }            
                 formula=formula.replace("Fis", fisico);
@@ -220,8 +197,8 @@
                 formula=formula.replace("Est", estudio);
                 formula=formula.replace("Car", carisma);
                 elementosMaximos[i].innerHTML = elementosMaximos[i].innerHTML +" = "+eval(formula);  
-                if(elementosMaximos[i].innerHTML.search("\\.5")>0){
-                    elementosMaximos[i].innerHTML =  elementosMaximos[i].innerHTML.substr(0, elementosMaximos[i].innerHTML.search("\\.5"));   
+                if(elementosMaximos[i].innerHTML.search(".5")>0){
+                    elementosMaximos[i].innerHTML =  elementosMaximos[i].innerHTML.substr(0, elementosMaximos[i].innerHTML.search(".5"));   
                 }                    
                 i++;
             }
@@ -230,8 +207,8 @@
             var respuesta=true;
             var elementosErroneos= new Array();
             elementosErroneos = getElementsByClassName("sobrepasadoMaximo");
-            if (elementosErroneos && elementosErroneos.length>0){
-                respuesta = confirm("La ficha contiene errores. ¿Desea generar aun así el código?")
+            if (elementosErroneos){
+                respuesta = confirm("La ficha contiene errores. �Desea generar aun as� el c�digo?")
             }
             return respuesta;
         }
@@ -279,7 +256,7 @@
                 codigo=codigo+concantenarAtributo("sentiryggdrasil");
                 document.getElementById("codigoFichaGuardada").innerHTML=codigo;
                 document.getElementById("codigoFichaGuardada").disabled=false
-                if (window.clipboardData && confirm("¿Desea copiar ya el código al portapapeles?")){
+                if (window.clipboardData && confirm("�Desea copiar ya el c�digo al portapapeles?")){
                     window.clipboardData.setData("Text", document.getElementById("codigoFichaGuardada").innerHTML); 
                 }
             }
@@ -307,8 +284,6 @@
                         document.getElementById(nombreReal+"NewExtra").value="";
                     }
                 }
-                if (document.getElementById(nombre+"Copiar"))
-                    document.getElementById(nombre+"Copiar").innerHTML = valor;
                 i++;
             }
             cargaInicial();
@@ -318,26 +293,7 @@
                 nombreValor = variables[i].split(":");
                 nombre=nombreValor[0];
                 comprobarMaximos(nombre+"New");
-                copiarValoresCalculados(nombre);
                 i++;
-            }
-            if (variables.length && variables[0].split(":").length<2){
-                alert("No has cargado un backup válido. Por favor, inténtalo de nuevo.")
-                document.getElementById("codigoFichaCargada").value = "";
-            }else{
-                ocultarFichaCopiar();
-            }
-        }
-        function copiarValoresCalculados(nombreCampo){
-            if (nombreCampo.search("Extra")>=0){
-                var posicion = nombreCampo.search("Extra");
-                var nombreReal = nombreCampo.substr(0, posicion);
-                if (document.getElementById(nombreReal+"TotalCopiar") && document.getElementById(nombreReal+"NewTotal"))
-                    document.getElementById(nombreReal+"TotalCopiar").innerHTML=document.getElementById(nombreReal+"NewTotal").innerHTML;
-                if (document.getElementById(nombreReal+"+1Copiar") && document.getElementById(nombreReal+"New+1"))
-                    document.getElementById(nombreReal+"+1Copiar").innerHTML=document.getElementById(nombreReal+"New+1").innerHTML;
-                if (document.getElementById(nombreReal+"+D6Copiar") && document.getElementById(nombreReal+"New+D6"))
-                    document.getElementById(nombreReal+"+D6Copiar").innerHTML=document.getElementById(nombreReal+"New+D6").innerHTML;
             }
         }
         function concantenarAtributo(nombreCampo){
@@ -603,18 +559,6 @@
             document.getElementById(nombre+"+1").innerHTML="+"+bonos;
             document.getElementById(nombre+"+D6").innerHTML=dados+"D6";
         }
-        function mostrarFichaCopiar(){
-            document.getElementById("botonMostrarFicha").style.display= "none";
-            document.getElementById("botonOcultarFicha").style.display= "grid";
-            document.getElementById("fichaParaCopiar").style.display= "grid";
-        }
-        function ocultarFichaCopiar(){
-            document.getElementById("botonMostrarFicha").style.display= "grid";
-            document.getElementById("tituloMostrarFicha").style.display= "grid";
-            document.getElementById("resumenMostrarFicha").style.display= "grid";
-            document.getElementById("botonOcultarFicha").style.display= "none";
-            document.getElementById("fichaParaCopiar").style.display= "none";
-        }
     </script>
 </head>
 <body background="./fondo.png" onload="cargaInicial();">
@@ -656,7 +600,7 @@
                                             <span>(+</span><span id="nivelNew(+)">0</span><span>)</span>
                                         </td>
                                         <td></td>
-                                        <td><p class="nombreCampo">Puntos genéntica restantes: </p></td>
+                                        <td><p class="nombreCampo">Puntos gen�ntica restantes: </p></td>
                                         <td><p id="geneticaRestantes"></p></td>
                                     </tr>
                                     <tr>
@@ -670,7 +614,7 @@
                                             <input align="middle" id="experienciaNew" type="text" onkeyup="validarNumerico(this)" onblur="calcularNivelNuevo()" maxlength="4" size="3" value="0">
                                         </td>
                                         <td></td>
-                                        <td><p class="nombreCampo">Puntos evolución restantes: </p></td>
+                                        <td><p class="nombreCampo">Puntos evoluci�n restantes: </p></td>
                                         <td><p id="evolucionRestantes"></p></td>
                                     </tr>
                                     <tr>
@@ -697,7 +641,7 @@
                                             <td>
                                                 <p> </p>
                                             </td>
-                                            <td colspan="2"><p>Æsir</p></td>
+                                            <td colspan="2"><p>�sir</p></td>
                                             <td colspan="2"><p>Vanir</p></td>
                                             <td colspan="2"><p>Jotun</p></td>
                                         </tr>
@@ -705,7 +649,7 @@
                                             <td>
                                                 <p> </p>
                                             </td>
-                                            <td><p>Héroe</p></td>
+                                            <td><p>H�roe</p></td>
                                             <td><p>Norna</p></td>
                                             <td><p>Alfar</p></td>
                                             <td><p>Valkiria</p></td>
@@ -774,7 +718,7 @@
                                         </tr>
                                     </thead>
                                     <tr id="tdFisico">
-                                        <td><p id="fisicoNombre" class="nombreCampo" >Físico</p></td>
+                                        <td><p id="fisicoNombre" class="nombreCampo" >F�sico</p></td>
                                         <td><input align="middle" class="actual" id="fisicoActual" type="text" onkeyup="validarNumerico(this)" onBlur="calcularTotalAtributo(this);comprobarMaximos(this);bonosDadosPorCampo(this);calcularMaximos();" maxlength="2" size="3"></td>
                                         <td><input align="middle" class="actual" id="fisicoActualExtra" type="text" onkeyup="validarNumerico(this)" onBlur="calcularTotalAtributo(this);comprobarMaximos(this);bonosDadosPorCampo(this);calcularMaximos();" maxlength="2" size="3"></td>
                                         <td><p class="actual" id="fisicoActualTotal"></p></td>
@@ -800,7 +744,7 @@
                                         <td><p class="new" id="agilidadNew+D6"></p></td>
                                     </tr>
                                     <tr id="tdPercepcion">
-                                        <td><p id="percepcionNombre" class="nombreCampo" >Percepción</p></td>
+                                        <td><p id="percepcionNombre" class="nombreCampo" >Percepci�n</p></td>
                                         <td><input align="middle" class="actual" id="percepcionActual" type="text" onkeyup="validarNumerico(this)" onBlur="calcularTotalAtributo(this);comprobarMaximos(this);bonosDadosPorCampo(this);calcularMaximos();" maxlength="2" size="3"></td>
                                         <td><input align="middle" class="actual" id="percepcionActualExtra" type="text" onkeyup="validarNumerico(this)" onBlur="calcularTotalAtributo(this);comprobarMaximos(this);bonosDadosPorCampo(this);calcularMaximos();" maxlength="2" size="3"></td>
                                         <td><p class="actual" id="percepcionActualTotal"></p></td>
@@ -874,7 +818,7 @@
                                             <td><p>+1 </p></td>
                                             <td><p>+D6 </p></td>
                                             <td><p>   </p></td>
-                                            <td width="180px"><p>Máximo</p></td>
+                                            <td width="180px"><p>M�ximo</p></td>
                                             <td><p>Nuevo </p></td>
                                             <td><p>Extra </p></td>
                                             <td><p>Total </p></td>
@@ -1225,13 +1169,37 @@
                         <tr><td class="filaSeparacion"></td></tr>
                         <tr>
                             <td>
-                                <center><input type="button" value="Mostrar nuevas habilidades aprendidas" onclick="obtenerHabilidades()"/>
-                                         <input type="button" value="Borrar Habilidades" onclick="limpiarHabilidades()"/>
-                                         <input type="button" value="Mostrar todas habilidades aprendidas" onclick="obtenerHabilidadesActual()"/>
-                                </center>
-                                <h2 id="TituloListadoHabildiades" style="margin-bottom:0px"></h2>
-                                <div id="NuevoListado" class="listadoHabilidades">
-                                </div>
+                                <center><input type="button" value="Mostrar habilidades aprendidas" onclick="obtenerHabilidades()"/> <input type="button" value="Borrar Habilidades" onclick="limpiarHabilidades()"/></center>
+                                <table align="center" class="listadoHabilidades">
+                                    <tbody><tr>
+                                        <td id="hab1"></td>
+                                        <td id="hab2"></td>
+                                        <td id="hab3"></td>
+                                        <td id="hab4"></td>
+                                        <td id="hab5"></td>
+                                        <td id="hab6"></td>
+                                        <td id="hab7"></td>
+                                        <td id="hab8"></td>
+                                    </tr><tr>
+                                        <td id="hab11"></td>
+                                        <td id="hab12"></td>
+                                        <td id="hab13"></td>
+                                        <td id="hab14"></td>
+                                        <td id="hab15"></td>
+                                        <td id="hab16"></td>
+                                        <td id="hab17"></td>
+                                        <td id="hab18"></td>
+                                    </tr><tr>
+                                        <td id="hab21"></td>
+                                        <td id="hab22"></td>
+                                        <td id="hab23"></td>
+                                        <td id="hab24"></td>
+                                        <td id="hab25"></td>
+                                        <td id="hab26"></td>
+                                        <td id="hab27"></td>
+                                        <td id="hab28"></td>
+                                    </tr>
+                                </tbody></table>
                             </td>
                         </tr>
                         <tr>
@@ -1239,17 +1207,7 @@
                                 <table align="center" align="center">
                                     <tr>
                                         <td align="center">
-                                            <h2 style="margin-bottom:-5px">Grabar Backup</h2>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td align="center">
-                                            <p>Cuando se termine la gestión de la ficha, pulsar el botón "Guardar Backup" y copiar lo que aparecerá aquí para usarlo la siguiente vez que se suba de nivel.</p>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td align="center">
-                                            <textarea id="codigoFichaGuardada" name="codigoFichaGuardada" disabled style="width:600px;height:250px">Cuando se termine la gestión de la ficha, pulsar el botón "Guardar Backup" y copiar lo que aparecerá aquí para usarlo la siguiente vez que se suba de nivel.</textarea>
+                                            <textarea id="codigoFichaGuardada" name="codigoFichaGuardada" disabled style="width:600px;height:250px">Cuando se termine la gesti�n de la ficha, pulsar el bot�n "Guardar Backup" y copiar lo que aparecer� aqu� para usarlo la siguiente vez que se suba de nivel.</textarea>
                                         </td>
                                     </tr>
                                     <tr>
@@ -1258,43 +1216,13 @@
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td align="center">
-                                            <h2 style="margin-bottom:-5px;margin-top:20px">Cargar Backup</h2>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td align="center">
-                                            <p>Introducir aquí el código generado en ocasiones anteriores para precargar los datos.</p>
-                                        </td>
-                                    </tr>
-                                    <tr>
                                         <td align="centers">
-                                            <textarea id="codigoFichaCargada" name="codigoFichaCargada" style="width:600px;height:250px"></textarea>
+                                            <textarea id="codigoFichaCargada" name="codigoFichaCargada" style="width:600px;height:250px">Introducir aqu� el c�digo generado en ocasiones anteriores para precargar los datos.</textarea>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td>
                                             <input align="middle" type="button" onclick="cargarCodigoFichaCargada()" value="Cargar Backup"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td id="tituloMostrarFicha" align="center" style="display: none">
-                                            <h2 style="margin-bottom:-5px">Mostrar ficha</h2>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td id="resumenMostrarFicha" align="center" style="display: none">
-                                            <p>Si necesitas copiar la ficha resumida, haz click en el botón que aparece a continuación para mostrarlo.</p>
-                                        </td>
-                                    </tr>
-                                    <tr id="botonMostrarFicha" style="display: none">
-                                        <td>
-                                            <input align="middle" type="button" onclick="mostrarFichaCopiar()" value="Mostrar ficha"/>
-                                        </td>
-                                    </tr>
-                                    <tr id="botonOcultarFicha" style="display: none">
-                                        <td>
-                                            <input align="middle" type="button" onclick="ocultarFichaCopiar()" value="Ocultar ficha"/>
                                         </td>
                                     </tr>
                                 </table>
@@ -1306,363 +1234,6 @@
             </tr>
         </table>
     </form>
-    <div id="fichaParaCopiar" style="display: none">
-        <h1 align="center">Hoja de Personaje para copiar</h1>
-        <h2 align="center" style="margin-top:-20px">Deus ex Machina</h2>
-        <p>Haga click en "Cargar Backup" con unos datos válidos para generar una ficha que copiar</p>
-        <table border="0" cellspacing="0" cellpadding="0" align="center">
-            <tr style="visibility: hidden">
-                <td>
-                    <table>
-                        <tr>
-                            <td class="nombreCampo">
-                                <p>Nivel: </p>
-                            </td>
-                            <td>
-                                <p id="nivelCopiar"></p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="nombreCampo">
-                                <p>Experiencia: </p>
-                            </td>
-                            <td>
-                                <p id="experienciaCopiar"></p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="nombreCampo">
-                                <p>Evol. Guardado: </p>
-                            </td>
-                            <td>
-                                <p id="evolGuardadoCopiar"></p>
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-            <tr>
-                <td>
-
-                    <table id="genetica" align="center">
-                        <thead>
-                            <tr>
-                                <td>
-                                    <p>Genetica</p>
-                                </td>
-                                <td colspan="2"><p>Æsir</p></td>
-                                <td colspan="2"><p>Vanir</p></td>
-                                <td colspan="2"><p>Jotun</p></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <p> </p>
-                                </td>
-                                <td><p>Héroe</p></td>
-                                <td><p>Norna</p></td>
-                                <td><p>Alfar</p></td>
-                                <td><p>Valkiria</p></td>
-                                <td><p>Dvergr</p></td>
-                                <td><p>Risa</p></td>
-                            </tr>
-                        </thead>
-                        <tr>
-                                <td>
-                                    <p class="nombreCampo" >Total: </p>
-                                </td>
-                                <td><p id="heroeCopiar"></p></td>
-                                <td><p id="nornaCopiar"></p></td>
-                                <td><p id="alfarCopiar"></p></td>
-                                <td><p id="valkiriaCopiar"></p></td>
-                                <td><p id="dvergrCopiar"></p></td>
-                                <td><p id="risaCopiar"></p></td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <table align="center">
-                        <thead>
-                            <tr>
-                                <td><p> </p></td>
-                                <td colspan="5"><p>Atributos Mayores</p></td>
-                            </tr>
-                            <tr>
-                                <td><p>Atributo </p></td>
-                                <td><p>Actual </p></td>
-                                <td><p>Extra </p></td>
-                                <td><p>Total </p></td>
-                                <td><p>+1 </p></td>
-                                <td><p>+D6 </p></td>
-                            </tr>
-                        </thead>
-                        <tr>
-                            <td><p class="nombreCampo" >Físico</p></td>
-                            <td><p id="fisicoCopiar"></p></td>
-                            <td><p id="fisicoExtraCopiar"></p></td>
-                            <td><p id="fisicoTotalCopiar"></p></td>
-                            <td><p id="fisico+1Copiar"></p></td>
-                            <td><p id="fisico+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Agilidad</p></td>
-                            <td><p id="agilidadCopiar"></p></td>
-                            <td><p id="agilidadExtraCopiar"></p></td>
-                            <td><p id="agilidadTotalCopiar"></p></td>
-                            <td><p id="agilidad+1Copiar"></p></td>
-                            <td><p id="agilidad+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Percepción</p></td>
-                            <td><p id="percepcionCopiar"></p></td>
-                            <td><p id="percepcionExtraCopiar"></p></td>
-                            <td><p id="percepcionTotalCopiar"></p></td>
-                            <td><p id="percepcion+1Copiar"></p></td>
-                            <td><p id="percepcion+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Mente</p></td>
-                            <td><p id="menteCopiar"></p></td>
-                            <td><p id="menteExtraCopiar"></p></td>
-                            <td><p id="menteTotalCopiar"></p></td>
-                            <td><p id="mente+1Copiar"></p></td>
-                            <td><p id="mente+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Estudio</p></td>
-                            <td><p id="estudioCopiar"></p></td>
-                            <td><p id="estudioExtraCopiar"></p></td>
-                            <td><p id="estudioTotalCopiar"></p></td>
-                            <td><p id="estudio+1Copiar"></p></td>
-                            <td><p id="estudio+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Carisma</p></td>
-                            <td><p id="carismaCopiar"></p></td>
-                            <td><p id="carismaExtraCopiar"></p></td>
-                            <td><p id="carismaTotalCopiar"></p></td>
-                            <td><p id="carisma+1Copiar"></p></td>
-                            <td><p id="carisma+D6Copiar"></p></td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <table align="center">
-                        <thead>
-                            <tr>
-                                <td><p> </p></td>
-                                <td colspan="5"><p>Atributos Menores</p></td>
-                            </tr>
-                            <tr>
-                                <td><p>Atributo </p></td>
-                                <td><p>Actual </p></td>
-                                <td><p>Extra </p></td>
-                                <td><p>Total </p></td>
-                                <td><p>+1 </p></td>
-                                <td><p>+D6 </p></td>
-                            </tr>
-                        </thead>
-                        <tr>
-                            <td><p class="nombreCampo" >Astronavegar</p></td>
-                            <td><p id="astronavegarCopiar"></p></td>
-                            <td><p id="astronavegarExtraCopiar"></p></td>
-                            <td><p id="astronavegarTotalCopiar"></p></td>
-                            <td><p id="astronavegar+1Copiar"></p></td>
-                            <td><p id="astronavegar+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Atractivo</p></td>
-                            <td><p id="atractivoCopiar"></p></td>
-                            <td><p id="atractivoExtraCopiar"></p></td>
-                            <td><p id="atractivoTotalCopiar"></p></td>
-                            <td><p id="atractivo+1Copiar"></p></td>
-                            <td><p id="atractivo+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Buscar</p></td>
-                            <td><p id="buscarCopiar"></p></td>
-                            <td><p id="buscarExtraCopiar"></p></td>
-                            <td><p id="buscarTotalCopiar"></p></td>
-                            <td><p id="buscar+1Copiar"></p></td>
-                            <td><p id="buscar+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Conducción</p></td>
-                            <td><p id="conduccionCopiar"></p></td>
-                            <td><p id="conduccionExtraCopiar"></p></td>
-                            <td><p id="conduccionTotalCopiar"></p></td>
-                            <td><p id="conduccion+1Copiar"></p></td>
-                            <td><p id="conduccion+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Cruzar Bifrost</p></td>
-                            <td><p id="cruzarbifrostCopiar"></p></td>
-                            <td><p id="cruzarbifrostExtraCopiar"></p></td>
-                            <td><p id="cruzarbifrostTotalCopiar"></p></td>
-                            <td><p id="cruzarbifrost+1Copiar"></p></td>
-                            <td><p id="cruzarbifrost+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Deporte</p></td>
-                            <td><p id="deporteCopiar"></p></td>
-                            <td><p id="deporteExtraCopiar"></p></td>
-                            <td><p id="deporteTotalCopiar"></p></td>
-                            <td><p id="deporte+1Copiar"></p></td>
-                            <td><p id="deporte+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Destreza</p></td>
-                            <td><p id="destrezaCopiar"></p></td>
-                            <td><p id="destrezaExtraCopiar"></p></td>
-                            <td><p id="destrezaTotalCopiar"></p></td>
-                            <td><p id="destreza+1Copiar"></p></td>
-                            <td><p id="destreza+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Diplomacia</p></td>
-                            <td><p id="diplomaciaCopiar"></p></td>
-                            <td><p id="diplomaciaExtraCopiar"></p></td>
-                            <td><p id="diplomaciaTotalCopiar"></p></td>
-                            <td><p id="diplomacia+1Copiar"></p></td>
-                            <td><p id="diplomacia+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Einherjer</p></td>
-                            <td><p id="einherjerCopiar"></p></td>
-                            <td><p id="einherjerExtraCopiar"></p></td>
-                            <td><p id="einherjerTotalCopiar"></p></td>
-                            <td><p id="einherjer+1Copiar"></p></td>
-                            <td><p id="einherjer+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Engaño</p></td>
-                            <td><p id="enganoCopiar"></p></td>
-                            <td><p id="enganoExtraCopiar"></p></td>
-                            <td><p id="enganoTotalCopiar"></p></td>
-                            <td><p id="engano+1Copiar"></p></td>
-                            <td><p id="engano+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Esconderse</p></td>
-                            <td><p id="esconderseCopiar"></p></td>
-                            <td><p id="esconderseExtraCopiar"></p></td>
-                            <td><p id="esconderseTotalCopiar"></p></td>
-                            <td><p id="esconderse+1Copiar"></p></td>
-                            <td><p id="esconderse+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Evol. Curva</p></td>
-                            <td><p id="evolcurvaCopiar"></p></td>
-                            <td><p id="evolcurvaExtraCopiar"></p></td>
-                            <td><p id="evolcurvaTotalCopiar"></p></td>
-                            <td><p id="evolcurva+1Copiar"></p></td>
-                            <td><p id="evolcurva+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Esquiva</p></td>
-                            <td><p id="esquivaCopiar"></p></td>
-                            <td><p id="esquivaExtraCopiar"></p></td>
-                            <td><p id="esquivaTotalCopiar"></p></td>
-                            <td><p id="esquiva+1Copiar"></p></td>
-                            <td><p id="esquiva+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Fisica y Quimica</p></td>
-                            <td><p id="fisicaquimicaCopiar"></p></td>
-                            <td><p id="fisicaquimicaExtraCopiar"></p></td>
-                            <td><p id="fisicaquimicaTotalCopiar"></p></td>
-                            <td><p id="fisicaquimica+1Copiar"></p></td>
-                            <td><p id="fisicaquimica+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Fuerza</p></td>
-                            <td><p id="fuerzaCopiar"></p></td>
-                            <td><p id="fuerzaExtraCopiar"></p></td>
-                            <td><p id="fuerzaTotalCopiar"></p></td>
-                            <td><p id="fuerza+1Copiar"></p></td>
-                            <td><p id="fuerza+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Informática</p></td>
-                            <td><p id="informaticaCopiar"></p></td>
-                            <td><p id="informaticaExtraCopiar"></p></td>
-                            <td><p id="informaticaTotalCopiar"></p></td>
-                            <td><p id="informatica+1Copiar"></p></td>
-                            <td><p id="informatica+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Intimidar</p></td>
-                            <td><p id="intimidarCopiar"></p></td>
-                            <td><p id="intimidarExtraCopiar"></p></td>
-                            <td><p id="intimidarTotalCopiar"></p></td>
-                            <td><p id="intimidar+1Copiar"></p></td>
-                            <td><p id="intimidar+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Labia</p></td>
-                            <td><p id="labiaCopiar"></p></td>
-                            <td><p id="labiaExtraCopiar"></p></td>
-                            <td><p id="labiaTotalCopiar"></p></td>
-                            <td><p id="labia+1Copiar"></p></td>
-                            <td><p id="labia+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Liderazgo</p></td>
-                            <td><p id="liderazgoCopiar"></p></td>
-                            <td><p id="liderazgoExtraCopiar"></p></td>
-                            <td><p id="liderazgoTotalCopiar"></p></td>
-                            <td><p id="liderazgo+1Copiar"></p></td>
-                            <td><p id="liderazgo+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Medicina</p></td>
-                            <td><p id="medicinaCopiar"></p></td>
-                            <td><p id="medicinaExtraCopiar"></p></td>
-                            <td><p id="medicinaTotalCopiar"></p></td>
-                            <td><p id="medicina+1Copiar"></p></td>
-                            <td><p id="medicina+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Provocar</p></td>
-                            <td><p id="provocarCopiar"></p></td>
-                            <td><p id="provocarExtraCopiar"></p></td>
-                            <td><p id="provocarTotalCopiar"></p></td>
-                            <td><p id="provocar+1Copiar"></p></td>
-                            <td><p id="provocar+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Puntería</p></td>
-                            <td><p id="punteriaCopiar"></p></td>
-                            <td><p id="punteriaExtraCopiar"></p></td>
-                            <td><p id="punteriaTotalCopiar"></p></td>
-                            <td><p id="punteria+1Copiar"></p></td>
-                            <td><p id="punteria+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Resistencia</p></td>
-                            <td><p id="resistenciaCopiar"></p></td>
-                            <td><p id="resistenciaExtraCopiar"></p></td>
-                            <td><p id="resistenciaTotalCopiar"></p></td>
-                            <td><p id="resistencia+1Copiar"></p></td>
-                            <td><p id="resistencia+D6Copiar"></p></td>
-                        </tr>
-                        <tr>
-                            <td><p class="nombreCampo" >Sentir Yggdrasil</p></td>
-                            <td><p id="sentiryggdrasilCopiar"></p></td>
-                            <td><p id="sentiryggdrasilExtraCopiar"></p></td>
-                            <td><p id="sentiryggdrasilTotalCopiar"></p></td>
-                            <td><p id="sentiryggdrasil+1Copiar"></p></td>
-                            <td><p id="sentiryggdrasil+D6Copiar"></p></td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-
-        </table>
-    </div>    
-    <center><img src="./sublogo.png" class="footer"></center>
+	<center><img src="./sublogo.png"></center>
 </body>
 </html>
