@@ -74,14 +74,14 @@
   "SentirYggdrasil": 15
  },
  {
-  "Nombre": "Acción en el Yggdrasil",
-  "Lanzamiento": "Inst",
-  "Coste": 30,
-  "Prueba": "Einherjer 14+",
-  "Descripcion": "Fuera de combate, reduce a la mitad el tiempo que necesitas para llevar a cabo una actividad. Cuando la habilidad acabe, si necesitanste hacer alguna tirada durante la prueba, repite la prueba cinco veces, si fallas terminas agotado en esa habilidad y tienes una penalización de -1 dado y -1 a todas las pruebas de esa habilidad hasta que descanses.",
+  "Nombre": "Señal pasada",
+  "Lanzamiento": "X * 10 minutos",
+  "Coste": "5 * X",
+  "Prueba": "Sentir Yggdrasil 14+",
+  "Descripcion": "Esta habilidad debe ser utilizada mientras utilizas algun mecanismo que te permita percibir señales. Debes indicar qué señal estás buscando o qué características tiene. Si la señal pasó por el área en las últimas X horas, la recibes.",
   "Column6": "No",
-  "Norna": 48,
-  "Alfar": 48
+  "Norna": 6,
+  "Alfar": 6
  },
  {
   "Nombre": "Acechar",
@@ -124,12 +124,14 @@
   "Labia": 15
  },
  {
-  "Nombre": "Acostumbrado al sobresfuerzo del Yggdrasil",
-  "Lanzamiento": "Pasiva",
-  "Descripcion": "Lanza 1D10 adicional en cualquier tirada de mente, físico o resitencia que hayas fallado para no quedar aturdido o para no tener los músculos debilitados después de usar una habilidad que te permita tener más acciones; y quédate con el D10 que consideres.",
+  "Nombre": "Apresurar al pasado",
+  "Lanzamiento": "Inst\/2",
+  "Coste": "2*X",
+  "Prueba": "Einherjer 14+",
+  "Descripcion": "Retrasa tus acciones X posiciones dentro del turno como si hubieses conseguido una mejor tirada de iniciativa. El siguiente turno adelanta tus acciones X posiciones dentro del turno.",
   "Column6": "No",
-  "Norna": 20,
-  "Alfar": 20
+  "Norna": 8,
+  "Alfar": 8
  },
  {
   "Nombre": "Acostumbrar a Hnoss",
@@ -234,12 +236,14 @@
   "Resistencia": 12
  },
  {
-  "Nombre": "Aguante Dvegr",
-  "Lanzamiento": "Pasiva",
-  "Descripcion": "Obtienes 40 más de vida máxima",
+  "Nombre": "Golpe de apoyo",
+  "Lanzamiento": "Normal\/5",
+  "Coste": 10,
+  "Prueba": "Cruzar Bifrost 14+",
+  "Descripcion": "Si el aliado tocado tiene vida negativa pero aún está vivo, le dejas con 1 de PV (El aliado tiene que ser voluntario o estar inconsciente)",
   "Column6": "No",
-  "Valkiria": 68,
-  "Dvergr": 68
+  "Valkiria": 6,
+  "Dvergr": 6
  },
  {
   "Nombre": "Aire del Valhalla",
@@ -273,8 +277,10 @@
   "Lanzamiento": "Inst\/10",
   "Coste": 50,
   "Prueba": "Sentir Yggdrasil 14+",
-  "Descripcion": "Esta habilidad solo puede usarse como reacción a una acción hostil (voluntaria o involuntaria) realizada por cualquiera. Todo el que fuese a \"sufrir\" esta acción realizanauna prueba de esquiva contra el atributo que le ataque. Si gana, lo esquiva.",
-  "Column6": "No"
+  "Descripcion": "Esta habilidad solo puede usarse como reacción a una acción hostil (voluntaria o involuntaria) realizada por cualquiera. Todo el que fuese a \"sufrir\" esta acción realizana una prueba de esquiva contra el atributo que le ataque. Si gana, lo esquiva.",
+  "Column6": "No",
+  "Esquiva": 16,
+  "Liderazgo": 16
  },
  {
   "Nombre": "Alerta mental (A)",
@@ -306,13 +312,12 @@
   "Risa": 60
  },
  {
-  "Nombre": "Alimentase de Biftrost",
-  "Lanzamiento": "Normal",
-  "Prueba": "Cruzar Bifrost 13+",
-  "Descripcion": "Tú y toda criatura situada a un máximo de 5 casillas de distancia podéis gastar cuanto Bifrost como queráis. Te curas en vida la cantidad total de Bifrost gastada.",
+  "Nombre": "Cuerpo armado",
+  "Lanzamiento": "Pasiva",
+  "Descripcion": "Reduce en 5 el daño de fuentes físicas siempre que no lleves equipada una pieza de armadura.",
   "Column6": "No",
-  "Valkiria": 58,
-  "Dvergr": 58
+  "Valkiria": 9,
+  "Dvergr": 9
  },
  {
   "Nombre": "Alma Aesir",
@@ -497,34 +502,33 @@
   "Punteria": 13
  },
  {
-  "Nombre": "Apresurar acciones",
-  "Lanzamiento": "Inst",
-  "Coste": 20,
-  "Prueba": "Einherjer 20+",
-  "Descripcion": "Cuentas con una acción más este turno. Esta habilidad solo se puede usar en tu turno.",
-  "Column6": "No",
-  "Norna": 64,
-  "Alfar": 64
- },
- {
-  "Nombre": "Apresurar al pasado",
-  "Lanzamiento": "Inst\/2",
-  "Coste": "2*X",
-  "Prueba": "Einherjer 14+",
-  "Descripcion": "Retrasa tus acciones X posiciones dentro del turno como si hubieses conseguido una mejor tirada de iniciativa. El siguiente turno adelanta tus acciones X posiciones dentro del turno.",
+  "Nombre": "Movimiento temporal",
+  "Lanzamiento": "Inst\/5",
+  "Coste": 10,
+  "Prueba": "Einherjer 12+",
+  "Descripcion": "Muévete hasta tu movimiento máximo. Cuando la habilidad acabe tienes que hacer una prueba de Mnt 10+ para no quedar aturdido 1 asalto, y una prueba de Fis 12+ para que tus músculos no se debilites (-1 dado a toda prueba física hasta que descanses)",
   "Column6": "No",
   "Norna": 8,
   "Alfar": 8
  },
  {
-  "Nombre": "Apresurar habilidad",
-  "Lanzamiento": "Inst\/10",
-  "Coste": 20,
-  "Prueba": "Cruzar Bifrost 22+",
-  "Descripcion": "La siguiente habilidad que requiera una tirada de Cruzar Bifrost, Sentir Yggdrasil o Einherjer, con coste Normal pasa a tener conste Inst. Si fuese de 2 acciones, pasa a ser Normal.",
+  "Nombre": "Peligro predecido",
+  "Lanzamiento": "Inst",
+  "Coste": 30,
+  "Prueba": "Einherjer 14+",
+  "Descripcion": "Suma 2d6 a tu tirada de iniciativa al comienzo del combate.",
   "Column6": "No",
-  "Norna": 64,
-  "Risa": 64
+  "Norna": 10,
+  "Alfar": 10,
+  "Einherjer": 8
+ },
+ {
+  "Nombre": "Retroalimentación del Yggdrasil",
+  "Lanzamiento": "Normal\/5",
+  "Descripcion": "Selecciona una habilidad que usaste desde el principio de tu último turno hasta ahora. Haz una prueba de Sentir Yggdrasil con esa misma dificultad. Si superas la prueba, recuperas el 50% de su coste de Bifrost.",
+  "Column6": "No",
+  "Norna": 6,
+  "Risa": 6
  },
  {
   "Nombre": "Apresurar la batalla",
@@ -693,14 +697,14 @@
   "SentirYggdrasil": 20
  },
  {
-  "Nombre": "Arrastrar al Yggdrasil",
-  "Lanzamiento": "2 acciones",
-  "Coste": 50,
-  "Prueba": "Cruzar Bifrost 15+",
-  "Descripcion": "El objetivo cuenta con dos turnos. Si usó estas acciones, cuando la habilidad acabe, el objetivo tiene que hacer una prueba de Mnt 13+ para no quedar aturdido 1d4 asaltos y una pruebas de Fis 15+ para que sus músculos no se debiliten. (-1 dado a toda prueba física hasta descansar).",
+  "Nombre": "Deuda al futuro",
+  "Lanzamiento": "Inst\/2",
+  "Coste": 15,
+  "Prueba": "Einherjer 10+",
+  "Descripcion": "Obtiene un turno en este instante. Pierde tu próximo turno normal.",
   "Column6": "No",
-  "Norna": 41,
-  "Alfar": 41
+  "Norna": 11,
+  "Alfar": 11
  },
  {
   "Nombre": "Arrebatar vida",
@@ -1159,14 +1163,14 @@
   "Risa": 15
  },
  {
-  "Nombre": "Bifrost del pasado",
-  "Lanzamiento": "Mantener",
-  "Coste": "40 al turno",
-  "Prueba": "Sentir Yggdrasil 16+",
-  "Descripcion": "Siempre que utilices una habilidad que implique Cruzar Bifrost o Sentir Yggdrasil mientras mantengas esta habilidad, cuatro turnos después de su lanzamiento, si sigues manteniendo esta habilidad, recuperas su coste de Bifrost.",
+  "Nombre": "Mirar hilos del destino",
+  "Lanzamiento": "Normal\/2",
+  "Coste": 5,
+  "Prueba": "Sentir Yggdrasil 10+",
+  "Descripcion": "Tira 1d10 y 2d6. Hasta el final de tu próximo turno, una sola vez y como acción instantánea cuando hagas una prueba en cualquier habilidad puedes dejar de tirar 1d10 y 2d6 de la tirada y sustituirlos por los que obtuviste al activar esta habilidad.",
   "Column6": "No",
-  "Norna": 68,
-  "Risa": 68
+  "Norna": 8,
+  "Risa": 8
  },
  {
   "Nombre": "Bifrost en el dolor",
@@ -1274,14 +1278,14 @@
   "CruzarBifrost": 14
  },
  {
-  "Nombre": "Buscar hilo repetido",
-  "Lanzamiento": "Inst",
-  "Coste": 15,
-  "Prueba": "Sentir Yggdrasil 13+",
-  "Descripcion": "Ignoras la restricción de no hacer dos acciones iguales seguidas siempre y cuando esta acción requiera consumir Bifrost.",
+  "Nombre": "Predecir Bifrost",
+  "Lanzamiento": "Normal",
+  "Coste": 10,
+  "Prueba": "Sentir Yggdrasil 14+",
+  "Descripcion": "Durante 10 turnos, se te informa de cuando el objetivo va a realizar cualquier habilidad que requiera Bifrost antes de que indique la habilidad o realice la prueba. ",
   "Column6": "No",
-  "Norna": 27,
-  "Risa": 27
+  "Norna": 8,
+  "Risa": 8
  },
  {
   "Nombre": "Buscar lecho seguro",
@@ -1661,14 +1665,14 @@
   "Einherjer": 18
  },
  {
-  "Nombre": "Cauterización con Bifrost",
-  "Lanzamiento": "Normal",
-  "Coste": 15,
-  "Prueba": "Einherjer 13+",
-  "Descripcion": "Dejas de sangrar.",
+  "Nombre": "Recuperación Dvegr",
+  "Lanzamiento": "Inst\/5",
+  "Coste": 20,
+  "Prueba": "Cruzar Bifrost 14+",
+  "Descripcion": "Te curas 60 de vida.",
   "Column6": "No",
-  "Valkiria": 16,
-  "Dvergr": 16
+  "Valkiria": 10,
+  "Dvergr": 29
  },
  {
   "Nombre": "Cebo vivo",
@@ -1767,14 +1771,14 @@
   "CruzarBifrost": 25
  },
  {
-  "Nombre": "Cirujía brutal",
+  "Nombre": "Otorgar la vida",
   "Lanzamiento": "Normal",
-  "Coste": 15,
-  "Prueba": "Cruzar Bifrost 13+",
-  "Descripcion": "El objetivo cura los efectos de haber falaldo una tirada en resistencia fallida que sean curables. Pierde 30 de vida.",
+  "Coste": 20,
+  "Prueba": "Cruzar Bifrost 10+",
+  "Descripcion": "Intercambia tu vida actual con la del aliado moribundo hasta a 20 casillas. No puede superar su vida máxima.",
   "Column6": "No",
-  "Valkiria": 46,
-  "Dvergr": 46
+  "Valkiria": 11,
+  "Dvergr": 11
  },
  {
   "Nombre": "Clave única",
@@ -2029,14 +2033,14 @@
   "Mnt": 5
  },
  {
-  "Nombre": "Concentración pasada",
-  "Lanzamiento": "Inst\/2",
+  "Nombre": "Perjudicar control de Bifrost",
+  "Lanzamiento": "Inst",
   "Coste": 10,
-  "Prueba": "Cruzar Bifrost 12+",
-  "Descripcion": "Vuelve a realizar la prueba de una habilidad que implique Cruzar Bifrost o Sentir Yggdrasil.",
+  "Prueba": "Cruzar Bifrost 14+",
+  "Descripcion": "Después de recibir un aviso gracias a «Predecir Bifrost», aumenta en 2 la dificultad de la prueba que el usuario tenga que hacer fruto del gasto de Bifrost en caso de que haya prueba. Si no hay prueba, no surte efecto.",
   "Column6": "No",
-  "Norna": 13,
-  "Risa": 13
+  "Norna": 10,
+  "Risa": 10
  },
  {
   "Nombre": "Concentración Percepción",
@@ -2048,15 +2052,14 @@
   "Pcn": 5
  },
  {
-  "Nombre": "Concentrarse en el Yggdrasil",
-  "Lanzamiento": "Normal",
-  "Coste": 30,
-  "Prueba": "Einherjer 15+",
-  "Descripcion": "Durante los próximos 4 turnos dispones de una acción adicional.  Cuando la habilidad acabe tienes que hacer una prueba de Mnt 12+ para no quedar aturdido 1d4 asaltos, y una prueba de Fis 16+ para que tus músculos no se debilites (-1 dado a toda prueba física hasta que descanses)",
+  "Nombre": "Esperar el futuro",
+  "Lanzamiento": "Inst\/2",
+  "Coste": "5*X",
+  "Prueba": "Einherjer 14+",
+  "Descripcion": "Adelanta tus acciones X posiciones dentro del turno como si hubieses conseguido una mejor tirada de iniciativa. El siguiente turno atrasa tus acciones X posiciones dentro del turno.",
   "Column6": "No",
-  "Norna": 33,
-  "Alfar": 33,
-  "Einherjer": 15
+  "Norna": 12,
+  "Alfar": 12
  },
  {
   "Nombre": "Conducción autónoma",
@@ -2124,14 +2127,18 @@
   "Lanzamiento": "Mantener",
   "Coste": "40  + 20 al turno",
   "Descripcion": "Mientras mantengas esta habilidad activada no puedes atacar ni usar habilidades de ninguna forma. (No puedes emprender ninguna acción violenta o que llame mucho la\natención). El turno en que dejes de mantener la habilidad recuperas todas las acciones perdidas por culpa de esta habilidad. Estas acciones solo pueden ser utilizadas para el uso de habilidades.",
-  "Column6": "Sí"
+  "Column6": "Sí",
+  "Alfar": 25,
+  "Risa": 25
  },
  {
   "Nombre": "Conjuración sorpresiva mejorada",
   "Lanzamiento": "Mantener",
   "Coste": "40  + 10 al turno",
   "Descripcion": "Mientras mantengas esta habilidad activada no puedes atacar ni usar habilidades de ninguna forma. (No puedes emprender ninguna acción violenta o que llame mucho la\natención). El turno en que dejes de mantener la habilidad recuperas todas las acciones perdidas por culpa de esta habilidad. Estas acciones solo pueden ser utilizadas para el uso de habilidades.",
-  "Column6": "Sí"
+  "Column6": "Sí",
+  "Alfar": 60,
+  "Risa": 60
  },
  {
   "Nombre": "Conocimiento de Asgard",
@@ -2186,7 +2193,9 @@
   "Coste": "X",
   "Prueba": "Cruzar Bifrost 15+",
   "Descripcion": "Si la habilidad objetivo que se esté lanzando tiene un coste de X o menos, cancela todos sus efectos",
-  "Column6": "No"
+  "Column6": "No",
+  "Valkiria": 25,
+  "Risa": 25
  },
  {
   "Nombre": "Control de cosechas",
@@ -2228,24 +2237,24 @@
   "Valkiria": 68
  },
  {
-  "Nombre": "Controlar hilos de la edad",
-  "Lanzamiento": "10 minutos",
-  "Coste": "20 * X",
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "El objetivo envejece\/rejuvenece X años, a un ritmo de uno cada 2 horas.\nPuede resultar traumático crecer y decrecer continuamente, y queda a discreción del master.",
-  "Column6": "Sí",
-  "Norna": 25,
-  "Alfar": 25
+  "Nombre": "Músculos en el Yggdrasil",
+  "Lanzamiento": "Inst",
+  "Coste": 15,
+  "Prueba": "Einherjer 13+",
+  "Descripcion": "Realizas el doble de acciones durante este turno y el siguiente. Cuando la habilidad acabe tienes que hacer una prueba de Mnt 12+ para no quedar aturdido 1d4 asaltos, y una prueba de Fis 16+ para que tus músculos no se debilites (-1 dado a toda prueba física hasta que descanses)",
+  "Column6": "No",
+  "Norna": 15,
+  "Alfar": 15
  },
  {
-  "Nombre": "Controlar hilos de la nueva vida",
-  "Lanzamiento": "10 minutos",
-  "Coste": 40,
-  "Prueba": "Sentir Yggdrasil 14+",
-  "Descripcion": "Aumenta al doble o reduce a la mitad las probabilidades de concebir de la criatura objetivo en las próximas 24 horas.\nSi utilizas esta habilidad sobre un individuo embarazado, sabes al instante que lo está, así como de cuantos y sus géneros.\nSi está en el primer mes de gestación se puede decidir el género de los bebés.",
-  "Column6": "Sí",
-  "Norna": 20,
-  "Alfar": 20
+  "Nombre": "Revolver el Yggdrasil",
+  "Lanzamiento": "Inst",
+  "Coste": 20,
+  "Prueba": "Einherjer 13+",
+  "Descripcion": "Suma 5 a tu prueba de iniciativa.",
+  "Column6": "No",
+  "Norna": 18,
+  "Alfar": 18
  },
  {
   "Nombre": "Conversación amena y distraida",
@@ -2304,6 +2313,36 @@
   "Informatica": 20
  },
  {
+  "Nombre": "Transmitir sabiduría",
+  "Lanzamiento": "Normal",
+  "Coste": 10,
+  "Prueba": "Cruzar Bifrost 12+",
+  "Descripcion": "Pierde X de Bifrost. El objetivo a 30 casillas recupera X de Bifrost.",
+  "Column6": "No",
+  "Norna": 10,
+  "Risa": 10
+ },
+ {
+  "Nombre": "Concentración pasada",
+  "Lanzamiento": "Inst\/2",
+  "Coste": 10,
+  "Prueba": "Cruzar Bifrost 12+",
+  "Descripcion": "Vuelve a realizar la prueba de una habilidad que implique Cruzar Bifrost o Sentir Yggdrasil.",
+  "Column6": "No",
+  "Norna": 13,
+  "Risa": 13
+ },
+ {
+  "Nombre": "Impulso del destino",
+  "Lanzamiento": "Inst\/5",
+  "Coste": 10,
+  "Prueba": "Sentir Yggdrasil 15+",
+  "Descripcion": "Repite la prueba de activación de una habilidad que acabes de fallar.",
+  "Column6": "No",
+  "Norna": 13,
+  "Risa": 13
+ },
+ {
   "Nombre": "Corrección del destino",
   "Lanzamiento": "Inst\/5",
   "Coste": 15,
@@ -2312,16 +2351,6 @@
   "Column6": "No",
   "Norna": 15,
   "Risa": 15
- },
- {
-  "Nombre": "Corregir movimiento",
-  "Lanzamiento": "Normal",
-  "Coste": 20,
-  "Prueba": "Sentir Yggdrasil 14+",
-  "Descripcion": "Muevete como si hubieses usado una acción de movimiento. Si tu siguiente acción consume Bifrost,  una vez concluya, regresa a tu posición inicial, donde activaste esta habilidad.",
-  "Column6": "No",
-  "Norna": 23,
-  "Risa": 23
  },
  {
   "Nombre": "Cortar hilo 1",
@@ -2334,93 +2363,71 @@
   "Risa": 15
  },
  {
-  "Nombre": "Cortar hilo 2",
-  "Lanzamiento": "Normal\/hora",
-  "Coste": 50,
+  "Nombre": "Reutilizar Bifrost",
+  "Lanzamiento": "Mantener",
+  "Coste": "10 al turno",
   "Prueba": "Sentir Yggdrasil 14+",
-  "Descripcion": "Elige un atributo menor al obtener esta habilidad.\nDurante 10 minutos, siempre que el objetivo haga una prueba de habilidad en esta habilidad, considera un 1 todo resultado de 6 en un d6 para esta prueba a menos que fuese a obtener un crítico. Si fuese a obtener un crítico, falla la prueba y esta habilidad deja de afectarle.",
+  "Descripcion": "Designa un objetivo. Siempre que este objetivo gaste Bifrost, aumenta tu reserva de Bifrost en un tercio de este gasto hasta el final de tu turno. El Bifrost recibido de esta forma y no utilizado se pierde al final de tu turno.",
   "Column6": "No",
-  "Norna": 30,
-  "Risa": 30
+  "Norna": 15,
+  "Risa": 15
  },
  {
-  "Nombre": "Cortar hilo 3",
-  "Lanzamiento": "Normal\/hora",
-  "Coste": 50,
+  "Nombre": "Preparar Bifrost",
+  "Lanzamiento": "2 acciones",
   "Prueba": "Sentir Yggdrasil 14+",
-  "Descripcion": "Elige un atributo menor al obtener esta habilidad.\nDurante 10 minutos, siempre que el objetivo haga una prueba de habilidad en esta habilidad, considera un 1 todo resultado de 6 en un d6 para esta prueba a menos que fuese a obtener un crítico. Si fuese a obtener un crítico, falla la prueba y esta habilidad deja de afectarle.",
+  "Descripcion": "Desde el inicio de tu próximo turno hasta el final de ese mismo turno, reduce a la mitad el coste de Bifrost de cualquier habilidad.",
   "Column6": "No",
-  "Norna": 45,
-  "Risa": 45
+  "Norna": 16,
+  "Risa": 16
  },
  {
-  "Nombre": "Cortar hilo 4",
-  "Lanzamiento": "Normal\/hora",
-  "Coste": 50,
-  "Prueba": "Sentir Yggdrasil 14+",
-  "Descripcion": "Elige un atributo menor al obtener esta habilidad.\nDurante 10 minutos, siempre que el objetivo haga una prueba de habilidad en esta habilidad, considera un 1 todo resultado de 6 en un d6 para esta prueba a menos que fuese a obtener un crítico. Si fuese a obtener un crítico, falla la prueba y esta habilidad deja de afectarle.",
+  "Nombre": "Duplicar",
+  "Lanzamiento": "Inst",
+  "Coste": 15,
+  "Prueba": "Einherjer 14+",
+  "Descripcion": "Puedes volver a utilizar la habilidad que acabes de utilizar sin respetar la regla de no poder hacer dos veces seguidas la misma habilidad. El tiempo de recarga sigue igual.",
   "Column6": "No",
-  "Norna": 60,
-  "Risa": 60
+  "Norna": 18,
+  "Risa": 18
  },
  {
-  "Nombre": "Cortar hilo 5",
-  "Lanzamiento": "Normal\/hora",
-  "Coste": 50,
-  "Prueba": "Sentir Yggdrasil 14+",
-  "Descripcion": "Elige un atributo menor al obtener esta habilidad.\nDurante 10 minutos, siempre que el objetivo haga una prueba de habilidad en esta habilidad, considera un 1 todo resultado de 6 en un d6 para esta prueba a menos que fuese a obtener un crítico. Si fuese a obtener un crítico, falla la prueba y esta habilidad deja de afectarle.",
-  "Column6": "No",
-  "Norna": 75,
-  "Risa": 75
- },
- {
-  "Nombre": "Cortar hilo 6",
-  "Lanzamiento": "Normal\/hora",
-  "Coste": 50,
-  "Prueba": "Sentir Yggdrasil 14+",
-  "Descripcion": "Elige un atributo menor al obtener esta habilidad.\nDurante 10 minutos, siempre que el objetivo haga una prueba de habilidad en esta habilidad, considera un 1 todo resultado de 6 en un d6 para esta prueba a menos que fuese a obtener un crítico. Si fuese a obtener un crítico, falla la prueba y esta habilidad deja de afectarle.",
-  "Column6": "No",
-  "Norna": 90,
-  "Risa": 90
- },
- {
-  "Nombre": "Cortar hilo de la suerte",
+  "Nombre": "Favorecer suerte",
   "Lanzamiento": "Normal",
-  "Coste": 20,
-  "Prueba": "Sentir Yggdrasil 10+",
-  "Descripcion": "El objetivo no puede repetir ninguna tirada hasta el final de su siguiente turno.",
-  "Column6": "No",
-  "Norna": 25,
-  "Risa": 25
- },
- {
-  "Nombre": "Cortar hilo de la vida",
-  "Lanzamiento": "3 turnos",
-  "Coste": 200,
-  "Prueba": "Cruzar Bifrost 20+",
-  "Descripcion": "El objetivo muere. Si durante el lanzamiento de esta habilidad recibes daño, puedes perder la concentración.",
-  "Column6": "Sí",
-  "Norna": 25,
-  "Risa": 25
- },
- {
-  "Nombre": "Cortar hilo del Bifrost",
-  "Lanzamiento": "2 acciones\/hora",
-  "Coste": 100,
-  "Descripcion": "Haz una prueba enfrentada de Sentir Yggdrasil con el objetivo. Si superas, no puede consumir Bifrost hasta dentro de una hora.",
-  "Column6": "No",
-  "Norna": 26,
-  "Risa": 26
- },
- {
-  "Nombre": "Cortar hilo del movimiento",
-  "Lanzamiento": "Inst\/5",
-  "Coste": 20,
+  "Coste": 60,
   "Prueba": "Sentir Yggdrasil 15+",
-  "Descripcion": "Detiene el movimiento del objetivo en el punto que consideres del mismo.",
+  "Descripcion": "Hasta el final de tu próximo turno, siempre que el objetivo obtenga un 1 en un dado d6, cambialo por un 6.",
   "Column6": "No",
-  "Norna": 33,
-  "Risa": 33
+  "Norna": 18,
+  "Risa": 18
+ },
+ {
+  "Nombre": "Recoger madeja de Bifrost",
+  "Lanzamiento": "Inst\/3",
+  "Descripcion": "Haz una prueba en Sentir Yggdrasil con una dificultad igual a la habilidad que acabes de activar. Si superas, recuperas el 50% del coste de Bifrost.",
+  "Column6": "Sí",
+  "Norna": 18,
+  "Risa": 18
+ },
+ {
+  "Nombre": "Trastocar energía",
+  "Lanzamiento": "inst\/5",
+  "Coste": 15,
+  "Prueba": "Sentir Yggdrasil 14+",
+  "Descripcion": "Disminuye en 3 el resultado de la siguiente tirada de Cruzar Bifrost o Sentir Yggdrasil del objetivo.",
+  "Column6": "No",
+  "Norna": 18,
+  "Risa": 18
+ },
+ {
+  "Nombre": "Guiar Bifrost",
+  "Lanzamiento": "Mantener",
+  "Coste": "5 al turno",
+  "Prueba": "Cruzar Bifrost 14+",
+  "Descripcion": "Reduce en 2 la dificultad de cualquier habilidad que realices que implique Cruzar Bifrost o Sentir Yggdrasil.",
+  "Column6": "No",
+  "Norna": 19,
+  "Risa": 19
  },
  {
   "Nombre": "Corte maestro",
@@ -2584,22 +2591,23 @@
   "Resistencia": 13
  },
  {
-  "Nombre": "Cuerpo armado",
-  "Lanzamiento": "Pasiva",
-  "Descripcion": "Reduce en 5 el daño de fuentes físicas siempre que no lleves equipada una pieza de armadura.",
+  "Nombre": "Otorgar salud",
+  "Lanzamiento": "Normal",
+  "Coste": 5,
+  "Prueba": "Cruzar Bifrost 13+",
+  "Descripcion": "Pierdes X de vida. El objetivo no moribundo en contacto contigo se cura esa misma cantidad.",
   "Column6": "No",
-  "Valkiria": 9,
-  "Dvergr": 9
+  "Valkiria": 13,
+  "Dvergr": 13
  },
  {
-  "Nombre": "Cuerpo en el Yggdrasil",
+  "Nombre": "Pericia del pasado",
   "Lanzamiento": "Inst",
-  "Coste": 100,
-  "Prueba": "Einherjer 16+",
-  "Descripcion": "Cuentas con 5 turnos.  Esta habilidad solo puede activarse en tu turno.\nCuando la habilidad acabe tienes que hacer una prueba de Mnt 17+ para no quedar aturdido 5d4 asaltos, y cinco pruebas de Fis 20+ para que tus músculos no se debiliten (-1 dados a toda prueba física hasta descansar por cada fallo)",
+  "Coste": 15,
+  "Descripcion": "Esta habilidad solo se puede utilizar inmediatamente después de haber gastado un punto de pericia. Tienes un 50% de no perder el punto de pericia gastado, aunque sus efectos se apliquen normalmente.",
   "Column6": "No",
-  "Norna": 25,
-  "Alfar": 25
+  "Norna": 19,
+  "Alfar": 19
  },
  {
   "Nombre": "Cuerpo sanísimo",
@@ -2629,34 +2637,32 @@
   "Valkiria": 15
  },
  {
-  "Nombre": "Curación reactiva",
-  "Lanzamiento": "Inst\/5",
-  "Coste": 10,
+  "Nombre": "Cauterización con Bifrost",
+  "Lanzamiento": "Normal",
+  "Coste": 15,
   "Prueba": "Einherjer 13+",
-  "Descripcion": "Si un objetivo fuese a sanar a otro (que no seas tú) con una habilidad que gaste Bifrost, puedes sanarte a ti mismo la mitad que fuese a sanar el objetivo.",
+  "Descripcion": "Dejas de sangrar.",
   "Column6": "No",
-  "Valkiria": 40,
-  "Dvergr": 40
+  "Valkiria": 16,
+  "Dvergr": 16
  },
  {
-  "Nombre": "Curación revitalizante",
-  "Lanzamiento": "Inst",
-  "Coste": 10,
-  "Prueba": "Cruzar Bifrost 13+",
-  "Descripcion": "Si una habilidad que has usado fuese a sanar a un objetivo por encima de su vida máxima, puedes aumentar su vida máxima hasta esa cantidad durante 10 minutos.",
-  "Column6": "No",
-  "Valkiria": 38,
-  "Dvergr": 38
+  "Nombre": "Otorgar don Dvergr",
+  "Lanzamiento": "15 minutos",
+  "Coste": 15,
+  "Prueba": "Einherjer 15+",
+  "Descripcion": "Pierdes una de tus habilidades \"Fortaleza Dvergr\". El objetivo gana la habilidad \"Fortaleza Dvergr\". Puedes usar esta habilidad tantas veces quieras con tantos objetivos como quieras mientras aún te quede alguna habilidad \"Fortaleza Dvergr\".",
+  "Column6": "Sí",
+  "Valkiria": 16,
+  "Dvergr": 16
  },
  {
-  "Nombre": "Curación tardía",
-  "Lanzamiento": "Inst",
-  "Coste": 5,
-  "Prueba": "Einherjer 12+",
-  "Descripcion": "Si fuese a superar tu máximo de vida por una curación, apunta el exceso de vida. Al final de tu próximo turno te sanas la cantidad que apuntaste.",
+  "Nombre": "Fortaleza Valkiria",
+  "Lanzamiento": "Pasiva",
+  "Descripcion": "Aumenta en 5 tu vida máxima por cada habilidad \"Fortaleza Dvergr\" que poseas.",
   "Column6": "No",
-  "Valkiria": 24,
-  "Dvergr": 24
+  "Valkiria": 18,
+  "Dvergr": 18
  },
  {
   "Nombre": "Cyborg del Valhalla",
@@ -2699,13 +2705,12 @@
   "Dvergr": 21
  },
  {
-  "Nombre": "Defensa en el Yggdrasil",
-  "Lanzamiento": "Inst\/5",
-  "Prueba": "Einherjer 15+",
-  "Descripcion": "Cancela todo el daño que fueses a sufrir este turno, siempre que la acción que provocó el daño requisiera algún coste de Bifrost.",
-  "Column6": "Sí",
-  "Norna": 38,
-  "Alfar": 38
+  "Nombre": "Acostumbrado al sobresfuerzo del Yggdrasil",
+  "Lanzamiento": "Pasiva",
+  "Descripcion": "Lanza 1D10 adicional en cualquier tirada de mente, físico o resitencia que hayas fallado para no quedar aturdido o para no tener los músculos debilitados después de usar una habilidad que te permita tener más acciones; y quédate con el D10 que consideres.",
+  "Column6": "No",
+  "Norna": 20,
+  "Alfar": 20
  },
  {
   "Nombre": "Defensa nocturna",
@@ -2836,14 +2841,14 @@
   "Fuerza": 20
  },
  {
-  "Nombre": "Desfavorecer mala suerte",
-  "Lanzamiento": "Normal",
-  "Coste": 30,
-  "Prueba": "Sentir Yggdrasil 15+",
-  "Descripcion": "Hasta el final de tu próximo turno, siempre que el objetivo obtenga un 1 en un dado, vuelve a tirar este dado y si el resultado no es un 1, quédate con este valor. Si es un 1, vuelve a lanzar hasta que no lo sea.",
+  "Nombre": "Trastocar el destino",
+  "Lanzamiento": "Normal\/2",
+  "Coste": 20,
+  "Prueba": "Sentir Yggdrasil 10+",
+  "Descripcion": "Selecciona un objetivo y tira 1d10 y 2d6. Hasta el final de tu próximo turno, una única vez y como acción Instantánea, cuando el objetivo vaya a realizar una prueba puedes evitar que lance 1d10 y 2d6 de su tirada y sustituirlos por los que obtuviste al activar la habilidad.",
   "Column6": "No",
-  "Norna": 22,
-  "Risa": 22
+  "Norna": 21,
+  "Risa": 21
  },
  {
   "Nombre": "Desgastar músculos",
@@ -3043,33 +3048,34 @@
   "Enganno": 20
  },
  {
-  "Nombre": "Detener el Yggdrasil",
-  "Lanzamiento": "Mantener",
-  "Coste": "60 + 30 al turno",
-  "Prueba": "Einherjer 16+",
-  "Descripcion": "Detiene el tiempo mientras mantengas la habilidad para todos menos para ti. Esto quiere decir que no puedes interactuar de ninguna forma con ningún otro objetivo, no puedes manipular objetos, no puedes disparar ningún arma…",
-  "Column6": "No",
-  "Norna": 68,
-  "Alfar": 68
+  "Nombre": "Controlar hilos de la nueva vida",
+  "Lanzamiento": "10 minutos",
+  "Coste": 40,
+  "Prueba": "Sentir Yggdrasil 14+",
+  "Descripcion": "Aumenta al doble o reduce a la mitad las probabilidades de concebir de la criatura objetivo en las próximas 24 horas.\nSi utilizas esta habilidad sobre un individuo embarazado, sabes al instante que lo está, así como de cuantos y sus géneros.\nSi está en el primer mes de gestación se puede decidir el género de los bebés.",
+  "Column6": "Sí",
+  "Norna": 20,
+  "Alfar": 20
  },
  {
-  "Nombre": "Deuda al futuro",
-  "Lanzamiento": "Inst\/2",
-  "Coste": 15,
-  "Prueba": "Einherjer 10+",
-  "Descripcion": "Obtiene un turno en este instante. Pierde tu próximo turno normal.",
-  "Column6": "No",
-  "Norna": 11,
-  "Alfar": 11
- },
- {
-  "Nombre": "Deuda de Bifrost",
+  "Nombre": "Disparo al futuro",
   "Lanzamiento": "Inst\/5",
-  "Prueba": "Sentir Yggdrasil 16+",
-  "Descripcion": "La habilidad que estés activando no consume Bifrost. Dentro de dos turnos tuyos, al final del mismo, debes consumir esa cantidad de Bifrost. Si no puedes hacerlo, sufres el doble como daño.",
+  "Coste": 15,
+  "Prueba": "Einherjer 14+",
+  "Descripcion": "Obtienes una acción extra que solo puedes utilizar para disparar. El siguiente turno tienes una acción menos y no puedes disparar.",
   "Column6": "No",
-  "Norna": 35,
-  "Risa": 35
+  "Norna": 21,
+  "Alfar": 21
+ },
+ {
+  "Nombre": "Desfavorecer mala suerte",
+  "Lanzamiento": "Normal",
+  "Coste": 30,
+  "Prueba": "Sentir Yggdrasil 15+",
+  "Descripcion": "Hasta el final de tu próximo turno, siempre que el objetivo obtenga un 1 en un dado, vuelve a tirar este dado y si el resultado no es un 1, quédate con este valor. Si es un 1, vuelve a lanzar hasta que no lo sea.",
+  "Column6": "No",
+  "Norna": 22,
+  "Risa": 22
  },
  {
   "Nombre": "Devolver disparo",
@@ -3091,14 +3097,14 @@
   "Valkiria": 25
  },
  {
-  "Nombre": "Devolver el dolor",
-  "Lanzamiento": "Mantener",
-  "Coste": "10+25 al turno",
-  "Prueba": "Einherjer 13+",
-  "Descripcion": "Todo el daño que sufras también lo sufre el que lo provocó",
+  "Nombre": "Restablecimiento Dvergr",
+  "Lanzamiento": "Normal\/dia",
+  "Coste": 30,
+  "Prueba": "Cruzar Bifrost 14+",
+  "Descripcion": "Te curas todas tu vida.",
   "Column6": "No",
-  "Valkiria": 32,
-  "Dvergr": 62
+  "Valkiria": 20,
+  "Dvergr": 41
  },
  {
   "Nombre": "Diagnóstico preciso",
@@ -3326,11 +3332,11 @@
   "Punteria": 10
  },
  {
-  "Nombre": "Disparo al futuro",
+  "Nombre": "Disparo desde el pasado",
   "Lanzamiento": "Inst\/5",
-  "Coste": 15,
+  "Coste": 10,
   "Prueba": "Einherjer 14+",
-  "Descripcion": "Obtienes una acción extra que solo puedes utilizar para disparar. El siguiente turno tienes una acción menos y no puedes disparar.",
+  "Descripcion": "Si el turno anterior no usaste ninguna acción para disparar, tienes una acción extra de disparo este turno",
   "Column6": "No",
   "Norna": 21,
   "Alfar": 21
@@ -3432,14 +3438,14 @@
   "Dvergr": 14
  },
  {
-  "Nombre": "Disparo desde el pasado",
-  "Lanzamiento": "Inst\/5",
-  "Coste": 10,
-  "Prueba": "Einherjer 14+",
-  "Descripcion": "Si el turno anterior no usaste ninguna acción para disparar, tienes una acción extra de disparo este turno",
-  "Column6": "No",
-  "Norna": 21,
-  "Alfar": 21
+  "Nombre": "Controlar hilos de la edad",
+  "Lanzamiento": "10 minutos",
+  "Coste": "20 * X",
+  "Prueba": "Cruzar Bifrost 14+",
+  "Descripcion": "El objetivo envejece\/rejuvenece X años, a un ritmo de uno cada 2 horas.\nPuede resultar traumático crecer y decrecer continuamente, y queda a discreción del master.",
+  "Column6": "Sí",
+  "Norna": 25,
+  "Alfar": 25
  },
  {
   "Nombre": "Disparo desgarrador",
@@ -3487,7 +3493,8 @@
   "Coste": 10,
   "Prueba": "Esconderse 8+",
   "Descripcion": "Disparas a un objetivo que no espere que lo ataques (o que no espera el golpe). Duplica el daño que causases",
-  "Column6": "No"
+  "Column6": "No",
+  "Alfar": 20
  },
  {
   "Nombre": "Disparo inevitable",
@@ -3643,14 +3650,13 @@
   "Mnt": 15
  },
  {
-  "Nombre": "Duplicar",
-  "Lanzamiento": "Inst",
-  "Coste": 15,
-  "Prueba": "Einherjer 14+",
-  "Descripcion": "Puedes volver a utilizar la habilidad que acabes de utilizar sin respetar la regla de no poder hacer dos veces seguidas la misma habilidad. El tiempo de recarga sigue igual.",
+  "Nombre": "Recuperar Bifrost",
+  "Lanzamiento": "2 acciones",
+  "Prueba": "Sentir Yggdrasil 16+",
+  "Descripcion": "Recupera la mitad del Bifrost que utilizaste el turno anterior.",
   "Column6": "No",
-  "Norna": 18,
-  "Risa": 18
+  "Norna": 22,
+  "Risa": 22
  },
  {
   "Nombre": "Dureza del Bifrost",
@@ -3673,12 +3679,14 @@
   "Diplomacia": 8
  },
  {
-  "Nombre": "Eficacia curativa",
-  "Lanzamiento": "Pasiva",
-  "Descripcion": "Siempre que alguien que no seas tú gaste bifrost para sanarte, sanas un 50% extra.",
-  "Column6": "Sí",
-  "Valkiria": 60,
-  "Dvergr": 60
+  "Nombre": "Ritual de sanación",
+  "Lanzamiento": "30 minutos",
+  "Coste": 40,
+  "Prueba": "Einherjer 13+",
+  "Descripcion": "Todos los objeivos presentes (menos tú) sanan toda su vida.",
+  "Column6": "No",
+  "Valkiria": 22,
+  "Dvergr": 22
  },
  {
   "Nombre": "Eficacia regenerativa",
@@ -3686,7 +3694,9 @@
   "Coste": "X",
   "Prueba": "Einherjer 14+",
   "Descripcion": "Si fuese a ser objetivo de una habilidad que sane tus heridas, puedes gastar X, donde X es el coste de esa habilidad, para sanarte el doble.",
-  "Column6": "No"
+  "Column6": "No",
+  "Valkiria": 27,
+  "Dvergr": 27
  },
  {
   "Nombre": "Eilífa rún, Yggdrasil, fylla mig með speki",
@@ -4063,14 +4073,14 @@
   "Intimidar": 20
  },
  {
-  "Nombre": "Esperar el futuro",
-  "Lanzamiento": "Inst\/2",
-  "Coste": "5*X",
-  "Prueba": "Einherjer 14+",
-  "Descripcion": "Adelanta tus acciones X posiciones dentro del turno como si hubieses conseguido una mejor tirada de iniciativa. El siguiente turno atrasa tus acciones X posiciones dentro del turno.",
+  "Nombre": "Cuerpo en el Yggdrasil",
+  "Lanzamiento": "Inst",
+  "Coste": 100,
+  "Prueba": "Einherjer 16+",
+  "Descripcion": "Cuentas con 5 turnos.  Esta habilidad solo puede activarse en tu turno.\nCuando la habilidad acabe tienes que hacer una prueba de Mnt 17+ para no quedar aturdido 5d4 asaltos, y cinco pruebas de Fis 20+ para que tus músculos no se debiliten (-1 dados a toda prueba física hasta descansar por cada fallo)",
   "Column6": "No",
-  "Norna": 12,
-  "Alfar": 12
+  "Norna": 25,
+  "Alfar": 25
  },
  {
   "Nombre": "Esperar miedo",
@@ -4091,14 +4101,14 @@
   "Risa": 30
  },
  {
-  "Nombre": "Espíritu en el Valhalla",
-  "Lanzamiento": "Inst\/10",
-  "Coste": 30,
-  "Prueba": "Einherjer 16+",
-  "Descripcion": "Dispones de dos turnos completos. Al finalizar, debes hacer 5 pruebas en Resistencia 15+. Por cada fallo obtienes -1 dado y -1 a toda prueba mental. Después haz otras 5 pruebas. Por cada fallo obtienes -1 dado y -1 a toda prueba física. Estos penalizadores se mantienen hasta que descanses.",
-  "Column6": "Sí",
-  "Norna": 60,
-  "Alfar": 60
+  "Nombre": "Sobresfuerzo temporal",
+  "Lanzamiento": "Inst\/día",
+  "Coste": 20,
+  "Prueba": "Einherjer 14+",
+  "Descripcion": "Cuentas con dos turnos inmediatamente.  Cuando la habilidad acabe tienes que hacer una prueba de Mnt 15+ para no quedar aturdido 1d4 asaltos y una pruebas de Fis 17+ para que tus músculos no se debiliten. (-1 dado a toda prueba física hasta descansar).",
+  "Column6": "No",
+  "Norna": 26,
+  "Alfar": 26
  },
  {
   "Nombre": "Espíritu oscuro",
@@ -4445,14 +4455,14 @@
   "Esquiva": 20
  },
  {
-  "Nombre": "Favorecer suerte",
+  "Nombre": "Corregir movimiento",
   "Lanzamiento": "Normal",
-  "Coste": 60,
-  "Prueba": "Sentir Yggdrasil 15+",
-  "Descripcion": "Hasta el final de tu próximo turno, siempre que el objetivo obtenga un 1 en un dado d6, cambialo por un 6.",
+  "Coste": 20,
+  "Prueba": "Sentir Yggdrasil 14+",
+  "Descripcion": "Muevete como si hubieses usado una acción de movimiento. Si tu siguiente acción consume Bifrost,  una vez concluya, regresa a tu posición inicial, donde activaste esta habilidad.",
   "Column6": "No",
-  "Norna": 18,
-  "Risa": 18
+  "Norna": 23,
+  "Risa": 23
  },
  {
   "Nombre": "Fenrir",
@@ -4626,22 +4636,24 @@
   "Dvergr": 18
  },
  {
-  "Nombre": "Fortaleza Valkiria",
-  "Lanzamiento": "Pasiva",
-  "Descripcion": "Aumenta en 5 tu vida máxima por cada habilidad \"Fortaleza Dvergr\" que poseas.",
+  "Nombre": "Curación tardía",
+  "Lanzamiento": "Inst",
+  "Coste": 5,
+  "Prueba": "Einherjer 12+",
+  "Descripcion": "Si fuese a superar tu máximo de vida por una curación, apunta el exceso de vida. Al final de tu próximo turno te sanas la cantidad que apuntaste.",
   "Column6": "No",
-  "Valkiria": 18,
-  "Dvergr": 18
+  "Valkiria": 24,
+  "Dvergr": 24
  },
  {
-  "Nombre": "Forzar Einherjer",
-  "Lanzamiento": "Normal",
-  "Coste": "50*X",
-  "Prueba": "Cruzar Bifrost 17+",
-  "Descripcion": "Durante los próximos 4 turnos, los X objetivos disponen de una acción adicional.  Cuando la habilidad acabe tienen que hacer una prueba de Mnt 12+ para no quedar aturdidos 1d4 asaltos, y una prueba de Fis 16+ para que sus músculos no se debilites (-1 dado a toda prueba física hasta que descansen)",
+  "Nombre": "Mente en el Yggdrasil",
+  "Lanzamiento": "Inst",
+  "Coste": "20 * X",
+  "Prueba": "Einherjer 17+",
+  "Descripcion": "Cuentas con X turnos. Cuando la habilidad acabe tienes que hacer una prueba de Mnt (12+X)+ para no quedar aturdido Xd4 asaltos y X pruebas de Fis (15+X)+ para que tus músculos no se debiliten. (-1 dado a toda prueba física hasta descansar por cada fallo). Esta habilidad solo puede activarse en tu turno.",
   "Column6": "No",
-  "Norna": 40,
-  "Alfar": 40
+  "Norna": 30,
+  "Alfar": 30
  },
  {
   "Nombre": "Forzar hasta el fallo",
@@ -4740,15 +4752,18 @@
  {
   "Nombre": "Fuerza Bergisar",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Todo el daño cuerpo a cuerpo que provoques se incrementa un 50%.",
+  "Descripcion": "Todo el daño cuerpo a cuerpo que provoques se incrementa un 25%.",
   "Column6": "Sí",
+  "Dvergr": 15,
   "Fuerza": 20
  },
  {
   "Nombre": "Fuerza Hrímbursar",
   "Lanzamiento": "Pasiva",
   "Descripcion": "Todo el daño cuerpo a cuerpo que provoques se incrementa un 25% (Total de 50% si tienes Fuerza Bergisar)",
-  "Column6": "Sí"
+  "Column6": "Sí",
+  "Dvergr": 30,
+  "Fuerza": 30
  },
  {
   "Nombre": "Fuerza intimidante",
@@ -4764,7 +4779,9 @@
   "Nombre": "Fylgja",
   "Lanzamiento": "Pasiva",
   "Descripcion": "Una Flygja se desprende de tu alma. Esto es una criatura que puede adoptar cualquier forma y que mantiene un vínculo constante con su origen.",
-  "Column6": "Sí"
+  "Column6": "Sí",
+  "Norna": 30,
+  "Valkiria": 30
  },
  {
   "Nombre": "Fyrirfaðir, með þér galdra, á vígja, á galdra, sendið andarinn til mér",
@@ -4852,14 +4869,14 @@
   "Fuerza": 20
  },
  {
-  "Nombre": "Golpe de apoyo",
-  "Lanzamiento": "Normal\/5",
+  "Nombre": "Regeneración instantánea",
+  "Lanzamiento": "Inst",
   "Coste": 10,
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "Si el aliado tocado tiene vida negativa pero aún está vivo, le dejas con 1 de PV (El aliado tiene que ser voluntario o estar inconsciente)",
-  "Column6": "No",
-  "Valkiria": 6,
-  "Dvergr": 6
+  "Prueba": "Einherjer 10+",
+  "Descripcion": "Esta habilidad solo puede ser utilizada al principio de tu propio turno.\nTe curas 30 de vida.",
+  "Column6": "Sí",
+  "Valkiria": 25,
+  "Dvergr": 25
  },
  {
   "Nombre": "Golpe de Loki",
@@ -5146,14 +5163,14 @@
   "Risa": 15
  },
  {
-  "Nombre": "Guiar Bifrost",
-  "Lanzamiento": "Mantener",
-  "Coste": "5 al turno",
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "Reduce en 2 la dificultad de cualquier habilidad que realices que implique Cruzar Bifrost o Sentir Yggdrasil.",
+  "Nombre": "Cortar hilo de la suerte",
+  "Lanzamiento": "Normal",
+  "Coste": 20,
+  "Prueba": "Sentir Yggdrasil 10+",
+  "Descripcion": "El objetivo no puede repetir ninguna tirada hasta el final de su siguiente turno.",
   "Column6": "No",
-  "Norna": 19,
-  "Risa": 19
+  "Norna": 25,
+  "Risa": 25
  },
  {
   "Nombre": "Guiño de la muerte",
@@ -5441,14 +5458,14 @@
   "Risa": 9
  },
  {
-  "Nombre": "Impulso del destino",
-  "Lanzamiento": "Inst\/5",
-  "Coste": 10,
-  "Prueba": "Sentir Yggdrasil 15+",
-  "Descripcion": "Repite la prueba de activación de una habilidad que acabes de fallar.",
-  "Column6": "No",
-  "Norna": 13,
-  "Risa": 13
+  "Nombre": "Cortar hilo de la vida",
+  "Lanzamiento": "3 turnos",
+  "Coste": 200,
+  "Prueba": "Cruzar Bifrost 20+",
+  "Descripcion": "El objetivo muere. Si durante el lanzamiento de esta habilidad recibes daño, puedes perder la concentración.",
+  "Column6": "Sí",
+  "Norna": 25,
+  "Risa": 25
  },
  {
   "Nombre": "Impulso electromagnético",
@@ -5578,7 +5595,9 @@
   "Coste": 30,
   "Prueba": "Einherjer 14+",
   "Descripcion": "Cuentas con una acción.",
-  "Column6": "No"
+  "Column6": "No",
+  "Norna": 20,
+  "Alfar": 20
  },
  {
   "Nombre": "Integrar",
@@ -5945,7 +5964,8 @@
   "Coste": "10 * X",
   "Prueba": "Cruzar Bifrost 14+",
   "Descripcion": "Si en el turno anterior usaste esta habilidad, puedes volver a usarla para no perder altura, siendo en ese caso X igual a 1.",
-  "Column6": "No"
+  "Column6": "No",
+  "CruzarBifrost": 13
  },
  {
   "Nombre": "Líder científico",
@@ -6201,24 +6221,25 @@
   "Informatica": 13
  },
  {
-  "Nombre": "Manipular hilos de la edad",
-  "Lanzamiento": "10 minutos",
-  "Coste": 40,
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "Durante un año el objetivo (que puedes ser tú), no envejece.",
+  "Nombre": "Concentrarse en el Yggdrasil",
+  "Lanzamiento": "Normal",
+  "Coste": 30,
+  "Prueba": "Einherjer 15+",
+  "Descripcion": "Durante los próximos 4 turnos dispones de una acción adicional.  Cuando la habilidad acabe tienes que hacer una prueba de Mnt 12+ para no quedar aturdido 1d4 asaltos, y una prueba de Fis 16+ para que tus músculos no se debilites (-1 dado a toda prueba física hasta que descanses)",
   "Column6": "No",
-  "Norna": 55,
-  "Alfar": 55
+  "Norna": 33,
+  "Alfar": 33,
+  "Einherjer": 15
  },
  {
-  "Nombre": "Manipular suerte",
-  "Lanzamiento": "Inst\/10",
-  "Coste": 30,
-  "Prueba": "Sentir Yggdrasil 14+",
-  "Descripcion": "Selecciona dos números obtenidos en dados de la tirada objetivo. Sustituye ambos números por el otro en todos los d6.",
+  "Nombre": "Retazos de Bifrost",
+  "Lanzamiento": "Mantener",
+  "Coste": "15 al turno",
+  "Prueba": "Sentir Yggdrasil 16+",
+  "Descripcion": "Siempre que utilices una habilidad que implique Cruzar Bifrost o Sentir Yggdrasil mientras mantengas esta habilidad, cuatro turnos después de su lanzamiento, si sigues manteniendo esta habilidad, recuperas la mitad de su coste de Bifrost.",
   "Column6": "No",
-  "Norna": 37,
-  "Risa": 37
+  "Norna": 25,
+  "Risa": 25
  },
  {
   "Nombre": "Manos arriba",
@@ -6446,14 +6467,14 @@
   "Informatica": 20
  },
  {
-  "Nombre": "Mente en el Yggdrasil",
+  "Nombre": "Resistir sobresfuerzo del Yggdrasil",
   "Lanzamiento": "Inst",
-  "Coste": "20 * X",
-  "Prueba": "Einherjer 17+",
-  "Descripcion": "Cuentas con X turnos. Cuando la habilidad acabe tienes que hacer una prueba de Mnt (12+X)+ para no quedar aturdido Xd4 asaltos y X pruebas de Fis (15+X)+ para que tus músculos no se debiliten. (-1 dado a toda prueba física hasta descansar por cada fallo). Esta habilidad solo puede activarse en tu turno.",
+  "Coste": 15,
+  "Prueba": "Einherjer 13+",
+  "Descripcion": "Repite la tirade de mente, físico o resitencia que hayas fallado para no quedar aturdido o para no tener los músculos debilitados después de usar una habilidad que te permita tener más acciones.",
   "Column6": "No",
-  "Norna": 30,
-  "Alfar": 30
+  "Norna": 36,
+  "Alfar": 36
  },
  {
   "Nombre": "Miedo a la invencibilidad",
@@ -6483,14 +6504,13 @@
   "Intimidar": 7
  },
  {
-  "Nombre": "Mirar hilos del destino",
-  "Lanzamiento": "Normal\/2",
-  "Coste": 5,
-  "Prueba": "Sentir Yggdrasil 10+",
-  "Descripcion": "Tira 1d10 y 2d6. Hasta el final de tu próximo turno, una sola vez y como acción instantánea cuando hagas una prueba en cualquier habilidad puedes dejar de tirar 1d10 y 2d6 de la tirada y sustituirlos por los que obtuviste al activar esta habilidad.",
+  "Nombre": "Cortar hilo del Bifrost",
+  "Lanzamiento": "2 acciones\/hora",
+  "Coste": 100,
+  "Descripcion": "Haz una prueba enfrentada de Sentir Yggdrasil con el objetivo. Si superas, no puede consumir Bifrost hasta dentro de una hora.",
   "Column6": "No",
-  "Norna": 8,
-  "Risa": 8
+  "Norna": 26,
+  "Risa": 26
  },
  {
   "Nombre": "Misión de muerte",
@@ -6608,14 +6628,13 @@
   "Esquiva": 20
  },
  {
-  "Nombre": "Movimiento temporal",
+  "Nombre": "Defensa en el Yggdrasil",
   "Lanzamiento": "Inst\/5",
-  "Coste": 10,
-  "Prueba": "Einherjer 12+",
-  "Descripcion": "Muévete hasta tu movimiento máximo. Cuando la habilidad acabe tienes que hacer una prueba de Mnt 10+ para no quedar aturdido 1 asalto, y una prueba de Fis 12+ para que tus músculos no se debilites (-1 dado a toda prueba física hasta que descanses)",
-  "Column6": "No",
-  "Norna": 8,
-  "Alfar": 8
+  "Prueba": "Einherjer 15+",
+  "Descripcion": "Cancela todo el daño que fueses a sufrir este turno, siempre que la acción que provocó el daño requisiera algún coste de Bifrost.",
+  "Column6": "Sí",
+  "Norna": 38,
+  "Alfar": 38
  },
  {
   "Nombre": "Movimientos maestros",
@@ -6683,14 +6702,14 @@
   "Fuerza": 20
  },
  {
-  "Nombre": "Músculos en el Yggdrasil",
-  "Lanzamiento": "Inst",
-  "Coste": 15,
-  "Prueba": "Einherjer 13+",
-  "Descripcion": "Realizas el doble de acciones durante este turno y el siguiente. Cuando la habilidad acabe tienes que hacer una prueba de Mnt 12+ para no quedar aturdido 1d4 asaltos, y una prueba de Fis 16+ para que tus músculos no se debilites (-1 dado a toda prueba física hasta que descanses)",
+  "Nombre": "Forzar Einherjer",
+  "Lanzamiento": "Normal",
+  "Coste": "50*X",
+  "Prueba": "Cruzar Bifrost 17+",
+  "Descripcion": "Durante los próximos 4 turnos, los X objetivos disponen de una acción adicional.  Cuando la habilidad acabe tienen que hacer una prueba de Mnt 12+ para no quedar aturdidos 1d4 asaltos, y una prueba de Fis 16+ para que sus músculos no se debilites (-1 dado a toda prueba física hasta que descansen)",
   "Column6": "No",
-  "Norna": 15,
-  "Alfar": 15
+  "Norna": 40,
+  "Alfar": 40
  },
  {
   "Nombre": "Músculos resistentes",
@@ -6903,24 +6922,22 @@
   "Risa": 14
  },
  {
-  "Nombre": "Otorgar don Dvergr",
-  "Lanzamiento": "15 minutos",
-  "Coste": 15,
-  "Prueba": "Einherjer 15+",
-  "Descripcion": "Pierdes una de tus habilidades \"Fortaleza Dvergr\". El objetivo gana la habilidad \"Fortaleza Dvergr\". Puedes usar esta habilidad tantas veces quieras con tantos objetivos como quieras mientras aún te quede alguna habilidad \"Fortaleza Dvergr\".",
-  "Column6": "Sí",
-  "Valkiria": 16,
-  "Dvergr": 16
+  "Nombre": "Sanación Dvergr",
+  "Lanzamiento": "Pasiva",
+  "Descripcion": "Siempre que cures a alguien, curas 3 más por cada habilidad \"Fortaleza Dvergr\" que posea.",
+  "Column6": "No",
+  "Valkiria": 28,
+  "Dvergr": 28
  },
  {
-  "Nombre": "Otorgar la vida",
-  "Lanzamiento": "Normal",
-  "Coste": 20,
-  "Prueba": "Cruzar Bifrost 10+",
-  "Descripcion": "Intercambia tu vida actual con la del aliado moribundo hasta a 20 casillas. No puede superar su vida máxima.",
+  "Nombre": "Devolver el dolor",
+  "Lanzamiento": "Mantener",
+  "Coste": "10+25 al turno",
+  "Prueba": "Einherjer 13+",
+  "Descripcion": "Todo el daño que sufras también lo sufre el que lo provocó",
   "Column6": "No",
-  "Valkiria": 11,
-  "Dvergr": 11
+  "Valkiria": 32,
+  "Dvergr": 62
  },
  {
   "Nombre": "Otorgar muerte con la vida",
@@ -6933,14 +6950,13 @@
   "Valkiria": 20
  },
  {
-  "Nombre": "Otorgar salud",
-  "Lanzamiento": "Normal",
-  "Coste": 5,
-  "Prueba": "Cruzar Bifrost 13+",
-  "Descripcion": "Pierdes X de vida. El objetivo no moribundo en contacto contigo se cura esa misma cantidad.",
+  "Nombre": "Proteger a distancia",
+  "Lanzamiento": "Inst",
+  "Coste": 10,
+  "Descripcion": "Puedes utilizar la habilidad de proteger a 2 casillas de distancia. Al utilizarla te mueves automáticamente a una casilla donde pudieses utilizar la habilidad de proteger. Si no pudieses ponerte en una posición válida para utilizar la habilidad de proteger, no puedes utilizar esta habilidad.",
   "Column6": "No",
-  "Valkiria": 13,
-  "Dvergr": 13
+  "Valkiria": 36,
+  "Dvergr": 36
  },
  {
   "Nombre": "Otorgar vida con la muerte",
@@ -7033,14 +7049,14 @@
   "Provocar": 12
  },
  {
-  "Nombre": "Parar el Yggdrasil",
-  "Lanzamiento": "Inst",
-  "Coste": 80,
-  "Prueba": "Einherjer 17+",
-  "Descripcion": "Detiene el tiempo. Esto quiere decir que no puedes interactuar de ninguna forma con ningún otro objetivo, no puedes manipular objetos, no puedes disparar ningún arma… A efectos prácticos, todos menos tú pierden todas sus acciones hasta el final de tu siguiente turno.",
+  "Nombre": "Arrastrar al Yggdrasil",
+  "Lanzamiento": "2 acciones",
+  "Coste": 50,
+  "Prueba": "Cruzar Bifrost 15+",
+  "Descripcion": "El objetivo cuenta con dos turnos. Si usó estas acciones, cuando la habilidad acabe, el objetivo tiene que hacer una prueba de Mnt 13+ para no quedar aturdido 1d4 asaltos y una pruebas de Fis 15+ para que sus músculos no se debiliten. (-1 dado a toda prueba física hasta descansar).",
   "Column6": "No",
-  "Norna": 75,
-  "Alfar": 75
+  "Norna": 41,
+  "Alfar": 41
  },
  {
   "Nombre": "Paredes de energía",
@@ -7080,15 +7096,14 @@
   "Intimidar": 20
  },
  {
-  "Nombre": "Peligro predecido",
-  "Lanzamiento": "Inst",
-  "Coste": 30,
-  "Prueba": "Einherjer 14+",
-  "Descripcion": "Suma 2d6 a tu tirada de iniciativa al comienzo del combate.",
+  "Nombre": "Toque del tiempo",
+  "Lanzamiento": "1 minuto",
+  "Coste": 60,
+  "Prueba": "Cruzar Bifrost 14+",
+  "Descripcion": "El objetivo inorgánico envejece 10 años.",
   "Column6": "No",
-  "Norna": 10,
-  "Alfar": 10,
-  "Einherjer": 8
+  "Norna": 44,
+  "Alfar": 44
  },
  {
   "Nombre": "Pequeñas mentirijillas",
@@ -7189,13 +7204,14 @@
   "Punteria": 10
  },
  {
-  "Nombre": "Pericia del pasado",
+  "Nombre": "Acción en el Yggdrasil",
   "Lanzamiento": "Inst",
-  "Coste": 15,
-  "Descripcion": "Esta habilidad solo se puede utilizar inmediatamente después de haber gastado un punto de pericia. Tienes un 50% de no perder el punto de pericia gastado, aunque sus efectos se apliquen normalmente.",
+  "Coste": 30,
+  "Prueba": "Einherjer 14+",
+  "Descripcion": "Fuera de combate, reduce a la mitad el tiempo que necesitas para llevar a cabo una actividad. Cuando la habilidad acabe, si necesitanste hacer alguna tirada durante la prueba, repite la prueba cinco veces, si fallas terminas agotado en esa habilidad y tienes una penalización de -1 dado y -1 a todas las pruebas de esa habilidad hasta que descanses.",
   "Column6": "No",
-  "Norna": 19,
-  "Alfar": 19
+  "Norna": 48,
+  "Alfar": 48
  },
  {
   "Nombre": "Pericia suprema",
@@ -7207,14 +7223,14 @@
   "Punteria": 15
  },
  {
-  "Nombre": "Perjudicar control de Bifrost",
+  "Nombre": "Buscar hilo repetido",
   "Lanzamiento": "Inst",
-  "Coste": 10,
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "Después de recibir un aviso gracias a «Predecir Bifrost», aumenta en 2 la dificultad de la prueba que el usuario tenga que hacer fruto del gasto de Bifrost en caso de que haya prueba. Si no hay prueba, no surte efecto.",
+  "Coste": 15,
+  "Prueba": "Sentir Yggdrasil 13+",
+  "Descripcion": "Ignoras la restricción de no hacer dos acciones iguales seguidas siempre y cuando esta acción requiera consumir Bifrost.",
   "Column6": "No",
-  "Norna": 10,
-  "Risa": 10
+  "Norna": 27,
+  "Risa": 27
  },
  {
   "Nombre": "Persistencia en memoria",
@@ -7436,14 +7452,12 @@
   "Dvergr": 36
  },
  {
-  "Nombre": "Predecir Bifrost",
-  "Lanzamiento": "Normal",
-  "Coste": 10,
-  "Prueba": "Sentir Yggdrasil 14+",
-  "Descripcion": "Durante 10 turnos, se te informa de cuando el objetivo va a realizar cualquier habilidad que requiera Bifrost antes de que indique la habilidad o realice la prueba. ",
+  "Nombre": "Reutilización masiva de Bifrost",
+  "Lanzamiento": "2 acciones",
+  "Descripcion": "Hasta el principio de tu próximo turno, siempre que un objetivo gaste Bifrost para activar una habilidad que requiera una prueba, haz una prueba enfrentada a la suya en Sentir Yggdrasil. Si superas su tirada, recuperas la mitad del Bifrost que él ha gastado.",
   "Column6": "No",
-  "Norna": 8,
-  "Risa": 8
+  "Norna": 27,
+  "Risa": 27
  },
  {
   "Nombre": "Predecir daño",
@@ -7533,13 +7547,14 @@
   "Einherjer": 17
  },
  {
-  "Nombre": "Preparar Bifrost",
-  "Lanzamiento": "2 acciones",
+  "Nombre": "Cortar hilo 2",
+  "Lanzamiento": "Normal\/hora",
+  "Coste": 50,
   "Prueba": "Sentir Yggdrasil 14+",
-  "Descripcion": "Desde el inicio de tu próximo turno hasta el final de ese mismo turno, reduce a la mitad el coste de Bifrost de cualquier habilidad.",
+  "Descripcion": "Elige un atributo menor al obtener esta habilidad.\nDurante 10 minutos, siempre que el objetivo haga una prueba de habilidad en esta habilidad, considera un 1 todo resultado de 6 en un d6 para esta prueba a menos que fuese a obtener un crítico. Si fuese a obtener un crítico, falla la prueba y esta habilidad deja de afectarle.",
   "Column6": "No",
-  "Norna": 16,
-  "Risa": 16
+  "Norna": 30,
+  "Risa": 30
  },
  {
   "Nombre": "Preparar palabras correctas",
@@ -7634,13 +7649,14 @@
   "Dvergr": 29
  },
  {
-  "Nombre": "Proteger a distancia",
-  "Lanzamiento": "Inst",
-  "Coste": 10,
-  "Descripcion": "Puedes utilizar la habilidad de proteger a 2 casillas de distancia. Al utilizarla te mueves automáticamente a una casilla donde pudieses utilizar la habilidad de proteger. Si no pudieses ponerte en una posición válida para utilizar la habilidad de proteger, no puedes utilizar esta habilidad.",
+  "Nombre": "Vínculo de sacrificio",
+  "Lanzamiento": "Mantener",
+  "Coste": "20+15 al turno",
+  "Prueba": "Einherjer 16+",
+  "Descripcion": "Al comienzo de cada uno de tus turnos pierdes 30 de vida. Todos tus aliados a 10 casillas sanan 25 de vida.",
   "Column6": "No",
-  "Valkiria": 36,
-  "Dvergr": 36
+  "Valkiria": 37,
+  "Dvergr": 37
  },
  {
   "Nombre": "Provocación al volante",
@@ -8057,12 +8073,14 @@
   "Punteria": 20
  },
  {
-  "Nombre": "Recoger madeja de Bifrost",
-  "Lanzamiento": "Inst\/3",
-  "Descripcion": "Haz una prueba en Sentir Yggdrasil con una dificultad igual a la habilidad que acabes de activar. Si superas, recuperas el 50% del coste de Bifrost.",
-  "Column6": "Sí",
-  "Norna": 18,
-  "Risa": 18
+  "Nombre": "Tejer destino ajeno",
+  "Lanzamiento": "1 hora",
+  "Coste": 20,
+  "Prueba": "Sentir Yggdrasil 17+",
+  "Descripcion": "Selecciona un objetivo. Crea un nudo de puro Bifrost. Como acción instantánea, el poseedor del nudo puede deshacerlo para que el objetivo repita una tirada y se quede el nuevo valor.",
+  "Column6": "No",
+  "Norna": 30,
+  "Risa": 30
  },
  {
   "Nombre": "Recolección vital",
@@ -8092,14 +8110,14 @@
   "Enganno": 11
  },
  {
-  "Nombre": "Recuperación Dvegr",
-  "Lanzamiento": "Inst\/5",
-  "Coste": 20,
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "Te curas 60 de vida.",
+  "Nombre": "Curación revitalizante",
+  "Lanzamiento": "Inst",
+  "Coste": 10,
+  "Prueba": "Cruzar Bifrost 13+",
+  "Descripcion": "Si una habilidad que has usado fuese a sanar a un objetivo por encima de su vida máxima, puedes aumentar su vida máxima hasta esa cantidad durante 10 minutos.",
   "Column6": "No",
-  "Valkiria": 10,
-  "Dvergr": 29
+  "Valkiria": 38,
+  "Dvergr": 38
  },
  {
   "Nombre": "Recuperación segura",
@@ -8120,13 +8138,14 @@
   "Resistencia": 8
  },
  {
-  "Nombre": "Recuperar Bifrost",
-  "Lanzamiento": "2 acciones",
-  "Prueba": "Sentir Yggdrasil 16+",
-  "Descripcion": "Recupera la mitad del Bifrost que utilizaste el turno anterior.",
+  "Nombre": "Cortar hilo del movimiento",
+  "Lanzamiento": "Inst\/5",
+  "Coste": 20,
+  "Prueba": "Sentir Yggdrasil 15+",
+  "Descripcion": "Detiene el movimiento del objetivo en el punto que consideres del mismo.",
   "Column6": "No",
-  "Norna": 22,
-  "Risa": 22
+  "Norna": 33,
+  "Risa": 33
  },
  {
   "Nombre": "Redirigir golpe",
@@ -8188,14 +8207,14 @@
   "Dvergr": 10
  },
  {
-  "Nombre": "Regeneración instantánea",
-  "Lanzamiento": "Inst",
+  "Nombre": "Curación reactiva",
+  "Lanzamiento": "Inst\/5",
   "Coste": 10,
-  "Prueba": "Einherjer 10+",
-  "Descripcion": "Esta habilidad solo puede ser utilizada al principio de tu propio turno.\nTe curas 30 de vida.",
-  "Column6": "Sí",
-  "Valkiria": 25,
-  "Dvergr": 25
+  "Prueba": "Einherjer 13+",
+  "Descripcion": "Si un objetivo fuese a sanar a otro (que no seas tú) con una habilidad que gaste Bifrost, puedes sanarte a ti mismo la mitad que fuese a sanar el objetivo.",
+  "Column6": "No",
+  "Valkiria": 40,
+  "Dvergr": 40
  },
  {
   "Nombre": "Regeneración ósea",
@@ -8321,14 +8340,12 @@
   "Dvergr": 22
  },
  {
-  "Nombre": "Resistencia regenerativa",
-  "Lanzamiento": "Inst",
-  "Coste": 5,
-  "Prueba": "Einherjer 14+",
-  "Descripcion": "Solo puedes usar esta habilidad tras hacer una prueba exitosa de resistencia contra un daño que hayas sufrido. Te curas tanta vida como el resultado de la prueba, siempre que no exceda el daño sufrido.",
+  "Nombre": "Sangre de Ymmir",
+  "Lanzamiento": "Pasiva",
+  "Descripcion": "Al inicio de tus turnos, en combate, si tienes menos del 75% de tu vida máxima, sanas 1\/20 de tu vida máxima.",
   "Column6": "No",
-  "Valkiria": 68,
-  "Dvergr": 68
+  "Valkiria": 42,
+  "Dvergr": 42
  },
  {
   "Nombre": "Resistente a enfermedades y veneno",
@@ -8380,14 +8397,14 @@
   "Punteria": 20
  },
  {
-  "Nombre": "Resistir sobresfuerzo del Yggdrasil",
-  "Lanzamiento": "Inst",
-  "Coste": 15,
-  "Prueba": "Einherjer 13+",
-  "Descripcion": "Repite la tirade de mente, físico o resitencia que hayas fallado para no quedar aturdido o para no tener los músculos debilitados después de usar una habilidad que te permita tener más acciones.",
+  "Nombre": "Manipular hilos de la edad",
+  "Lanzamiento": "10 minutos",
+  "Coste": 40,
+  "Prueba": "Cruzar Bifrost 14+",
+  "Descripcion": "Durante un año el objetivo (que puedes ser tú), no envejece.",
   "Column6": "No",
-  "Norna": 36,
-  "Alfar": 36
+  "Norna": 55,
+  "Alfar": 55
  },
  {
   "Nombre": "Resolver tensión",
@@ -8418,24 +8435,23 @@
   "Diplomacia": 9
  },
  {
-  "Nombre": "Restablecimiento Dvergr",
-  "Lanzamiento": "Normal\/dia",
-  "Coste": 30,
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "Te curas todas tu vida.",
+  "Nombre": "Cirujía brutal",
+  "Lanzamiento": "Normal",
+  "Coste": 15,
+  "Prueba": "Cruzar Bifrost 13+",
+  "Descripcion": "El objetivo cura los efectos de haber falaldo una tirada en resistencia fallida que sean curables. Pierde 30 de vida.",
   "Column6": "No",
-  "Valkiria": 20,
-  "Dvergr": 41
+  "Valkiria": 46,
+  "Dvergr": 46
  },
  {
-  "Nombre": "Retazos de Bifrost",
-  "Lanzamiento": "Mantener",
-  "Coste": "15 al turno",
+  "Nombre": "Deuda de Bifrost",
+  "Lanzamiento": "Inst\/5",
   "Prueba": "Sentir Yggdrasil 16+",
-  "Descripcion": "Siempre que utilices una habilidad que implique Cruzar Bifrost o Sentir Yggdrasil mientras mantengas esta habilidad, cuatro turnos después de su lanzamiento, si sigues manteniendo esta habilidad, recuperas la mitad de su coste de Bifrost.",
+  "Descripcion": "La habilidad que estés activando no consume Bifrost. Dentro de dos turnos tuyos, al final del mismo, debes consumir esa cantidad de Bifrost. Si no puedes hacerlo, sufres el doble como daño.",
   "Column6": "No",
-  "Norna": 25,
-  "Risa": 25
+  "Norna": 35,
+  "Risa": 35
  },
  {
   "Nombre": "Retirar favor de Fulla",
@@ -8448,30 +8464,32 @@
   "Medicina": 8
  },
  {
-  "Nombre": "Retroalimentación del Yggdrasil",
-  "Lanzamiento": "Normal\/5",
-  "Descripcion": "Selecciona una habilidad que usaste desde el principio de tu último turno hasta ahora. Haz una prueba de Sentir Yggdrasil con esa misma dificultad. Si superas la prueba, recuperas el 50% de su coste de Bifrost.",
-  "Column6": "No",
-  "Norna": 6,
-  "Risa": 6
- },
- {
-  "Nombre": "Reutilización masiva de Bifrost",
-  "Lanzamiento": "2 acciones",
-  "Descripcion": "Hasta el principio de tu próximo turno, siempre que un objetivo gaste Bifrost para activar una habilidad que requiera una prueba, haz una prueba enfrentada a la suya en Sentir Yggdrasil. Si superas su tirada, recuperas la mitad del Bifrost que él ha gastado.",
-  "Column6": "No",
-  "Norna": 27,
-  "Risa": 27
- },
- {
-  "Nombre": "Reutilizar Bifrost",
-  "Lanzamiento": "Mantener",
-  "Coste": "10 al turno",
+  "Nombre": "Teletransporte por el Valhalla",
+  "Lanzamiento": "2 minutos",
+  "Coste": 40,
   "Prueba": "Sentir Yggdrasil 14+",
-  "Descripcion": "Designa un objetivo. Siempre que este objetivo gaste Bifrost, aumenta tu reserva de Bifrost en un tercio de este gasto hasta el final de tu turno. El Bifrost recibido de esta forma y no utilizado se pierde al final de tu turno.",
+  "Descripcion": "Te teletransportas a una ubicación conocida.",
   "Column6": "No",
-  "Norna": 15,
-  "Risa": 15
+  "Norna": 35,
+  "Risa": 35
+ },
+ {
+  "Nombre": "Manipular suerte",
+  "Lanzamiento": "Inst\/10",
+  "Coste": 30,
+  "Prueba": "Sentir Yggdrasil 14+",
+  "Descripcion": "Selecciona dos números obtenidos en dados de la tirada objetivo. Sustituye ambos números por el otro en todos los d6.",
+  "Column6": "No",
+  "Norna": 37,
+  "Risa": 37
+ },
+ {
+  "Nombre": "Suerte propia",
+  "Lanzamiento": "Inst",
+  "Descripcion": "Cambia un resultado de 1 por un 6 en un único dado d6 que hayas tirado.",
+  "Column6": "No",
+  "Norna": 42,
+  "Risa": 42
  },
  {
   "Nombre": "Reventar escudo",
@@ -8494,14 +8512,14 @@
   "Valkiria": 25
  },
  {
-  "Nombre": "Revolver el Yggdrasil",
-  "Lanzamiento": "Inst",
-  "Coste": 20,
-  "Prueba": "Einherjer 13+",
-  "Descripcion": "Suma 5 a tu prueba de iniciativa.",
-  "Column6": "No",
-  "Norna": 18,
-  "Alfar": 18
+  "Nombre": "Espíritu en el Valhalla",
+  "Lanzamiento": "Inst\/10",
+  "Coste": 30,
+  "Prueba": "Einherjer 16+",
+  "Descripcion": "Dispones de dos turnos completos. Al finalizar, debes hacer 5 pruebas en Resistencia 15+. Por cada fallo obtienes -1 dado y -1 a toda prueba mental. Después haz otras 5 pruebas. Por cada fallo obtienes -1 dado y -1 a toda prueba física. Estos penalizadores se mantienen hasta que descanses.",
+  "Column6": "Sí",
+  "Norna": 60,
+  "Alfar": 60
  },
  {
   "Nombre": "Risti jörðina, hrör þá djúpt undir fótum þeim",
@@ -8514,14 +8532,14 @@
   "Risa": 28
  },
  {
-  "Nombre": "Ritual de sanación",
-  "Lanzamiento": "30 minutos",
-  "Coste": 40,
-  "Prueba": "Einherjer 13+",
-  "Descripcion": "Todos los objeivos presentes (menos tú) sanan toda su vida.",
+  "Nombre": "Sangre regenerativa",
+  "Lanzamiento": "Inst",
+  "Coste": 10,
+  "Prueba": "Einherjer 14+",
+  "Descripcion": "Solo puedes usar esta habilidad tras haber sufrido daño por una fuente física. El objetivo adyacente sana tanta vida como daño hayas sufrido.",
   "Column6": "No",
-  "Valkiria": 22,
-  "Dvergr": 22
+  "Valkiria": 52,
+  "Dvergr": 52
  },
  {
   "Nombre": "Robar Bifrost",
@@ -8673,12 +8691,13 @@
   "Valkiria": 30
  },
  {
-  "Nombre": "Sanación Dvergr",
-  "Lanzamiento": "Pasiva",
-  "Descripcion": "Siempre que cures a alguien, curas 3 más por cada habilidad \"Fortaleza Dvergr\" que posea.",
+  "Nombre": "Alimentase de Biftrost",
+  "Lanzamiento": "Normal",
+  "Prueba": "Cruzar Bifrost 13+",
+  "Descripcion": "Tú y toda criatura situada a un máximo de 5 casillas de distancia podéis gastar cuanto Bifrost como queráis. Te curas en vida la cantidad total de Bifrost gastada.",
   "Column6": "No",
-  "Valkiria": 28,
-  "Dvergr": 28
+  "Valkiria": 58,
+  "Dvergr": 58
  },
  {
   "Nombre": "Sanación letal",
@@ -8736,22 +8755,20 @@
   "Dvergr": 35
  },
  {
-  "Nombre": "Sangre de Ymmir",
+  "Nombre": "Eficacia curativa",
   "Lanzamiento": "Pasiva",
-  "Descripcion": "Al inicio de tus turnos, en combate, si tienes menos del 75% de tu vida máxima, sanas 1\/20 de tu vida máxima.",
-  "Column6": "No",
-  "Valkiria": 42,
-  "Dvergr": 42
+  "Descripcion": "Siempre que alguien que no seas tú gaste bifrost para sanarte, sanas un 50% extra.",
+  "Column6": "Sí",
+  "Valkiria": 60,
+  "Dvergr": 60
  },
  {
-  "Nombre": "Sangre regenerativa",
-  "Lanzamiento": "Inst",
-  "Coste": 10,
-  "Prueba": "Einherjer 14+",
-  "Descripcion": "Solo puedes usar esta habilidad tras haber sufrido daño por una fuente física. El objetivo adyacente sana tanta vida como daño hayas sufrido.",
+  "Nombre": "Aguante Dvegr",
+  "Lanzamiento": "Pasiva",
+  "Descripcion": "Obtienes 40 más de vida máxima",
   "Column6": "No",
-  "Valkiria": 52,
-  "Dvergr": 52
+  "Valkiria": 68,
+  "Dvergr": 68
  },
  {
   "Nombre": "Scrum master",
@@ -8829,14 +8846,14 @@
   "SentirYggdrasil": 14
  },
  {
-  "Nombre": "Señal pasada",
-  "Lanzamiento": "X * 10 minutos",
-  "Coste": "5 * X",
+  "Nombre": "Vistazo al pasado",
+  "Lanzamiento": "1 hora",
+  "Coste": 150,
   "Prueba": "Sentir Yggdrasil 14+",
-  "Descripcion": "Esta habilidad debe ser utilizada mientras utilizas algun mecanismo que te permita percibir señales. Debes indicar qué señal estás buscando o qué características tiene. Si la señal pasó por el área en las últimas X horas, la recibes.",
+  "Descripcion": "Tienes una breve visión de lo que aconteció en el lugar en el momento que consideres.",
   "Column6": "No",
-  "Norna": 6,
-  "Alfar": 6
+  "Norna": 60,
+  "Alfar": 60
  },
  {
   "Nombre": "Señuelo",
@@ -8978,14 +8995,14 @@
   "Informatica": 14
  },
  {
-  "Nombre": "Sobresfuerzo temporal",
-  "Lanzamiento": "Inst\/día",
+  "Nombre": "Apresurar acciones",
+  "Lanzamiento": "Inst",
   "Coste": 20,
-  "Prueba": "Einherjer 14+",
-  "Descripcion": "Cuentas con dos turnos inmediatamente.  Cuando la habilidad acabe tienes que hacer una prueba de Mnt 15+ para no quedar aturdido 1d4 asaltos y una pruebas de Fis 17+ para que tus músculos no se debiliten. (-1 dado a toda prueba física hasta descansar).",
+  "Prueba": "Einherjer 20+",
+  "Descripcion": "Cuentas con una acción más este turno. Esta habilidad solo se puede usar en tu turno.",
   "Column6": "No",
-  "Norna": 26,
-  "Alfar": 26
+  "Norna": 64,
+  "Alfar": 64
  },
  {
   "Nombre": "Solidificar heridas",
@@ -9057,12 +9074,14 @@
   "Norna": 15
  },
  {
-  "Nombre": "Suerte propia",
-  "Lanzamiento": "Inst",
-  "Descripcion": "Cambia un resultado de 1 por un 6 en un único dado d6 que hayas tirado.",
+  "Nombre": "Cortar hilo 3",
+  "Lanzamiento": "Normal\/hora",
+  "Coste": 50,
+  "Prueba": "Sentir Yggdrasil 14+",
+  "Descripcion": "Elige un atributo menor al obtener esta habilidad.\nDurante 10 minutos, siempre que el objetivo haga una prueba de habilidad en esta habilidad, considera un 1 todo resultado de 6 en un d6 para esta prueba a menos que fuese a obtener un crítico. Si fuese a obtener un crítico, falla la prueba y esta habilidad deja de afectarle.",
   "Column6": "No",
-  "Norna": 42,
-  "Risa": 42
+  "Norna": 45,
+  "Risa": 45
  },
  {
   "Nombre": "Sumisión química",
@@ -9105,16 +9124,6 @@
   "Medicina": 14
  },
  {
-  "Nombre": "Tejer destino ajeno",
-  "Lanzamiento": "1 hora",
-  "Coste": 20,
-  "Prueba": "Sentir Yggdrasil 17+",
-  "Descripcion": "Selecciona un objetivo. Crea un nudo de puro Bifrost. Como acción instantánea, el poseedor del nudo puede deshacerlo para que el objetivo repita una tirada y se quede el nuevo valor.",
-  "Column6": "No",
-  "Norna": 30,
-  "Risa": 30
- },
- {
   "Nombre": "Tejer tu propia suerte",
   "Lanzamiento": "Inst\/10",
   "Coste": 20,
@@ -9123,6 +9132,16 @@
   "Column6": "No",
   "Norna": 50,
   "Risa": 50
+ },
+ {
+  "Nombre": "Cortar hilo 4",
+  "Lanzamiento": "Normal\/hora",
+  "Coste": 50,
+  "Prueba": "Sentir Yggdrasil 14+",
+  "Descripcion": "Elige un atributo menor al obtener esta habilidad.\nDurante 10 minutos, siempre que el objetivo haga una prueba de habilidad en esta habilidad, considera un 1 todo resultado de 6 en un d6 para esta prueba a menos que fuese a obtener un crítico. Si fuese a obtener un crítico, falla la prueba y esta habilidad deja de afectarle.",
+  "Column6": "No",
+  "Norna": 60,
+  "Risa": 60
  },
  {
   "Nombre": "Telepatía",
@@ -9154,14 +9173,14 @@
   "Einherjer": 15
  },
  {
-  "Nombre": "Teletransporte por el Valhalla",
-  "Lanzamiento": "2 minutos",
-  "Coste": 40,
-  "Prueba": "Sentir Yggdrasil 14+",
-  "Descripcion": "Te teletransportas a una ubicación conocida.",
+  "Nombre": "Apresurar habilidad",
+  "Lanzamiento": "Inst\/10",
+  "Coste": 20,
+  "Prueba": "Cruzar Bifrost 22+",
+  "Descripcion": "La siguiente habilidad que requiera una tirada de Cruzar Bifrost, Sentir Yggdrasil o Einherjer, con coste Normal pasa a tener conste Inst. Si fuese de 2 acciones, pasa a ser Normal.",
   "Column6": "No",
-  "Norna": 35,
-  "Risa": 35
+  "Norna": 64,
+  "Risa": 64
  },
  {
   "Nombre": "Terapia de choque",
@@ -9316,14 +9335,14 @@
   "Medicina": 20
  },
  {
-  "Nombre": "Toque del tiempo",
-  "Lanzamiento": "1 minuto",
-  "Coste": 60,
-  "Prueba": "Cruzar Bifrost 14+",
-  "Descripcion": "El objetivo inorgánico envejece 10 años.",
+  "Nombre": "Detener el Yggdrasil",
+  "Lanzamiento": "Mantener",
+  "Coste": "60 + 30 al turno",
+  "Prueba": "Einherjer 16+",
+  "Descripcion": "Detiene el tiempo mientras mantengas la habilidad para todos menos para ti. Esto quiere decir que no puedes interactuar de ninguna forma con ningún otro objetivo, no puedes manipular objetos, no puedes disparar ningún arma…",
   "Column6": "No",
-  "Norna": 44,
-  "Alfar": 44
+  "Norna": 68,
+  "Alfar": 68
  },
  {
   "Nombre": "Tormenta del Ragnarok",
@@ -9401,34 +9420,34 @@
   "FisicaQuimica": 14
  },
  {
-  "Nombre": "Transmitir sabiduría",
-  "Lanzamiento": "Normal",
-  "Coste": 10,
-  "Prueba": "Cruzar Bifrost 12+",
-  "Descripcion": "Pierde X de Bifrost. El objetivo a 30 casillas recupera X de Bifrost.",
+  "Nombre": "Bifrost del pasado",
+  "Lanzamiento": "Mantener",
+  "Coste": "40 al turno",
+  "Prueba": "Sentir Yggdrasil 16+",
+  "Descripcion": "Siempre que utilices una habilidad que implique Cruzar Bifrost o Sentir Yggdrasil mientras mantengas esta habilidad, cuatro turnos después de su lanzamiento, si sigues manteniendo esta habilidad, recuperas su coste de Bifrost.",
   "Column6": "No",
-  "Norna": 10,
-  "Risa": 10
+  "Norna": 68,
+  "Risa": 68
  },
  {
-  "Nombre": "Trastocar el destino",
-  "Lanzamiento": "Normal\/2",
-  "Coste": 20,
-  "Prueba": "Sentir Yggdrasil 10+",
-  "Descripcion": "Selecciona un objetivo y tira 1d10 y 2d6. Hasta el final de tu próximo turno, una única vez y como acción Instantánea, cuando el objetivo vaya a realizar una prueba puedes evitar que lance 1d10 y 2d6 de su tirada y sustituirlos por los que obtuviste al activar la habilidad.",
-  "Column6": "No",
-  "Norna": 21,
-  "Risa": 21
- },
- {
-  "Nombre": "Trastocar energía",
-  "Lanzamiento": "inst\/5",
-  "Coste": 15,
+  "Nombre": "Cortar hilo 5",
+  "Lanzamiento": "Normal\/hora",
+  "Coste": 50,
   "Prueba": "Sentir Yggdrasil 14+",
-  "Descripcion": "Disminuye en 3 el resultado de la siguiente tirada de Cruzar Bifrost o Sentir Yggdrasil del objetivo.",
+  "Descripcion": "Elige un atributo menor al obtener esta habilidad.\nDurante 10 minutos, siempre que el objetivo haga una prueba de habilidad en esta habilidad, considera un 1 todo resultado de 6 en un d6 para esta prueba a menos que fuese a obtener un crítico. Si fuese a obtener un crítico, falla la prueba y esta habilidad deja de afectarle.",
   "Column6": "No",
-  "Norna": 18,
-  "Risa": 18
+  "Norna": 75,
+  "Risa": 75
+ },
+ {
+  "Nombre": "Cortar hilo 6",
+  "Lanzamiento": "Normal\/hora",
+  "Coste": 50,
+  "Prueba": "Sentir Yggdrasil 14+",
+  "Descripcion": "Elige un atributo menor al obtener esta habilidad.\nDurante 10 minutos, siempre que el objetivo haga una prueba de habilidad en esta habilidad, considera un 1 todo resultado de 6 en un d6 para esta prueba a menos que fuese a obtener un crítico. Si fuese a obtener un crítico, falla la prueba y esta habilidad deja de afectarle.",
+  "Column6": "No",
+  "Norna": 90,
+  "Risa": 90
  },
  {
   "Nombre": "Trastocar hilo del Yggdrasil",
@@ -9436,7 +9455,9 @@
   "Coste": 20,
   "Prueba": "Cruzar Bifrost 15+",
   "Descripcion": "El objetivo debe gastar el doble de Bifrost para activar la habilidad que fuese a activar.",
-  "Column6": "No"
+  "Column6": "No",
+  "Norna": 31,
+  "Risa": 31
  },
  {
   "Nombre": "Tratar agotamiento muscular",
@@ -9656,14 +9677,14 @@
   "CruzarBifrost": 30
  },
  {
-  "Nombre": "Vínculo de sacrificio",
-  "Lanzamiento": "Mantener",
-  "Coste": "20+15 al turno",
-  "Prueba": "Einherjer 16+",
-  "Descripcion": "Al comienzo de cada uno de tus turnos pierdes 30 de vida. Todos tus aliados a 10 casillas sanan 25 de vida.",
+  "Nombre": "Resistencia regenerativa",
+  "Lanzamiento": "Inst",
+  "Coste": 5,
+  "Prueba": "Einherjer 14+",
+  "Descripcion": "Solo puedes usar esta habilidad tras hacer una prueba exitosa de resistencia contra un daño que hayas sufrido. Te curas tanta vida como el resultado de la prueba, siempre que no exceda el daño sufrido.",
   "Column6": "No",
-  "Valkiria": 37,
-  "Dvergr": 37
+  "Valkiria": 68,
+  "Dvergr": 68
  },
  {
   "Nombre": "Vínculo emocional",
@@ -9769,14 +9790,14 @@
   "CruzarBifrost": 21
  },
  {
-  "Nombre": "Vistazo al pasado",
-  "Lanzamiento": "1 hora",
-  "Coste": 150,
-  "Prueba": "Sentir Yggdrasil 14+",
-  "Descripcion": "Tienes una breve visión de lo que aconteció en el lugar en el momento que consideres.",
+  "Nombre": "Parar el Yggdrasil",
+  "Lanzamiento": "Inst",
+  "Coste": 80,
+  "Prueba": "Einherjer 17+",
+  "Descripcion": "Detiene el tiempo. Esto quiere decir que no puedes interactuar de ninguna forma con ningún otro objetivo, no puedes manipular objetos, no puedes disparar ningún arma… A efectos prácticos, todos menos tú pierden todas sus acciones hasta el final de tu siguiente turno.",
   "Column6": "No",
-  "Norna": 60,
-  "Alfar": 60
+  "Norna": 75,
+  "Alfar": 75
  },
  {
   "Nombre": "Vitalidad del Yggdasil",
