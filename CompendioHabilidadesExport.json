@@ -4149,7 +4149,9 @@
   "Nombre": "Esquiva Einhejer",
   "Lanzamiento": "Pasiva",
   "Descripcion": "Obtienes un bono permanente a tu esquiva igual a 1\/5 de tu puntuación de Einherjer.",
-  "Column6": "No"
+  "Column6": "No",
+  "Einherjer": 20,
+  "Esquiva": 20
  },
  {
   "Nombre": "Esquiva extenuante",
