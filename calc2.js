@@ -35,9 +35,9 @@
             }
             
             function comprobarHabilidadActual(habilidad){
-                if (comprobarGenetica(habilidad.Heroe, habilidad.Norna, habilidad.Alfar, habilidad.Valkiria, habilidad.Risa, habilidad.Dvergr)){
-                    if (comprobarPrincipal(habilidad.Fis, habilidad.Agi, habilidad.Pcn, habilidad.Mnt, habilidad.Est, habilidad.Car)){
-                        if (comprobarSecundarias(habilidad.Astronavegar, habilidad.Atractivo, habilidad.Buscar, habilidad.Conduccion, habilidad.CruzarBifrost, 
+                if (comprobarGeneticaActual(habilidad.Heroe, habilidad.Norna, habilidad.Alfar, habilidad.Valkiria, habilidad.Risa, habilidad.Dvergr)){
+                    if (comprobarPrincipalActual(habilidad.Fis, habilidad.Agi, habilidad.Pcn, habilidad.Mnt, habilidad.Est, habilidad.Car)){
+                        if (comprobarSecundariasActual(habilidad.Astronavegar, habilidad.Atractivo, habilidad.Buscar, habilidad.Conduccion, habilidad.CruzarBifrost, 
                                 habilidad.Deporte, habilidad.Destreza, habilidad.Diplomacia, habilidad.Einherjer, habilidad.Enganno, habilidad.Esconderse, 
                                 habilidad.EvoluccionCurva, habilidad.Esquiva, habilidad.FisicaQuimica, habilidad.Fuerza, habilidad.Informatica, habilidad.Intimidar,
                                 habilidad.Labia, habilidad.Liderazgo, habilidad.Medicina, habilidad.Provocar, habilidad.Punteria, habilidad.Resistencia, habilidad.SentirYggdrasil)){

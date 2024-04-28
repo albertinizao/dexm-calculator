@@ -501,82 +501,56 @@
             document.getElementById("geneticaRestantes").setAttribute("class", clase);
                                                     
         }
+
+        function getArrayBonosAtributosMenores(){
+            return [
+                    ["fisico",new Array(5,11,17,23,29,35,41,47,53,59,65,71),new Array(2,8,14,20,26,32,38,44,50,56,62,68)],
+                    ["agilidad",new Array(5,11,17,23,29,35,41,47,53,59,65,71),new Array(2,8,14,20,26,32,38,44,50,56,62,68)],
+                    ["percepcion",new Array(5,11,17,23,29,35,41,47,53,59,65,71),new Array(2,8,14,20,26,32,38,44,50,56,62,68)],
+                    ["mente",new Array(5,11,17,23,29,35,41,47,53,59,65,71),new Array(2,8,14,20,26,32,38,44,50,56,62,68)],
+                    ["estudio",new Array(5,11,17,23,29,35,41,47,53,59,65,71),new Array(2,8,14,20,26,32,38,44,50,56,62,68)],
+                    ["carisma",new Array(5,11,17,23,29,35,41,47,53,59,65,71),new Array(2,8,14,20,26,32,38,44,50,56,62,68)],
+                    ["astronavegar", new Array(3,12,19,29,37,46,53,61,73,80,93,110), new Array(1,5,5,10,17,25,33,40,50,57,65,78)],
+                    ["atractivo", new Array(3,5,10,15,20,25,30,35,40,45,50,55), new Array(2,7,12,17,22,27,32,37,42,47,52,57)],
+                    ["buscar", new Array(5,10,15,20,25,30,35,40,45,50,55,60), new Array(2,7,12,17,22,27,32,37,42,47,52,57)],
+                    ["conduccion", new Array(3,12,19,29,37,46,53,61,73,80,93,110), new Array(1,5,5,10,17,25,33,40,50,57,65,78)],
+                    ["cruzarbifrost", new Array(6,13,21,30,40,51,63,76,90,105,121,138), new Array(3,8,14,21,29,38,48,59,71,83,96,110,125)],
+                    ["deporte", new Array(6,12,18,24,30,36,42,48,54,60,66,72), new Array(2,9,15,21,27,33,39,45,51,57,63,69)],
+                    ["destreza", new Array(3,8,13,18,23,28,33,38,43,48,53,58), new Array(3,10,17,24,31,38,45,52,59,56,73,80)],
+                    ["diplomacia", new Array(3,5,10,15,20,25,30,35,40,45,50,55), new Array(2,8,14,20,26,32,38,44,50,56,62,68)],
+                    ["einherjer", new Array(6,13,21,30,40,51,63,76,90,105,121,138), new Array(3,8,14,21,29,38,48,59,71,83,96,110,125)],
+                    ["engano", new Array(3,5,10,15,20,25,30,35,40,45,50,55), new Array(2,8,14,20,26,32,38,44,50,56,62,68)],
+                    ["esconderse", new Array(9,16,23,30,37,44,51,58,65,72,79,86), new Array(2,8,14,20,26,32,38,44,50,56,62,68)],
+                    ["evolcurva", new Array(5,15,25,35,45,55,65,75,85,95,105,115), new Array(10,20,30,40,50,60,70,80,90,100,110,120)],
+                    ["esquiva", new Array(3,8,13,18,23,28,33,38,43,48,53,58), new Array(5,13,21,29,37,45,53,61,69,77,85,93)],
+                    ["fisicaquimica", new Array(4,10,17,24,31,38,45,52,59,66,73,80), new Array(2,6,13,20,27,34,41,48,55,62,69,76)],
+                    ["fuerza", new Array(6,12,18,24,30,36,42,48,54,60,66,72), new Array(3,9,15,21,27,33,39,45,51,57,63,69)],
+                    ["informatica", new Array(4,10,17,24,31,38,45,52,59,66,73,80), new Array(2,6,13,20,27,34,41,48,55,62,69,76)],
+                    ["intimidar", new Array(7,13,19,25,31,37,43,49,55,61,67,73), new Array(2,8,14,20,26,32,38,44,50,56,62,68)],
+                    ["labia", new Array(3,5,10,15,20,25,30,35,40,45,50,55), new Array(2,8,14,20,26,32,38,44,50,56,62,68)],
+                    ["liderazgo", new Array(3,5,10,15,20,25,30,35,40,45,50,55), new Array(2,8,14,20,26,32,38,44,50,56,62,68)],
+                    ["medicina", new Array(4,10,17,24,31,38,45,52,59,66,73,80), new Array(2,6,13,20,27,34,41,48,55,62,69,76)],
+                    ["provocar", new Array(7,13,19,25,31,37,43,49,55,61,67,73), new Array(2,8,14,20,26,32,38,44,50,56,62,68)],
+                    ["punteria", new Array(9,16,23,30,37,44,51,58,65,72,79,86), new Array(2,9,15,21,27,33,39,45,51,57,63,69)],
+                    ["resistencia", new Array(9,16,23,30,37,44,51,58,65,72,79,86), new Array(2,9,15,21,27,33,39,45,51,57,63,69)],
+                    ["sentiryggdrasil", new Array(6,13,21,30,40,51,63,76,90,105,121,138), new Array(3,8,14,21,29,38,48,59,71,83,96,110,125)]
+                ];
+
+        }
         function bonosDados(){
-            bonoDadosPrincipal("fisico");
-            bonoDadosPrincipal("agilidad");
-            bonoDadosPrincipal("percepcion");
-            bonoDadosPrincipal("mente");
-            bonoDadosPrincipal("estudio");
-            bonoDadosPrincipal("carisma");
-            bonoDadosCualquiera("astronavegar", new Array(3,12,19,29,37,46,53,61,73,80,93,110), new Array(1,5,5,10,17,25,33,40,50,57,65,78))
-            bonoDadosCualquiera("atractivo", new Array(3,5,10,15,20,25,30,35,40,45,50,55), new Array(2,7,12,17,22,27,32,37,42,47,52,57))
-            bonoDadosCualquiera("buscar", new Array(5,10,15,20,25,30,35,40,45,50,55,60), new Array(2,7,12,17,22,27,32,37,42,47,52,57))
-            bonoDadosCualquiera("conduccion", new Array(3,12,19,29,37,46,53,61,73,80,93,110), new Array(1,5,5,10,17,25,33,40,50,57,65,78))
-            bonoDadosCualquiera("cruzarbifrost", new Array(9,16,23,30,37,44,51,58,65,72,79,86), new Array(5,12,19,26,33,40,47,54,61,68,75,82))
-            bonoDadosCualquiera("deporte", new Array(6,12,18,24,30,36,42,48,54,60,66,72), new Array(3,9,15,21,27,33,39,45,51,57,63,69))
-            bonoDadosCualquiera("destreza", new Array(3,8,13,18,23,28,33,38,43,48,53,58), new Array(5,12,19,26,33,40,47,54,61,68,75,82))
-            bonoDadosCualquiera("diplomacia", new Array(3,5,10,15,20,25,30,35,40,45,50,55), new Array(2,8,14,20,26,32,38,44,50,56,62,68))
-            bonoDadosCualquiera("einherjer", new Array(6,13,22,31,40,52,60,69,79,90,102,115), new Array(3,9,18,27,35,47,55,64,74,85,97,110))
-            bonoDadosCualquiera("engano", new Array(6,12,18,24,30,36,42,48,54,60,66,72), new Array(3,9,15,21,27,33,39,45,51,57,63,69))
-            bonoDadosCualquiera("esconderse", new Array(9,16,23,30,37,44,51,58,65,72,79,86), new Array(5,12,19,26,33,40,47,54,61,68,75,82))
-            bonoDadosCualquiera("evolcurva", new Array(5,15,25,35,45,55,65,75,85,95,105,115), new Array(10,20,30,40,50,60,70,80,90,100,110,120))
-            bonoDadosCualquiera("esquiva", new Array(3,8,13,18,23,28,33,38,43,48,53,58), new Array(7,15,23,31,39,47,55,63,71,79,87,95))
-            bonoDadosCualquiera("fisicaquimica", new Array(4,10,17,24,31,38,45,52,59,66,73,80), new Array(2,6,13,20,27,34,41,48,55,62,69,76))
-            bonoDadosCualquiera("fuerza", new Array(6,12,18,24,30,36,42,48,54,60,66,72), new Array(3,9,15,21,27,33,39,45,51,57,63,69))
-            bonoDadosCualquiera("informatica", new Array(4,10,17,24,31,38,45,52,59,66,73,80), new Array(2,6,13,20,27,34,41,48,55,62,69,76))
-            bonoDadosCualquiera("intimidar", new Array(7,13,19,25,31,37,43,49,55,61,67,73), new Array(4,10,16,22,28,34,40,46,52,58,64,70))
-            bonoDadosCualquiera("labia", new Array(3,5,10,15,20,25,30,35,40,45,50,55), new Array(2,8,14,20,26,32,38,44,50,56,62,68))
-            bonoDadosCualquiera("liderazgo", new Array(3,5,10,15,20,25,30,35,40,45,50,55), new Array(2,8,14,20,26,32,38,44,50,56,62,68))
-            bonoDadosCualquiera("medicina", new Array(4,10,17,24,31,38,45,52,59,66,73,80), new Array(2,6,13,20,27,34,41,48,55,62,69,76))
-            bonoDadosCualquiera("provocar", new Array(7,13,19,25,31,37,43,49,55,61,67,73), new Array(4,10,16,22,28,34,40,46,52,58,64,70))
-            bonoDadosCualquiera("punteria", new Array(9,16,23,30,37,44,51,58,65,72,79,86), new Array(5,12,19,26,33,40,47,54,61,68,75,82))
-            bonoDadosCualquiera("resistencia", new Array(9,16,23,30,37,44,51,58,65,72,79,86), new Array(5,12,19,26,33,40,47,54,61,68,75,82))
-            bonoDadosCualquiera("sentiryggdrasil", new Array(9,16,23,30,37,44,51,58,65,72,79,86), new Array(5,12,19,26,33,40,47,54,61,68,75,82))
+            getArrayBonosAtributosMenores().forEach((element) => {
+                bonoDadosCualquiera(element[0],element[1],element[2]);
+        });
 
         }
         function bonosDadosPorCampo(elemento){
             var nombre = obtenerNombreCampo(elemento);
-            if (nombre=="fisico") bonoDadosPrincipal(nombre);
-            if (nombre=="agilidad") bonoDadosPrincipal(nombre);
-            if (nombre=="percepcion") bonoDadosPrincipal(nombre);
-            if (nombre=="mente") bonoDadosPrincipal(nombre);
-            if (nombre=="estudio") bonoDadosPrincipal(nombre);
-            if (nombre=="carisma") bonoDadosPrincipal(nombre);
-            if (nombre=="astronavegar") bonosDadoCualquiera("astronavegar", new Array(3,12,19,29,37,46,53,61,73,80,93,110), new Array(1,5,5,10,17,25,33,40,50,57,65,78))
-            if (nombre=="atractivo") bonoDadosCualquiera("atractivo", new Array(3,5,10,15,20,25,30,35,40,45,50,55), new Array(2,7,12,17,22,27,32,37,42,47,52,57))
-            if (nombre=="buscar") bonoDadosCualquiera("buscar", new Array(5,10,15,20,25,30,35,40,45,50,55,60), new Array(2,7,12,17,22,27,32,37,42,47,52,57))
-            if (nombre=="conduccion") bonoDadosCualquiera("conduccion", new Array(3,12,19,29,37,46,53,61,73,80,93,110), new Array(1,5,5,10,17,25,33,40,50,57,65,78))
-            if (nombre=="cruzarbifrost") bonoDadosCualquiera("cruzarbifrost", new Array(9,16,23,30,37,44,51,58,65,72,79,86), new Array(5,12,19,26,33,40,47,54,61,68,75,82))
-            if (nombre=="deporte") bonoDadosCualquiera("deporte", new Array(6,12,18,24,30,36,42,48,54,60,66,72), new Array(3,9,15,21,27,33,39,45,51,57,63,69))
-            if (nombre=="destreza") bonoDadosCualquiera("destreza", new Array(3,8,13,18,23,28,33,38,43,48,53,58), new Array(5,12,19,26,33,40,47,54,61,68,75,82))
-            if (nombre=="diplomacia") bonoDadosCualquiera("diplomacia", new Array(3,5,10,15,20,25,30,35,40,45,50,55), new Array(2,8,14,20,26,32,38,44,50,56,62,68))
-            if (nombre=="einherjer") bonoDadosCualquiera("einherjer", new Array(6,13,22,31,40,52,60,69,79,90,102,115), new Array(3,9,18,27,35,47,55,64,74,85,97,110))
-            if (nombre=="engano") bonoDadosCualquiera("engano", new Array(6,12,18,24,30,36,42,48,54,60,66,72), new Array(3,9,15,21,27,33,39,45,51,57,63,69))
-            if (nombre=="esconderse") bonoDadosCualquiera("esconderse", new Array(9,16,23,30,37,44,51,58,65,72,79,86), new Array(5,12,19,26,33,40,47,54,61,68,75,82))
-            if (nombre=="evolcurva") bonoDadosCualquiera("evolcurva", new Array(5,15,25,35,45,55,65,75,85,95,105,115), new Array(10,20,30,40,50,60,70,80,90,100,110,120))
-            if (nombre=="esquiva") bonoDadosCualquiera("esquiva", new Array(3,8,13,18,23,28,33,38,43,48,53,58), new Array(7,15,23,31,39,47,55,63,71,79,87,95))
-            if (nombre=="fisicaquimica") bonoDadosCualquiera("fisicaquimica", new Array(4,10,17,24,31,38,45,52,59,66,73,80), new Array(2,6,13,20,27,34,41,48,55,62,69,76))
-            if (nombre=="fuerza") bonoDadosCualquiera("fuerza", new Array(6,12,18,24,30,36,42,48,54,60,66,72), new Array(3,9,15,21,27,33,39,45,51,57,63,69))
-            if (nombre=="informatica") bonoDadosCualquiera("informatica", new Array(4,10,17,24,31,38,45,52,59,66,73,80), new Array(2,6,13,20,27,34,41,48,55,62,69,76))
-            if (nombre=="intimidar") bonoDadosCualquiera("intimidar", new Array(7,13,19,25,31,37,43,49,55,61,67,73), new Array(4,10,16,22,28,34,40,46,52,58,64,70))
-            if (nombre=="labia") bonoDadosCualquiera("labia", new Array(3,5,10,15,20,25,30,35,40,45,50,55), new Array(2,8,14,20,26,32,38,44,50,56,62,68))
-            if (nombre=="liderazgo") bonoDadosCualquiera("liderazgo", new Array(3,5,10,15,20,25,30,35,40,45,50,55), new Array(2,8,14,20,26,32,38,44,50,56,62,68))
-            if (nombre=="medicina") bonoDadosCualquiera("medicina", new Array(4,10,17,24,31,38,45,52,59,66,73,80), new Array(2,6,13,20,27,34,41,48,55,62,69,76))
-            if (nombre=="provocar") bonoDadosCualquiera("provocar", new Array(7,13,19,25,31,37,43,49,55,61,67,73), new Array(4,10,16,22,28,34,40,46,52,58,64,70))
-            if (nombre=="punteria") bonoDadosCualquiera("punteria", new Array(9,16,23,30,37,44,51,58,65,72,79,86), new Array(5,12,19,26,33,40,47,54,61,68,75,82))
-            if (nombre=="resistencia") bonoDadosCualquiera("resistencia", new Array(9,16,23,30,37,44,51,58,65,72,79,86), new Array(5,12,19,26,33,40,47,54,61,68,75,82))
-            if (nombre=="sentiryggdrasil") bonoDadosCualquiera("sentiryggdrasil", new Array(9,16,23,30,37,44,51,58,65,72,79,86), new Array(5,12,19,26,33,40,47,54,61,68,75,82))
-
+            getArrayBonosAtributosMenores().forEach((element) => {
+                if (nombre==element[0]){
+                    bonoDadosCualquiera(element[0], element[1], element[2]);
+                }
+            });
         }
-
-
-        function bonoDadosPrincipalElemento(elemento){
-            bonoDadosPrincipal(obtenerNombreCampo(elemento));
-        } 
-
-        function bonoDadosPrincipal(nombre){
-            bonoDadosCualquiera(nombre,new Array(5,11,17,23,29,35,41,47,53,59,65,71),new Array(2,8,14,20,26,32,38,44,50,56,62,68))
-        }   
 
         function bonoDadosCualquiera(nombre, listaBonos, listaDados){
             bonoDadosCualquieraEspecifico(nombre+"Actual", listaBonos, listaDados);
@@ -584,9 +558,11 @@
         }
                                                 
         function bonoDadosCualquieraEspecifico(nombre, listaBonos, listaDados){
-            var atributo = document.getElementById(nombre+"Total").innerHTML*1;
-            if (!atributo){
+            var atributo = document.getElementById(nombre+"Total").innerHTML;
+            if (!atributo || isNaN(atributo)){
                 atributo=0;
+            }else{
+                atributo=atributo*1;
             }
             var bonos=0;
             var dados=0;
@@ -1043,7 +1019,7 @@
                                         <td><p class="actual" id="evolcurvaActualTotal"></p></td>
                                         <td><p class="actual" id="evolcurvaActual+1"></p></td>
                                         <td><p class="actual" id="evolcurvaActual+D6"></p></td>
-                                        <td><p></p></td><td><p id="evolcurvaMax" class="valoresMaximos">(especial)</p></td>
+                                        <td><p></p></td><td><p id="evolcurvaMax" class="valoresMaximos">Est</p></td>
                                         <td><input align="middle" class="new valorComprado menor" id="evolcurvaNew" type="text" onkeyup="validarNumerico(this)" onBlur="calcularTotalAtributo(this);comprobarMaximos(this);bonosDadosPorCampo(this);" maxlength="2" size="3"></td>
                                         <td><input align="middle" class="new" id="evolcurvaNewExtra" type="text" onkeyup="validarNumerico(this)" onBlur="calcularTotalAtributo(this);comprobarMaximos(this);bonosDadosPorCampo(this);" maxlength="2" size="3"></td>
                                         <td><p class="new" id="evolcurvaNewTotal"></p></td>
