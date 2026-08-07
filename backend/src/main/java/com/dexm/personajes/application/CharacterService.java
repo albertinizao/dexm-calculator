@@ -5,6 +5,7 @@ import com.dexm.personajes.adapter.in.web.CharacterController;
 import com.dexm.personajes.adapter.out.persistence.*;
 import com.dexm.personajes.domain.AbilityRules;
 import com.dexm.personajes.domain.CharacterRules;
+import com.dexm.personajes.domain.AutomaticAbilityRules;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 public class CharacterService {
     private static final String FLOW_SINGLE = "single";
     private static final String FLOW_SEQUENTIAL_ALL = "sequential-all";
+    private static final List<String> LEGACY_GENETICS = List.of("heroe", "norna", "alfar", "valkiria", "dvergr", "risa");
     private static final Set<String> MAJOR_KEYS = Set.of("fisico", "agilidad", "percepcion", "mente", "estudio", "carisma");
     private static final Map<String, String> PREDEFINED_MINOR_FORMULAS = Map.ofEntries(
             Map.entry("astronavegar", "(agilidad+percepcion)/2"), Map.entry("atractivo", "carisma*2"),
@@ -24,7 +26,7 @@ public class CharacterService {
             Map.entry("cruzarbifrost", "(mente+estudio)/2"), Map.entry("deporte", "fisico"),
             Map.entry("destreza", "(fisico+agilidad)/2"), Map.entry("diplomacia", "carisma"),
             Map.entry("einherjer", "(fisico+mente)/2"), Map.entry("engano", "(percepcion+mente)/2"),
-            Map.entry("esconderse", "(agilidad+mente)/2"), Map.entry("esquiva", "(fisico+agilidad)/2"),
+            Map.entry("esconderse", "(agilidad+mente)/2"), Map.entry("evolcurva", "(fisico+agilidad+percepcion+mente+estudio+carisma)/6"), Map.entry("esquiva", "(fisico+agilidad)/2"),
             Map.entry("fisicaquimica", "estudio"), Map.entry("fuerza", "fisico"),
             Map.entry("informatica", "estudio"), Map.entry("intimidar", "(fisico+carisma)/2"),
             Map.entry("labia", "carisma"), Map.entry("liderazgo", "carisma"), Map.entry("medicina", "estudio"),
@@ -67,6 +69,17 @@ public class CharacterService {
             characters.delete(character);
         }
         minorDefs.deleteAll(minorDefs.findByCampaignIdOrderByNameAsc(campaignId));
+    }
+
+    @Transactional
+    public void delete(String id) {
+        var character = get(id);
+        modifiers.deleteByCharacterId(id);
+        minorValues.deleteAll(minorValues.findByCharacterId(id));
+        minorDefs.findByCampaignIdOrderByNameAsc(character.getCampaignId()).stream()
+                .filter(definition -> id.equals(definition.getOwnerCharacterId())).forEach(minorDefs::delete);
+        milestones.deleteByCharacterId(id);
+        characters.delete(character);
     }
 
     @Transactional
@@ -118,8 +131,10 @@ public class CharacterService {
             var modifierTotals = modifierTotals(id);
             var totals = new LinkedHashMap<String, Integer>();
             attrs.forEach((key, value) -> totals.put(key, value + modifierTotals.getOrDefault(key, 0)));
+            gen.forEach((key, value) -> totals.put(key, value + modifierTotals.getOrDefault(key, 0)));
             var minorView = minorAttributes.view(id);
             minorView.forEach(attribute -> totals.put(String.valueOf(attribute.get("key")), ((Number) attribute.get("total")).intValue()));
+            var derivedStats = CharacterRules.derivedStats(attrs, modifierTotals);
 
             var result = new LinkedHashMap<String, Object>();
             result.put("id", c.getId());
@@ -131,10 +146,21 @@ public class CharacterService {
             result.put("attributes", attrs);
             result.put("attributeTotals", totals);
             result.put("attributeModifiers", modifierView(id));
+            result.put("derivedStats", derivedStatsView(derivedStats, modifierView(id)));
             result.put("genetics", gen);
             result.put("minorAttributes", minorView);
-            result.put("abilities", latestSnapshotValues(id, "abilities"));
-            result.put("allocation", CharacterRules.allocationBudget(c.getEvolutionPoints(), c.getGeneticsPoints(), attrs, gen, customMinorRanks));
+            var uniqueDecisions = uniqueAbilityDecisions(c);
+            var awards = eligibleAbilities(withModifiers(attrs, modifierTotals), gen, withModifiers(customMinorRanks, modifierTotals), uniqueDecisions);
+            var visibleAbilities = latestSnapshotValues(id, "abilities");
+            visibleAbilities.addAll(awards.obtained());
+            uniqueDecisions.forEach((name, decision) -> {
+                if ("accepted".equals(decision)) visibleAbilities.add(name);
+                if ("rejected".equals(decision)) visibleAbilities.remove(name);
+            });
+            result.put("abilities", visibleAbilities);
+            result.put("pendingUniqueAbilities", awards.pendingUnique());
+            var allocation = CharacterRules.allocationBudget(c.getEvolutionPoints(), c.getGeneticsPoints(), attrs, gen, customMinorRanks);
+            result.put("allocation", allocationView(c, allocation, withModifiers(attrs, modifierTotals)));
             result.put("closed", c.isClosed());
             result.put("createdAt", c.getCreatedAt());
             result.put("updatedAt", c.getUpdatedAt());
@@ -160,12 +186,69 @@ public class CharacterService {
     }
 
     @Transactional
+    public Map<String, Object> save(String id, String name, Integer level, int xp, Map<String, Integer> attrs,
+                                    Map<String, Integer> gen, Map<String, Integer> minor, boolean visible,
+                                    boolean finalStep, Integer legacyEvolutionPoints) {
+        return persistAllocation(id, name, level, xp, attrs, gen, minor, visible, finalStep, "save", legacyEvolutionPoints);
+    }
+
+    /** Parses the static HTML backup format without changing the character. */
+    public Map<String, Object> importLegacy(String code) {
+        if (code == null || code.isBlank()) throw new IllegalArgumentException("Legacy code is required");
+        var allowed = new LinkedHashSet<String>();
+        allowed.add("nivel"); allowed.add("experiencia"); allowed.add("evolGuardado");
+        allowed.addAll(LEGACY_GENETICS);
+        for (var key : CharacterRules.ATTRIBUTES) { allowed.add(key); allowed.add(key + "Extra"); }
+        var values = new LinkedHashMap<String, Integer>();
+        for (var token : code.trim().split("&&")) {
+            if (token.isBlank()) continue;
+            var separator = token.indexOf(':');
+            if (separator <= 0 || separator != token.lastIndexOf(':')) throw new IllegalArgumentException("Invalid legacy token");
+            var key = token.substring(0, separator).trim();
+            if (!allowed.contains(key) || values.containsKey(key)) throw new IllegalArgumentException("Unknown or repeated legacy key: " + key);
+            try {
+                var value = Integer.parseInt(token.substring(separator + 1).trim());
+                if (value < 0) throw new NumberFormatException();
+                values.put(key, value);
+            } catch (NumberFormatException e) { throw new IllegalArgumentException("Legacy values must be non-negative integers"); }
+        }
+        var required = new ArrayList<String>(List.of("nivel", "experiencia", "evolGuardado"));
+        required.addAll(LEGACY_GENETICS); required.addAll(CharacterRules.ATTRIBUTES);
+        CharacterRules.ATTRIBUTES.forEach(key -> required.add(key + "Extra"));
+        for (var key : required) if (!values.containsKey(key)) throw new IllegalArgumentException("Missing legacy key: " + key);
+        var attrs = new LinkedHashMap<String, Integer>();
+        CharacterRules.ATTRIBUTES.forEach(key -> attrs.put(key, values.get(key)));
+        var gen = new LinkedHashMap<String, Integer>();
+        LEGACY_GENETICS.forEach(key -> gen.put(key, values.get(key)));
+        var extras = new LinkedHashMap<String, Integer>();
+        CharacterRules.ATTRIBUTES.forEach(key -> { var value = values.getOrDefault(key + "Extra", 0); if (value != 0) extras.put(key, value); });
+        return Map.of("level", values.get("nivel"), "experience", values.get("experiencia"),
+                "evolutionPoints", values.get("evolGuardado"), "attributes", attrs, "genetics", gen, "extras", extras);
+    }
+
+    /** Emits the canonical order consumed by index.html's Cargar Backup handler. */
+    public String exportLegacy(String id) {
+        var c = get(id); if (!c.isClosed()) throw new IllegalStateException("Only closed characters can export legacy backups");
+        var attrs = parse(c.getAttributesJson()); var gen = parse(c.getGeneticsJson()); var totals = modifierTotals(id);
+        var out = new StringBuilder();
+        addLegacy(out, "nivel", c.getLevel()); addLegacy(out, "experiencia", c.getExperience()); addLegacy(out, "evolGuardado", c.getEvolutionPoints());
+        LEGACY_GENETICS.forEach(key -> addLegacy(out, key, gen.getOrDefault(key, 0)));
+        CharacterRules.ATTRIBUTES.forEach(key -> { addLegacy(out, key, attrs.getOrDefault(key, 0)); addLegacy(out, key + "Extra", totals.getOrDefault(key, 0)); });
+        return out.toString();
+    }
+
+    private static void addLegacy(StringBuilder out, String key, int value) { out.append(key).append(':').append(value).append("&&"); }
+
+    @Transactional
     public Map<String, Object> saveAttributeModifiers(String id,
                                                        Map<String, List<com.dexm.personajes.adapter.in.web.CharacterController.ModifierRequest>> requested) {
         var character = get(id);
         var allowed = new LinkedHashSet<String>(CharacterRules.ATTRIBUTES);
+        allowed.addAll(CharacterRules.GENETICS);
+        allowed.addAll(Set.of("vida", "bifrost", "defensaCuerpo", "defensaDistancia"));
         allowed.addAll(PREDEFINED_MINOR_FORMULAS.keySet());
         allowed.addAll(minorDefs.findByCampaignIdOrderByNameAsc(character.getCampaignId()).stream()
+                .filter(definition -> definition.getOwnerCharacterId() == null || id.equals(definition.getOwnerCharacterId()))
                 .map(MinorAttributeDefinitionEntity::getKey).toList());
         if (requested == null) requested = Map.of();
         for (var entry : requested.entrySet()) {
@@ -202,7 +285,7 @@ public class CharacterService {
             if (!existingByKey.containsKey(key)) {
                 var attributeKey = key.substring(0, key.indexOf('\u0000'));
                 modifiers.save(new CharacterAttributeModifierEntity(UUID.randomUUID().toString(), id, attributeKey,
-                        requestedModifier.name(), requestedModifier.value()));
+                        requestedModifier.name(), requestedModifier.value(), "MANUAL"));
             }
         });
         var attrs = parse(character.getAttributesJson());
@@ -221,9 +304,15 @@ public class CharacterService {
         var modifierRows = modifiers.findByCharacterIdAndAttributeKey(characterId, attributeKey);
         var modifierDtos = modifierRows.stream().map(m -> new AttributeDetailDto.ModifierDto(m.getName(), m.getValue())).toList();
         var modifierTotal = modifierRows.stream().mapToInt(CharacterAttributeModifierEntity::getValue).sum();
-        var ranks = attrs.getOrDefault(attributeKey, 0);
+        var ranks = CharacterRules.GENETICS.contains(attributeKey) ? genetics.getOrDefault(attributeKey, 0) : attrs.getOrDefault(attributeKey, 0);
         var total = ranks + modifierTotal;
         var level = character.getLevel();
+
+        var derived = CharacterRules.derivedStats(attrs, modifierTotals(characterId)).get(attributeKey);
+        if (derived != null) {
+            return new AttributeDetailDto(attributeKey, null, derived.name(), "DERIVED", derived.total(), 0, null,
+                    derived.formula(), derived.baseValue(), 0, 0, modifierDtos, List.of(), false);
+        }
 
         if (MAJOR_KEYS.contains(attributeKey)) {
             Integer max = ranks >= 5 ? MAJOR_KEYS.stream().filter(k -> !k.equals(attributeKey)).mapToInt(k -> attrs.getOrDefault(k, 0)).max().orElse(0) * 2 : null;
@@ -233,7 +322,13 @@ public class CharacterService {
                     progressions(attributeKey, total), false);
         }
 
-        var definition = minorDefs.findByCampaignIdAndKey(character.getCampaignId(), attributeKey).orElse(null);
+        if (CharacterRules.GENETICS.contains(attributeKey)) {
+            return new AttributeDetailDto(attributeKey, null, label(attributeKey), "GENETIC", total, ranks, null,
+                    "Sin máximo calculado", 0, 0, 0, modifierDtos, List.of(), false);
+        }
+
+        var definition = minorDefs.findByCampaignIdAndOwnerCharacterIdAndKey(character.getCampaignId(), characterId, attributeKey)
+                .or(() -> minorDefs.findByCampaignIdAndOwnerCharacterIdIsNullAndKey(character.getCampaignId(), attributeKey)).orElse(null);
         if (definition == null && CharacterRules.ATTRIBUTES.contains(attributeKey)) {
             var formula = PREDEFINED_MINOR_FORMULAS.get(attributeKey);
             var calculated = formula == null ? 0 : MinorAttributeService.evaluate(formula, attrs, genetics, minorAttributes.values(characterId), level);
@@ -292,41 +387,56 @@ public class CharacterService {
                                                   Map<String, Integer> requestedAttributes, Map<String, Integer> requestedGenetics,
                                                   Map<String, Integer> requestedCustomMinors, boolean visible, boolean finalStep,
                                                   String flow) {
+        return persistAllocation(id, requestedName, requestedLevel, requestedXp, requestedAttributes, requestedGenetics,
+                requestedCustomMinors, visible, finalStep, flow, null);
+    }
+
+    private Map<String, Object> persistAllocation(String id, String requestedName, Integer requestedLevel, int requestedXp,
+                                                  Map<String, Integer> requestedAttributes, Map<String, Integer> requestedGenetics,
+                                                  Map<String, Integer> requestedCustomMinors, boolean visible, boolean finalStep,
+                                                  String flow, Integer legacyEvolutionPoints) {
         try {
             var character = get(id);
+            var abilitiesBeforeChange = currentActiveAbilities(character);
             int targetLevel = requestedLevel == null ? character.getLevel() : requestedLevel;
-            validateLevelAndExperience(character, targetLevel, requestedXp, flow, visible, finalStep);
+            validateLevelAndExperience(character, targetLevel, requestedXp, flow, visible, finalStep, legacyEvolutionPoints != null);
 
             var attributes = normalizeRanks("attributes", requestedAttributes, parse(character.getAttributesJson()), CharacterRules.ATTRIBUTES, true);
             var genetics = normalizeRanks("genetics", requestedGenetics, parse(character.getGeneticsJson()), CharacterRules.GENETICS, true);
             var currentAttributes = parse(character.getAttributesJson());
+            var currentAttributeTotals = withModifiers(currentAttributes, modifierTotals(id));
             var currentGenetics = parse(character.getGeneticsJson());
             var currentCustomMinors = minorAttributes.values(character.getId());
             var customMinors = normalizeCustomMinorRanks(character, requestedCustomMinors);
-            rejectRankReductions(currentAttributes, attributes, "attributes");
-            rejectRankReductions(currentGenetics, genetics, "genetics");
-            rejectRankReductions(currentCustomMinors, customMinors, "minor attributes");
+            if (legacyEvolutionPoints == null) {
+                rejectRankReductions(currentAttributes, attributes, "attributes");
+                rejectRankReductions(currentGenetics, genetics, "genetics");
+                rejectRankReductions(currentCustomMinors, customMinors, "minor attributes");
+            }
             if (FLOW_SINGLE.equals(flow) || FLOW_SEQUENTIAL_ALL.equals(flow)) {
                 rejectGeneticLevelOverflow(currentGenetics, genetics);
-                if (CharacterRules.geneticDelta(currentGenetics, genetics) != CharacterRules.GENETICS_POINTS_PER_LEVEL) {
-                    throw new IllegalArgumentException("Exactly 3 genetic points must be assigned per level");
+                int geneticReward = CharacterRules.GENETICS_POINTS_PER_LEVEL + (AutomaticAbilityRules.grantsExtraGenetics(abilitiesBeforeChange) ? 1 : 0);
+                if (CharacterRules.geneticDelta(currentGenetics, genetics) != geneticReward) {
+                    throw new IllegalArgumentException("Exactly " + geneticReward + " genetic points must be assigned per level");
                 }
             }
-            clampMinorRanks(character, targetLevel, attributes, genetics, customMinors);
+            if (legacyEvolutionPoints == null) clampMinorRanks(character, targetLevel, attributes, genetics, customMinors);
 
             int evolutionReward = flow.equals(FLOW_SINGLE) || flow.equals(FLOW_SEQUENTIAL_ALL)
-                    ? CharacterRules.EVOLUTION_POINTS_PER_LEVEL + parse(character.getAttributesJson()).getOrDefault("evolcurva", 0)
+                    ? CharacterRules.EVOLUTION_POINTS_PER_LEVEL + currentAttributeTotals.getOrDefault("evolcurva", 0)
+                    + (AutomaticAbilityRules.grantsExtraEvolution(abilitiesBeforeChange) ? 5 : 0)
                     : 0;
             int geneticsReward = flow.equals(FLOW_SINGLE) || flow.equals(FLOW_SEQUENTIAL_ALL)
-                    ? CharacterRules.GENETICS_POINTS_PER_LEVEL : 0;
+                    ? CharacterRules.GENETICS_POINTS_PER_LEVEL + (AutomaticAbilityRules.grantsExtraGenetics(abilitiesBeforeChange) ? 1 : 0) : 0;
             int evolutionAvailable = character.getEvolutionPoints() + evolutionReward;
             int geneticsAvailable = FLOW_SINGLE.equals(flow) || FLOW_SEQUENTIAL_ALL.equals(flow)
                     ? geneticsReward : character.getGeneticsPoints() + geneticsReward;
             var budget = CharacterRules.allocationBudget(evolutionAvailable, geneticsAvailable,
                     currentAttributes, currentGenetics, currentCustomMinors,
-                    attributes, genetics, customMinors);
-            if (budget.evolutionRemaining() < 0) throw new IllegalArgumentException("Evolution points budget exceeded");
-            if (budget.geneticsRemaining() < 0) throw new IllegalArgumentException("Genetics points budget exceeded");
+                    attributes, genetics, customMinors,
+                    AutomaticAbilityRules.reducesForceEvolutionCost(abilitiesBeforeChange));
+            if (legacyEvolutionPoints == null && budget.evolutionRemaining() < 0) throw new IllegalArgumentException("Evolution points budget exceeded");
+            if (legacyEvolutionPoints == null && budget.geneticsRemaining() < 0) throw new IllegalArgumentException("Genetics points budget exceeded");
 
             String name = requestedName == null ? character.getName() : requestedName;
             if (name == null || name.isBlank()) throw new IllegalArgumentException("Character name is required");
@@ -338,7 +448,7 @@ public class CharacterService {
             character.setLevel(targetLevel);
             character.setAttributesJson(json.writeValueAsString(attributes));
             character.setGeneticsJson(json.writeValueAsString(genetics));
-            character.setEvolutionPoints(budget.evolutionRemaining());
+            character.setEvolutionPoints(legacyEvolutionPoints == null ? budget.evolutionRemaining() : legacyEvolutionPoints);
             character.setGeneticsPoints(FLOW_SINGLE.equals(flow) || FLOW_SEQUENTIAL_ALL.equals(flow)
                     ? 0 : budget.geneticsRemaining());
             character.setClosed(visible && finalStep);
@@ -353,6 +463,10 @@ public class CharacterService {
             var before = previous.map(this::snapshotAbilities).orElse(Set.of());
             var newly = new LinkedHashSet<>(all);
             newly.removeAll(before);
+            syncAutomaticModifiers(id, all, newly);
+            ensureGaldr(id, all.contains("Lenguaje Galdr"), newly.contains("Lenguaje Galdr"));
+            customMinors = minorAttributes.values(id);
+            projection = CharacterRules.projectAtLevel(targetLevel, requestedXp, attributes, genetics, modifierTotals(id));
             var snapshot = new LinkedHashMap<String, Object>();
             snapshot.put("name", name);
             snapshot.put("experience", requestedXp);
@@ -360,6 +474,11 @@ public class CharacterService {
             snapshot.put("attributes", attributes);
             snapshot.put("genetics", genetics);
             snapshot.put("minorAttributes", customMinors);
+            snapshot.put("modifiers", modifierSnapshot(id));
+            snapshot.put("evolutionPoints", character.getEvolutionPoints());
+            snapshot.put("geneticsPoints", character.getGeneticsPoints());
+            snapshot.put("imageUrl", character.getImageUrl());
+            snapshot.put("uniqueAbilityDecisions", uniqueAbilityDecisions(character));
             snapshot.put("abilities", all);
             snapshot.put("pendingUniqueAbilities", awards.pendingUnique());
             snapshot.put("visible", visible);
@@ -390,7 +509,7 @@ public class CharacterService {
     }
 
     private void validateLevelAndExperience(CharacterEntity character, int targetLevel, int targetXp, String flow,
-                                             boolean visible, boolean finalStep) {
+                                             boolean visible, boolean finalStep, boolean legacyImport) {
         if (targetLevel < 1) throw new IllegalArgumentException("Level must be positive");
         if (targetXp < 0) throw new IllegalArgumentException("Experience cannot be negative");
         if (visible != finalStep) throw new IllegalArgumentException("Visible and final flags must agree");
@@ -410,7 +529,7 @@ public class CharacterService {
             if (visible && finalStep != targetXp < 100) throw new IllegalStateException("Sequential final flag does not match remaining levels");
             return;
         }
-        if (targetLevel != character.getLevel()) throw new IllegalStateException("Regular saves cannot change level");
+        if (!legacyImport && targetLevel != character.getLevel()) throw new IllegalStateException("Regular saves cannot change level");
     }
 
     private Map<String, Integer> normalizeRanks(String label, Map<String, Integer> requested, Map<String, Integer> current,
@@ -532,6 +651,66 @@ public class CharacterService {
                 Collectors.summingInt(CharacterAttributeModifierEntity::getValue)));
     }
 
+    private Map<String, Object> allocationView(CharacterEntity character, CharacterRules.AllocationBudget budget, Map<String,Integer> attrs) {
+        var result = new LinkedHashMap<String,Object>();
+        result.put("evolutionAvailable", budget.evolutionAvailable()); result.put("evolutionSpent", budget.evolutionSpent()); result.put("evolutionRemaining", budget.evolutionRemaining());
+        result.put("geneticsAvailable", budget.geneticsAvailable()); result.put("geneticsSpent", budget.geneticsSpent()); result.put("geneticsRemaining", budget.geneticsRemaining());
+        var active = currentActiveAbilities(character);
+        result.put("nextEvolutionReward", CharacterRules.EVOLUTION_POINTS_PER_LEVEL + attrs.getOrDefault("evolcurva", 0) + (AutomaticAbilityRules.grantsExtraEvolution(active) ? 5 : 0));
+        result.put("nextGeneticsReward", CharacterRules.GENETICS_POINTS_PER_LEVEL + (AutomaticAbilityRules.grantsExtraGenetics(active) ? 1 : 0));
+        result.put("minorEvolutionCost", AutomaticAbilityRules.reducesForceEvolutionCost(active) ? 4 : 5);
+        return result;
+    }
+
+    private void syncAutomaticModifiers(String characterId, Set<String> activeAbilities, Set<String> newlyObtained) {
+        var rows = modifiers.findByCharacterId(characterId);
+        var autoRows = rows.stream().filter(row -> "AUTOMATIC".equals(row.getSource())).toList();
+        var activeSupported = activeAbilities.stream().filter(AutomaticAbilityRules::supported).collect(Collectors.toSet());
+        autoRows.stream().filter(row -> !activeSupported.contains(row.getName())).forEach(modifiers::delete);
+
+        var baseAttributes = parse(get(characterId).getAttributesJson());
+        var baseGenetics = parse(get(characterId).getGeneticsJson());
+        var totals = rows.stream().collect(Collectors.groupingBy(CharacterAttributeModifierEntity::getAttributeKey,
+                LinkedHashMap::new, Collectors.summingInt(CharacterAttributeModifierEntity::getValue)));
+        var effectiveAttributes = new LinkedHashMap<>(baseAttributes);
+        totals.forEach((key, value) -> { if (CharacterRules.ATTRIBUTES.contains(key)) effectiveAttributes.put(key, baseAttributes.getOrDefault(key, 0) + value); });
+        var effectiveGenetics = new LinkedHashMap<>(baseGenetics);
+        totals.forEach((key, value) -> { if (CharacterRules.GENETICS.contains(key)) effectiveGenetics.put(key, baseGenetics.getOrDefault(key, 0) + value); });
+        int dvergr = (int) activeAbilities.stream().filter(name -> name.matches("Fortaleza Dvergr [1-9]|Fortaleza Dvergr 10")).count();
+
+        for (var ability : activeSupported) {
+            boolean existing = autoRows.stream().anyMatch(row -> row.getName().equals(ability));
+            if (!existing && !newlyObtained.contains(ability)) continue;
+            var effects = AutomaticAbilityRules.effects(ability, effectiveAttributes, effectiveGenetics, dvergr);
+            for (var effect : effects) upsertAutomatic(characterId, effect.key(), ability, effect.value());
+        }
+
+    }
+
+    private void removeAutomaticAbility(String characterId, String ability) {
+        modifiers.findByCharacterId(characterId).stream()
+                .filter(row -> "AUTOMATIC".equals(row.getSource()) && row.getName().equals(ability))
+                .forEach(modifiers::delete);
+    }
+
+    private void upsertAutomatic(String characterId, String key, String name, int value) {
+        var existing = modifiers.findByCharacterIdAndAttributeKey(characterId, key).stream()
+                .filter(row -> "AUTOMATIC".equals(row.getSource()) && row.getName().equals(name)).findFirst();
+        if (existing.isPresent()) { existing.get().setValue(value); modifiers.save(existing.get()); }
+        else modifiers.save(new CharacterAttributeModifierEntity(UUID.randomUUID().toString(), characterId, key, name, value, "AUTOMATIC"));
+    }
+
+    private void ensureGaldr(String characterId, boolean active, boolean newlyObtained) {
+        var character = get(characterId);
+        if (!active) return;
+        if (!newlyObtained && minorDefs.findByCampaignIdAndOwnerCharacterIdAndKey(character.getCampaignId(), characterId, "galdr").isPresent()) return;
+        var existing = minorDefs.findByCampaignIdAndOwnerCharacterIdAndKey(character.getCampaignId(), characterId, "galdr");
+        if (existing.isPresent()) return;
+        var definition = minorDefs.save(new MinorAttributeDefinitionEntity(UUID.randomUUID().toString(), character.getCampaignId(), characterId,
+                "galdr", "Galdr", "min(cruzarbifrost,einherjer,sentiryggdrasil)", null, "GALDR"));
+        minorValues.save(new CharacterMinorAttributeValueEntity(UUID.randomUUID().toString(), characterId, definition.getId(), 0));
+    }
+
     private static String modifierKey(String attributeKey, String name) {
         return attributeKey + '\u0000' + name;
     }
@@ -540,7 +719,7 @@ public class CharacterService {
         var result = new LinkedHashMap<String, List<Map<String, Object>>>();
         for (var modifier : modifiers.findByCharacterId(characterId)) {
             result.computeIfAbsent(modifier.getAttributeKey(), ignored -> new ArrayList<>())
-                    .add(Map.of("name", modifier.getName(), "value", modifier.getValue()));
+                    .add(Map.of("name", modifier.getName(), "value", modifier.getValue(), "source", modifier.getSource()));
         }
         return result;
     }
@@ -555,6 +734,11 @@ public class CharacterService {
 
     private AbilityAwards eligibleAbilities(Map<String, Integer> attrs, Map<String, Integer> gen,
                                              Map<String, Integer> customMinors) {
+        return eligibleAbilities(attrs, gen, customMinors, Map.of());
+    }
+
+    private AbilityAwards eligibleAbilities(Map<String, Integer> attrs, Map<String, Integer> gen,
+                                             Map<String, Integer> customMinors, Map<String, String> decisions) {
         Set<String> obtained = new LinkedHashSet<>();
         Set<String> pendingUnique = new LinkedHashSet<>();
         var values = new LinkedHashMap<String, Integer>(attrs);
@@ -564,12 +748,80 @@ public class CharacterService {
                 var alternatives = new ArrayList<JsonNode>();
                 json.readTree(a.getAlternativesJson()).forEach(alternatives::add);
                 if (AbilityRules.eligible(alternatives, values, gen)) {
-                    if (isUnique(a.getUniqueFlag())) pendingUnique.add(a.getName());
-                    else obtained.add(a.getName());
+                    if (isUnique(a.getUniqueFlag())) {
+                        var decision = decisions.get(a.getName());
+                        if ("accepted".equals(decision)) obtained.add(a.getName());
+                        else if (!"rejected".equals(decision)) pendingUnique.add(a.getName());
+                    } else obtained.add(a.getName());
                 }
             } catch (Exception ignored) {}
         });
         return new AbilityAwards(obtained, pendingUnique);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> pendingUniqueAbilities(String id) {
+        var character = get(id);
+        var attrs = parse(character.getAttributesJson());
+        var genetics = parse(character.getGeneticsJson());
+        var modifierTotals = modifierTotals(id);
+        var awards = eligibleAbilities(withModifiers(attrs, modifierTotals), genetics,
+                withModifiers(minorAttributes.values(id), modifierTotals), uniqueAbilityDecisions(character));
+        return abilities.findAll().stream().filter(ability -> awards.pendingUnique().contains(ability.getName()))
+                .map(this::uniqueAbilityView).toList();
+    }
+
+    @Transactional
+    public Map<String, Object> decideUniqueAbility(String id, String name, String decision) {
+        if (!Set.of("accepted", "rejected").contains(decision)) throw new IllegalArgumentException("Decision must be accepted or rejected");
+        var character = get(id);
+        if (pendingUniqueAbilities(id).stream().noneMatch(ability -> name.equals(ability.get("name")))) {
+            throw new IllegalArgumentException("Unique ability is not pending review: " + name);
+        }
+        var decisions = new LinkedHashMap<>(uniqueAbilityDecisions(character));
+        decisions.put(name, decision);
+        try { character.setUniqueAbilityDecisionsJson(json.writeValueAsString(decisions)); }
+        catch (Exception e) { throw new IllegalStateException("Could not save unique ability decision", e); }
+        characters.save(character);
+        if ("accepted".equals(decision)) {
+            syncAutomaticModifiers(id, currentActiveAbilities(character), Set.of(name));
+            ensureGaldr(id, "Lenguaje Galdr".equals(name), "Lenguaje Galdr".equals(name));
+        } else {
+            removeAutomaticAbility(id, name);
+        }
+        return view(id);
+    }
+
+    private Set<String> currentActiveAbilities(CharacterEntity character) {
+        var attrs = parse(character.getAttributesJson());
+        var gen = parse(character.getGeneticsJson());
+        var totals = modifierTotals(character.getId());
+        var awards = eligibleAbilities(withModifiers(attrs, totals), gen,
+                withModifiers(minorAttributes.values(character.getId()), totals), uniqueAbilityDecisions(character));
+        var result = new LinkedHashSet<>(awards.obtained());
+        uniqueAbilityDecisions(character).forEach((ability, value) -> { if ("accepted".equals(value)) result.add(ability); });
+        return result;
+    }
+
+    private Map<String, Object> uniqueAbilityView(AbilityEntity ability) {
+        try {
+            var result = new LinkedHashMap<String, Object>();
+            result.put("name", ability.getName()); result.put("description", Objects.toString(ability.getDescription(), ""));
+            result.put("launchType", Objects.toString(ability.getLaunchType(), "")); result.put("cost", ability.getCost());
+            var alternatives = json.readTree(ability.getAlternativesJson());
+            result.put("test", alternatives.isArray() && alternatives.size() > 0 ? alternatives.get(0).path("Prueba").asText("") : "");
+            result.put("requirements", json.convertValue(alternatives, Object.class));
+            return result;
+        } catch (Exception e) { throw new IllegalStateException("Unique ability requirements are invalid", e); }
+    }
+
+    private Map<String, String> uniqueAbilityDecisions(CharacterEntity character) {
+        try {
+            var result = new LinkedHashMap<String, String>();
+            json.readTree(Objects.toString(character.getUniqueAbilityDecisionsJson(), "{}")).fields()
+                    .forEachRemaining(entry -> result.put(entry.getKey(), entry.getValue().asText()));
+            return result;
+        } catch (Exception e) { return Map.of(); }
     }
 
     private Map<String, Integer> withModifiers(Map<String, Integer> values, Map<String, Integer> modifierTotals) {
@@ -606,14 +858,138 @@ public class CharacterService {
         } catch (Exception e) { return new LinkedHashSet<>(); }
     }
 
-    public List<MilestoneEntity> milestones(String id) { get(id); return milestones.findByCharacterIdAndVisibleTrueOrderByCreatedAtDesc(id); }
+    public List<Map<String, Object>> milestones(String id) {
+        get(id);
+        return milestones.findByCharacterIdAndVisibleTrueOrderByCreatedAtDesc(id).stream().map(this::milestoneView).toList();
+    }
+
+    @Transactional
+    public Map<String, Object> cancelChanges(String id) {
+        var character = get(id);
+        var latest = milestones.findByCharacterIdAndVisibleTrueOrderByCreatedAtDesc(id).stream().findFirst()
+                .orElseThrow(() -> new IllegalStateException("No closed version exists to restore"));
+        restoreSnapshot(character, latest);
+        character.setClosed(true);
+        character.touch();
+        characters.save(character);
+        return Map.of("character", view(id));
+    }
+
+    @Transactional
+    public Map<String, Object> recover(String id, String milestoneId) {
+        var character = get(id);
+        var target = milestones.findById(milestoneId)
+                .filter(m -> m.isVisible() && id.equals(m.getCharacterId()))
+                .orElseThrow(() -> new NoSuchElementException("Closed version not found"));
+        restoreSnapshot(character, target);
+        character.setClosed(true);
+        character.touch();
+        characters.save(character);
+        var snapshot = snapshotFromCurrent(character, id, snapshot(target));
+        var recovered = new MilestoneEntity(UUID.randomUUID().toString(), id, character.getLevel(), character.getExperience(),
+                writeJson(snapshot), target.getNewBonusesJson(), target.getNewAbilitiesJson(), true);
+        milestones.save(recovered);
+        return Map.of("character", view(id), "milestone", milestoneView(recovered));
+    }
+
+    private Map<String, Object> milestoneView(MilestoneEntity milestone) {
+        var result = new LinkedHashMap<String, Object>();
+        result.put("id", milestone.getId());
+        result.put("level", milestone.getLevel());
+        result.put("experience", milestone.getExperience());
+        result.put("createdAt", milestone.getCreatedAt());
+        result.put("snapshot", snapshot(milestone));
+        return result;
+    }
+
+    private Map<String, Map<String, Object>> derivedStatsView(Map<String, CharacterRules.DerivedStat> stats,
+                                                               Map<String, List<Map<String, Object>>> modifierView) {
+        var result = new LinkedHashMap<String, Map<String, Object>>();
+        stats.forEach((key, stat) -> {
+            var modifiers = modifierView.getOrDefault(key, List.of());
+            result.put(key, Map.of("key", stat.key(), "name", stat.name(), "formula", stat.formula(),
+                    "baseValue", stat.baseValue(), "total", stat.total(), "modifiers", modifiers));
+        });
+        return result;
+    }
+
+    private void restoreSnapshot(CharacterEntity character, MilestoneEntity milestone) {
+        var node = snapshot(milestone);
+        if (node.has("name")) character.setName(node.path("name").asText(character.getName()));
+        if (node.has("level")) character.setLevel(node.path("level").asInt(character.getLevel()));
+        if (node.has("experience")) character.setExperience(node.path("experience").asInt(character.getExperience()));
+        if (node.has("attributes")) character.setAttributesJson(writeJson(json.convertValue(node.get("attributes"), Map.class)));
+        if (node.has("genetics")) character.setGeneticsJson(writeJson(json.convertValue(node.get("genetics"), Map.class)));
+        if (node.has("evolutionPoints")) character.setEvolutionPoints(node.path("evolutionPoints").asInt(character.getEvolutionPoints()));
+        if (node.has("geneticsPoints")) character.setGeneticsPoints(node.path("geneticsPoints").asInt(character.getGeneticsPoints()));
+        if (node.has("imageUrl")) character.setImageUrl(node.get("imageUrl").isNull() ? null : node.get("imageUrl").asText());
+        if (node.has("uniqueAbilityDecisions")) character.setUniqueAbilityDecisionsJson(writeJson(json.convertValue(node.get("uniqueAbilityDecisions"), Map.class)));
+        if (node.has("minorAttributes")) {
+            var custom = json.convertValue(node.get("minorAttributes"), new com.fasterxml.jackson.core.type.TypeReference<Map<String, Integer>>() {});
+            persistCustomMinorRanks(character, custom);
+        }
+        if (node.has("modifiers")) {
+            restoreModifiers(character.getId(), node.path("modifiers"));
+        }
+    }
+
+    private void restoreModifiers(String characterId, JsonNode requested) {
+        var desired = new LinkedHashMap<String, RequestedModifier>();
+        requested.fields().forEachRemaining(attribute -> attribute.getValue().forEach(modifier -> {
+            var name = modifier.path("name").asText("").trim();
+            if (!name.isBlank()) desired.put(attribute.getKey() + '\u0000' + name,
+                    new RequestedModifier(attribute.getKey(), modifier.path("value").asInt(), modifier.path("source").asText("MANUAL")));
+        }));
+        var existing = modifiers.findByCharacterId(characterId).stream().collect(Collectors.toMap(
+                modifier -> modifier.getAttributeKey() + '\u0000' + modifier.getName(), modifier -> modifier,
+                (first, ignored) -> first, LinkedHashMap::new));
+        existing.forEach((key, modifier) -> {
+            var requestedModifier = desired.remove(key);
+            if (requestedModifier == null) modifiers.delete(modifier);
+            else if (modifier.getValue() != requestedModifier.value()) {
+                modifier.setValue(requestedModifier.value());
+                modifiers.save(modifier);
+            } else if (!Objects.equals(modifier.getSource(), requestedModifier.source())) {
+                modifier.setSource(requestedModifier.source());
+                modifiers.save(modifier);
+            }
+        });
+        desired.forEach((key, requestedModifier) -> {
+            var separator = key.indexOf('\u0000');
+            modifiers.save(new CharacterAttributeModifierEntity(UUID.randomUUID().toString(), characterId,
+                    requestedModifier.key(), key.substring(separator + 1), requestedModifier.value(), requestedModifier.source()));
+        });
+    }
+
+    private record RequestedModifier(String key, int value, String source) {}
+
+    private Map<String, Object> snapshotFromCurrent(CharacterEntity character, String id, JsonNode source) {
+        var result = new LinkedHashMap<String, Object>();
+        result.put("name", character.getName()); result.put("experience", character.getExperience()); result.put("level", character.getLevel());
+        result.put("attributes", parse(character.getAttributesJson())); result.put("genetics", parse(character.getGeneticsJson()));
+        result.put("minorAttributes", minorAttributes.values(id)); result.put("modifiers", modifierSnapshot(id));
+        result.put("evolutionPoints", character.getEvolutionPoints()); result.put("geneticsPoints", character.getGeneticsPoints());
+        result.put("imageUrl", character.getImageUrl()); result.put("uniqueAbilityDecisions", uniqueAbilityDecisions(character));
+        result.put("abilities", snapshotSet(source, "abilities")); result.put("pendingUniqueAbilities", snapshotSet(source, "pendingUniqueAbilities")); result.put("visible", true);
+        return result;
+    }
+
+    private Set<String> snapshotSet(JsonNode source, String field) {
+        var result = new LinkedHashSet<String>();
+        source.path(field).forEach(value -> result.add(value.asText()));
+        return result;
+    }
+
+    private String writeJson(Object value) { try { return json.writeValueAsString(value); } catch (Exception e) { throw new IllegalStateException("Could not serialize character snapshot", e); } }
     @Transactional(readOnly = true)
     public Map<String, Object> lastUpgrade(String id) {
         get(id);
         var closedVersions = milestones.findByCharacterIdAndVisibleTrueOrderByCreatedAtDesc(id);
         if (closedVersions.size() < 2) return Map.of("available", false);
         var current = closedVersions.getFirst(); var previous = closedVersions.get(1);
-        return compareUpgrade(snapshot(current), snapshot(previous), current.getLevel(), current.getExperience(), snapshotAbilities(current), current.getCreatedAt(), previous.getLevel(), previous.getExperience(), previous.getCreatedAt(), snapshotAbilities(previous));
+        var currentAbilities = snapshotAbilities(current);
+        uniqueAbilityDecisions(get(id)).forEach((name, decision) -> { if ("accepted".equals(decision)) currentAbilities.add(name); });
+        return compareUpgrade(snapshot(current), snapshot(previous), current.getLevel(), current.getExperience(), currentAbilities, current.getCreatedAt(), previous.getLevel(), previous.getExperience(), previous.getCreatedAt(), snapshotAbilities(previous));
     }
 
     @Transactional(readOnly = true)
@@ -623,7 +999,8 @@ public class CharacterService {
         if (closedVersions.isEmpty()) return Map.of("available", false);
         var previous = closedVersions.getFirst();
         var currentAttributes = parse(character.getAttributesJson());
-        var currentGenetics = parse(character.getGeneticsJson());
+            var currentAttributeTotals = withModifiers(currentAttributes, modifierTotals(id));
+            var currentGenetics = parse(character.getGeneticsJson());
         var currentMinorAttributes = minorAttributes.values(id);
         var currentModifierTotals = modifierTotals(id);
         var currentAwards = eligibleAbilities(withModifiers(currentAttributes, currentModifierTotals), currentGenetics,
@@ -634,6 +1011,7 @@ public class CharacterService {
                 "attributes", currentAttributes,
                 "genetics", currentGenetics,
                 "minorAttributes", currentMinorAttributes,
+                "modifiers", modifierSnapshot(id),
                 "abilities", currentAbilities));
         var previousAbilities = snapshotAbilities(previous);
         previousAbilities.addAll(snapshotValues(previous, "pendingUniqueAbilities"));
@@ -657,11 +1035,41 @@ public class CharacterService {
         var bonuses = new ArrayList<Map<String, Object>>(); var keys = new LinkedHashSet<String>(); keys.addAll(currentBonuses.keySet()); keys.addAll(previousBonuses.keySet());
         for (var key : keys) { var after = currentBonuses.getOrDefault(key, new CharacterRules.Bonus(0, 0)); var before = previousBonuses.getOrDefault(key, new CharacterRules.Bonus(0, 0)); int plusOne = after.plusOne() - before.plusOne(), plusD6 = after.plusD6() - before.plusD6(); if (plusOne > 0 || plusD6 > 0) bonuses.add(Map.of("key", key, "plusOne", plusOne, "plusD6", plusD6)); }
         var abilities = new LinkedHashSet<>(currentAbilities); abilities.removeAll(previousAbilities);
-        return Map.of("available", true, "current", Map.of("level", currentLevel, "closedAt", currentClosedAt), "previous", Map.of("level", previousLevel, "closedAt", previousClosedAt), "scores", scores, "bonuses", bonuses, "abilities", abilities);
+        return Map.of("available", true, "current", Map.of("level", currentLevel, "closedAt", currentClosedAt), "previous", Map.of("level", previousLevel, "closedAt", previousClosedAt), "scores", scores, "bonuses", bonuses, "modifiers", modifierChanges(currentSnapshot, previousSnapshot), "abilities", abilities);
     }
     public Map<String, Object> preview(int xp, Map<String, Integer> attrs, Map<String, Integer> gen) { return Map.of("projection", CharacterRules.project(xp, attrs, gen)); }
 
     private JsonNode snapshot(MilestoneEntity milestone) { try { return json.readTree(milestone.getSnapshotJson()); } catch (Exception e) { throw new IllegalStateException("Closed version snapshot is invalid", e); } }
+    private Map<String, List<Map<String, Object>>> modifierSnapshot(String characterId) {
+        var result = new LinkedHashMap<String, List<Map<String, Object>>>();
+        for (var modifier : modifiers.findByCharacterId(characterId)) {
+            result.computeIfAbsent(modifier.getAttributeKey(), ignored -> new ArrayList<>())
+                    .add(Map.of("name", modifier.getName(), "value", modifier.getValue(), "source", modifier.getSource()));
+        }
+        return result;
+    }
+    private Map<String, Integer> snapshotModifierValues(JsonNode snapshot) {
+        var result = new LinkedHashMap<String, Integer>();
+        snapshot.path("modifiers").fields().forEachRemaining(attribute -> attribute.getValue().forEach(modifier -> {
+            var name = modifier.path("name").asText("");
+            if (!name.isBlank()) result.put(attribute.getKey() + '\u0000' + name, modifier.path("value").asInt());
+        }));
+        return result;
+    }
+    private List<Map<String, Object>> modifierChanges(JsonNode currentSnapshot, JsonNode previousSnapshot) {
+        var current = snapshotModifierValues(currentSnapshot); var previous = snapshotModifierValues(previousSnapshot);
+        var keys = new LinkedHashSet<String>(); keys.addAll(current.keySet()); keys.addAll(previous.keySet());
+        var changes = new ArrayList<Map<String, Object>>();
+        for (var composite : keys) {
+            if (Objects.equals(current.get(composite), previous.get(composite))) continue;
+            var separator = composite.indexOf('\u0000');
+            var change = new LinkedHashMap<String, Object>();
+            change.put("key", composite.substring(0, separator)); change.put("name", composite.substring(separator + 1));
+            change.put("before", previous.get(composite)); change.put("after", current.get(composite));
+            changes.add(change);
+        }
+        return changes;
+    }
     private Map<String, Integer> snapshotRanks(JsonNode snapshot, String field) { var result = new LinkedHashMap<String, Integer>(); snapshot.path(field).fields().forEachRemaining(entry -> result.put(entry.getKey(), entry.getValue().asInt())); return result; }
     private void appendScoreChanges(List<Map<String, Object>> changes, String type, Map<String, Integer> current, Map<String, Integer> previous) { var keys = new LinkedHashSet<String>(); keys.addAll(current.keySet()); keys.addAll(previous.keySet()); for (var key : keys) { int before = previous.getOrDefault(key, 0), after = current.getOrDefault(key, 0), increase = after - before; if (increase > 0) changes.add(Map.of("key", key, "type", type, "before", before, "after", after, "increase", increase)); } }
 

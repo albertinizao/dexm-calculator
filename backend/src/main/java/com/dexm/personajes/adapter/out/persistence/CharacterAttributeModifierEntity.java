@@ -24,6 +24,9 @@ public class CharacterAttributeModifierEntity {
     @Column(name = "score", nullable = false)
     private int score;
 
+    @Column(name = "source", nullable = false)
+    private String source = "MANUAL";
+
     protected CharacterAttributeModifierEntity() {
     }
 
@@ -35,6 +38,11 @@ public class CharacterAttributeModifierEntity {
         this.score = value;
     }
 
+    public CharacterAttributeModifierEntity(String id, String characterId, String attributeKey, String name, int value, String source) {
+        this(id, characterId, attributeKey, name, value);
+        this.source = source == null ? "MANUAL" : source;
+    }
+
     public String getId() { return id; }
     public String getCharacterId() { return characterId; }
     public String getAttributeKey() { return attributeKey; }
@@ -43,4 +51,6 @@ public class CharacterAttributeModifierEntity {
     public int getValue() { return score; }
     public void setScore(int score) { this.score = score; }
     public void setValue(int value) { this.score = value; }
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source == null ? "MANUAL" : source; }
 }

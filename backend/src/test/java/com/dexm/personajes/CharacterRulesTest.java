@@ -15,5 +15,29 @@ class CharacterRulesTest {
   assertThat(p.bonuses().get("destreza")).isEqualTo(new CharacterRules.Bonus(11,9));
   assertThat(p.bonuses().get("sentiryggdrasil")).isEqualTo(new CharacterRules.Bonus(2,2));
  }
+ @Test void calculatesDerivedStatsAndAppliesSignedFinalModifiers(){
+  var stats=CharacterRules.derivedStats(
+    Map.of("fisico",4,"mente",3,"esquiva",9,"destreza",9),
+    Map.of("vida",-5,"bifrost",2,"defensaCuerpo",-1,"defensaDistancia",4));
+  assertThat(stats.get("vida").baseValue()).isEqualTo(90);
+  assertThat(stats.get("vida").total()).isEqualTo(85);
+  assertThat(stats.get("bifrost").total()).isEqualTo(32);
+  assertThat(stats.get("defensaCuerpo").baseValue()).isEqualTo(15);
+  assertThat(stats.get("defensaCuerpo").total()).isEqualTo(14);
+  assertThat(stats.get("defensaDistancia").baseValue()).isEqualTo(18);
+  assertThat(stats.get("defensaDistancia").total()).isEqualTo(22);
+ }
+ @Test void attributeModifiersAffectDerivedBaseBeforeFinalModifier(){
+  var stats=CharacterRules.derivedStats(Map.of("fisico",4,"mente",3), Map.of("fisico",2));
+  assertThat(stats.get("vida").baseValue()).isEqualTo(100);
+ }
+ @Test void appliesReducedGrowthAfterFifteenOnlyForVida(){
+  assertThat(CharacterRules.derivedStats(Map.of("fisico",15), Map.of()).get("vida").baseValue()).isEqualTo(145);
+  assertThat(CharacterRules.derivedStats(Map.of("fisico",16), Map.of()).get("vida").baseValue()).isEqualTo(147);
+  assertThat(CharacterRules.derivedStats(Map.of("fisico",17), Map.of()).get("vida").baseValue()).isEqualTo(150);
+  assertThat(CharacterRules.derivedStats(Map.of("mente",15), Map.of()).get("bifrost").baseValue()).isEqualTo(150);
+  assertThat(CharacterRules.derivedStats(Map.of("mente",16), Map.of()).get("bifrost").baseValue()).isEqualTo(160);
+  assertThat(CharacterRules.derivedStats(Map.of("mente",17), Map.of()).get("bifrost").baseValue()).isEqualTo(170);
+ }
 }
 

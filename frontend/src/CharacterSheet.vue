@@ -12,23 +12,26 @@ type Character = {
 
   id: string; name: string; imageUrl?: string | null; campaignId?: string | null;
 
-  experience: number; level: number; attributes?: Record<string, number>; attributeTotals?: Record<string, number>; attributeModifiers?: Record<string, AttributeModifier[]>; genetics?: Record<string, number>; genetic?: Record<string, number>; allocation?: AllocationBudget;
+  experience: number; level: number; attributes?: Record<string, number>; attributeTotals?: Record<string, number>; attributeModifiers?: Record<string, AttributeModifier[]>; derivedStats?: Record<string, DerivedStat>; genetics?: Record<string, number>; genetic?: Record<string, number>; allocation?: AllocationBudget;
 
   updatedAt?: string; createdAt?: string; closed?: boolean; lastClosedAt?: string; minorAttributes?: MinorAttribute[];
-  abilities?: string[];
+  abilities?: string[]; pendingUniqueAbilities?: string[];
 
 };
 
 type Campaign = { id: string; name: string };
 type MinorAttribute = { id:string; key:string; name:string; value:number; ranks:number; total:number; max:number; maxFormula?:string; bonusSource?:string; plusOne:number; plusD6:number; type:string };
-type AllocationBudget = { evolutionAvailable:number; evolutionSpent:number; evolutionRemaining:number; geneticsAvailable:number; geneticsSpent:number; geneticsRemaining:number };
-type AllocationDraft = { level:number; experience:number; evolutionAvailable:number; geneticsAvailable:number; attributes:Record<string,number>; genetics:Record<string,number>; minorAttributes:Record<string,number>; baseAttributes:Record<string,number>; baseGenetics:Record<string,number>; baseMinorAttributes:Record<string,number> };
+type AllocationBudget = { evolutionAvailable:number; evolutionSpent:number; evolutionRemaining:number; geneticsAvailable:number; geneticsSpent:number; geneticsRemaining:number; nextEvolutionReward?:number; nextGeneticsReward?:number; minorEvolutionCost?:number };
+type AllocationDraft = { level:number; experience:number; evolutionAvailable:number; geneticsAvailable:number; minorEvolutionCost:number; attributes:Record<string,number>; genetics:Record<string,number>; minorAttributes:Record<string,number>; baseAttributes:Record<string,number>; baseGenetics:Record<string,number>; baseMinorAttributes:Record<string,number> };
 type AttributeModifier = { name: string; value: number };
+type DerivedStat = { key: string; name: string; formula: string; baseValue: number; total: number; modifiers?: AttributeModifier[] };
 type Progression = { kind: string; number: number; threshold: number; obtained: boolean };
 type AttributeDetail = { key:string; definitionId?:string | null; name:string; type:string; total:number; ranks:number; maxRanks:number | null; formula:string; calculatedValue:number; plusOne:number; plusD6:number; modifiers:AttributeModifier[]; progressions:Progression[]; deletable:boolean };
 type AttributeRow = { key:string; name:string; value:number; definitionId?:string; deletable?:boolean };
-type Ability = { name:string; description?:string; launchType?:string; cost?:number | string | null; uniqueFlag?:string };
-type LastUpgrade = { available:boolean; current?:{level:number; closedAt:string}; previous?:{level:number; closedAt:string}; scores?:{key:string; type:string; before:number; after:number; increase:number}[]; bonuses?:{key:string; plusOne:number; plusD6:number}[]; abilities?:string[] };
+type Ability = { name:string; description?:string; launchType?:string; cost?:number | string | null; test?:string; uniqueFlag?:string };
+type PendingUniqueAbility = Ability & { requirements: unknown };
+type LastUpgrade = { available:boolean; current?:{level:number; closedAt:string}; previous?:{level:number; closedAt:string}; scores?:{key:string; type:string; before:number; after:number; increase:number}[]; bonuses?:{key:string; plusOne:number; plusD6:number}[]; modifiers?:{key:string; name:string; before:number|null; after:number|null}[]; abilities?:string[] };
+type HistoryVersion = { id:string; level:number; experience:number; createdAt:string; snapshot: Record<string, any> };
 
 
 
@@ -74,6 +77,26 @@ const sheetView = ref<'sheet' | 'abilities'>('sheet');
 const selectedAbility = ref<Ability | null>(null);
 const showLastUpgrade = ref(false); const lastUpgrade = ref<LastUpgrade | null>(null); const lastUpgradeLoading = ref(false); const lastUpgradeError = ref('');
 const currentUpgradeMode = ref(false);
+const showLegacyImport = ref(false);
+const legacyCode = ref('');
+const legacyBusy = ref(false);
+const legacyError = ref('');
+const legacyExportCode = ref('');
+const showLegacyExport = ref(false);
+const legacyDraft = ref(false);
+const legacyEvolutionPoints = ref<number | null>(null);
+const isDirector = ref(localStorage.getItem('dexm.director') === 'true');
+const showUniqueReview = ref(false);
+const pendingUniqueAbilities = ref<PendingUniqueAbility[]>([]);
+const uniqueReviewBusy = ref('');
+const uniqueReviewError = ref('');
+const showHistory = ref(false);
+const history = ref<HistoryVersion[]>([]);
+const selectedHistory = ref<HistoryVersion | null>(null);
+const historyLoading = ref(false);
+const historyError = ref('');
+const historyRecovering = ref('');
+const cancelChangesBusy = ref(false);
 
 
 
@@ -90,10 +113,11 @@ const attributeLabels: Record<string, string> = {
   intimidar: 'Intimidar', labia: 'Labia', liderazgo: 'Liderazgo', medicina: 'Medicina', provocar: 'Provocar', punteria: 'Puntería',
 
   resistencia: 'Resistencia', sentiryggdrasil: 'Sentir Yggdrasil',
+  vida: 'Vida máxima', bifrost: 'Bifrost máximo', defensaCuerpo: 'Defensa cuerpo a cuerpo', defensaDistancia: 'Defensa a distancia',
 
 };
 
-const geneticLabels: Record<string, string> = { heroe: 'Héroe', norna: 'Norna', alfar: 'Vanir', valkiria: 'Valkiria', risa: 'Risi', dvergr: 'Dvergr' };
+const geneticLabels: Record<string, string> = { heroe: 'Héroe', norna: 'Norna', alfar: 'Alfar', valkiria: 'Valkiria', risa: 'Risi', dvergr: 'Dvergr' };
 
 const geneticGroups = [
 
@@ -112,7 +136,7 @@ const minorKeys = ['astronavegar', 'atractivo', 'buscar', 'conduccion', 'cruzarb
 const minorCapFormulas: Record<string, string> = {
   astronavegar: '', atractivo: 'carisma*2', buscar: 'percepcion', conduccion: '(agilidad+percepcion)/2', cruzarbifrost: '(mente+estudio)/2',
   deporte: 'fisico', destreza: '(fisico+agilidad)/2', diplomacia: 'carisma', einherjer: '(fisico+mente)/2', engano: '(percepcion+mente)/2',
-  esconderse: '(agilidad+mente)/2', evolcurva: '', esquiva: '(fisico+agilidad)/2', fisicaquimica: 'estudio', fuerza: 'fisico', informatica: 'estudio',
+  esconderse: '(agilidad+mente)/2', evolcurva: '(fisico+agilidad+percepcion+mente+estudio+carisma)/6', esquiva: '(fisico+agilidad)/2', fisicaquimica: 'estudio', fuerza: 'fisico', informatica: 'estudio',
   intimidar: '(fisico+carisma)/2', labia: 'carisma', liderazgo: 'carisma', medicina: 'estudio', provocar: '(mente+max(fisico,carisma))/2',
   punteria: 'percepcion', resistencia: 'fisico', sentiryggdrasil: '(percepcion+mente)/2',
 };
@@ -230,10 +254,13 @@ const canLevelUpAll = computed(() => (character.value?.experience ?? 0) >= 200);
 const attributes = computed(() => character.value?.attributes ?? {});
 
 const genetics = computed(() => character.value?.genetics ?? character.value?.genetic ?? {});
+const geneticTotals = computed(() => Object.fromEntries(Object.keys(genetics.value).map(key => [key, character.value?.attributeTotals?.[key] ?? genetics.value[key] ?? 0])));
 
 const majorAttributes = computed(() => majorKeys.map(key => [key, attributes.value[key] ?? 0] as [string, number]));
 
 const minorAttributes = computed(() => { const built=minorKeys.filter(k=>k!=='astronavegar').map(key => [key, attributes.value[key] ?? 0] as [string, number]); const custom=(character.value?.minorAttributes??[]).map(a=>[a.key,a.value] as [string,number]); return [...built,...custom]; });
+const derivedStatKeys = ['vida', 'bifrost', 'defensaCuerpo', 'defensaDistancia'];
+const derivedStats = computed(() => character.value?.derivedStats ?? {});
 
 const allocationMajorAttributes = computed(() => majorKeys.map(key => [key, allocationDraft.value?.attributes[key] ?? 0] as [string, number]));
 const allocationMinorAttributes = computed(() => {
@@ -247,9 +274,10 @@ const allocationBudget = computed<AllocationBudget>(() => {
   if (!draft) return { evolutionAvailable: 0, evolutionSpent: 0, evolutionRemaining: 0, geneticsAvailable: 0, geneticsSpent: 0, geneticsRemaining: 0 };
   const evolutionSpent = majorKeys.reduce((sum, key) => sum + Math.max(0, (Number(draft.attributes[key]) || 0) - (Number(draft.baseAttributes[key]) || 0)) * 10, 0)
     + minorKeys.reduce((sum, key) => sum + Math.max(0, (Number(draft.attributes[key]) || 0) - (Number(draft.baseAttributes[key]) || 0)) * 5, 0)
-    + Object.keys(draft.minorAttributes).reduce((sum, key) => sum + Math.max(0, (Number(draft.minorAttributes[key]) || 0) - (Number(draft.baseMinorAttributes[key]) || 0)) * 5, 0);
+  + Object.keys(draft.minorAttributes).reduce((sum, key) => sum + Math.max(0, (Number(draft.minorAttributes[key]) || 0) - (Number(draft.baseMinorAttributes[key]) || 0)) * 5, 0)
+  - (draft.minorEvolutionCost === 4 ? Math.max(0, (Number(draft.attributes.fuerza) || 0) - (Number(draft.baseAttributes.fuerza) || 0)) : 0);
   const geneticsSpent = Object.keys(draft.genetics).reduce((sum, key) => sum + Math.max(0, (Number(draft.genetics[key]) || 0) - (Number(draft.baseGenetics[key]) || 0)), 0);
-  const geneticsAvailable = 3;
+  const geneticsAvailable = draft.geneticsAvailable;
   return { evolutionAvailable: draft.evolutionAvailable, evolutionSpent, evolutionRemaining: draft.evolutionAvailable - evolutionSpent, geneticsAvailable, geneticsSpent, geneticsRemaining: geneticsAvailable - geneticsSpent };
 });
 const allocationValid = computed(() => allocationBudget.value.evolutionRemaining >= 0 && allocationBudget.value.geneticsRemaining === 0);
@@ -317,6 +345,7 @@ function allocationBonusChanged(key: string, kind: 'plusOne' | 'plusD6'): boolea
   return allocationBonuses(key)[kind] !== currentBonuses(key)[kind];
 }
 function allocationCapFormula(key: string): string | null {
+  if (key === 'evolcurva') return 'media atributos mayores';
   return customAllocationMinor(key)?.maxFormula ?? minorCapFormulas[key] ?? null;
 }
 function allocationAffordableMax(key: string, cost: number, baseline: Record<string, number>): number {
@@ -446,6 +475,7 @@ async function load() {
   try {
 
     character.value = await api.get(String(route.params.id));
+    legacyDraft.value = false; legacyEvolutionPoints.value = null;
     editing.value = !character.value?.closed;
     if (editing.value) startModifierDraft();
 
@@ -474,6 +504,7 @@ async function startEdit() {
   if (!character.value || editing.value) return;
   try {
     character.value = await api.edit(String(route.params.id));
+    legacyDraft.value = false; legacyEvolutionPoints.value = null;
     editing.value = true;
     startModifierDraft();
     closeError.value = '';
@@ -485,7 +516,12 @@ async function openAttributeDetail(key: string) {
   detailLoading.value = true;
   showAttributeDetail.value = true;
   attributeDetail.value = null;
-  try { attributeDetail.value = await api.attributeDetail(String(route.params.id), key); }
+  try {
+    attributeDetail.value = await api.attributeDetail(String(route.params.id), key);
+    if (attributeDetail.value?.type === 'DERIVED' && editing.value) {
+      attributeDetail.value = { ...attributeDetail.value, calculatedValue: derivedBaseValue(key) };
+    }
+  }
   catch (e: any) { detailError.value = e?.message || 'No se pudo cargar el atributo.'; }
   finally { detailLoading.value = false; }
 }
@@ -512,6 +548,7 @@ function detailModifierTotal(): number {
 
 function detailTotal(): number {
   if (!attributeDetail.value) return 0;
+  if (attributeDetail.value.type === 'DERIVED') return derivedBaseValue(attributeDetail.value.key) + detailModifierTotal();
   return attributeDetail.value.total - attributeDetail.value.modifiers.reduce((sum, modifier) => sum + modifier.value, 0) + detailModifierTotal();
 }
 
@@ -524,7 +561,26 @@ function detailBonus(kind: 'plusOne' | 'plusD6'): number {
     : d6Bonus(attributeDetail.value.key, total, majorKeys.includes(attributeDetail.value.key));
 }
 
+function derivedBaseValue(key: string): number {
+  const valueOf = (source: string) => displayedAttributeTotal(source, attributes.value[source] ?? 0);
+  if (key === 'vida') {
+    const fisico = valueOf('fisico');
+    return fisico <= 15 ? 70 + fisico * 5 : 70 + 15 * 5 + Math.floor((fisico - 15) * 2.5);
+  }
+  if (key === 'bifrost') {
+    const mente = valueOf('mente');
+    return mente * 10;
+  }
+  const esquivaPlusOne = oneBonus('esquiva', valueOf('esquiva'), false);
+  if (key === 'defensaCuerpo') return 10 + esquivaPlusOne + oneBonus('destreza', valueOf('destreza'), false);
+  if (key === 'defensaDistancia') return 15 + esquivaPlusOne;
+  return 0;
+}
+
 function displayedAttributeTotal(key: string, fallback: number): number {
+  if (derivedStatKeys.includes(key) && editing.value) {
+    return derivedBaseValue(key) + modifierRows(key).reduce((sum, modifier) => sum + (Number(modifier.value) || 0), 0);
+  }
   const persistedTotal = character.value?.attributeTotals?.[key] ?? fallback;
   if (!editing.value) return persistedTotal;
   const persistedModifiers = character.value?.attributeModifiers?.[key] ?? [];
@@ -555,11 +611,40 @@ async function saveModifiers(): Promise<boolean> {
   modifierSaveBusy.value = true;
   try {
     const result = await api.saveAttributeModifiers(String(route.params.id), body) as { character: Character };
-    character.value = result.character;
+    if (!legacyDraft.value) character.value = result.character;
     closeAttributeDetail();
     return true;
   } catch (e: any) { modifierError.value = e?.message || 'No se pudieron guardar los modificadores.'; return false; }
   finally { modifierSaveBusy.value = false; }
+}
+
+async function importLegacy() {
+  if (!legacyCode.value.trim() || legacyBusy.value) return;
+  legacyBusy.value = true; legacyError.value = '';
+  try {
+    const imported = await api.importLegacy(String(route.params.id), legacyCode.value) as {
+      level:number; experience:number; evolutionPoints:number; attributes:Record<string,number>;
+      genetics:Record<string,number>; extras:Record<string,number>;
+    };
+    if (!character.value) return;
+    const totals = { ...imported.attributes };
+    Object.entries(imported.extras).forEach(([key, value]) => { totals[key] = (totals[key] ?? 0) + value; });
+    character.value = { ...character.value, level: imported.level, experience: imported.experience,
+      attributes: imported.attributes, genetics: imported.genetics, attributeTotals: totals,
+      minorAttributes: (character.value.minorAttributes ?? []).map(attribute => ({ ...attribute, value: 0, ranks: 0, total: 0 })),
+      attributeModifiers: Object.fromEntries(Object.entries(imported.extras).map(([key, value]) => [key, [{ name: 'extra', value }]])), closed: false };
+    modifierDraft.value = Object.fromEntries(Object.entries(imported.extras).map(([key, value]) => [key, [{ name: 'extra', value }]]));
+    legacyEvolutionPoints.value = imported.evolutionPoints;
+    legacyDraft.value = true;
+    showLegacyImport.value = false; legacyCode.value = '';
+  } catch (e: any) { legacyError.value = e?.message || 'No se pudo cargar el código legacy.'; }
+  finally { legacyBusy.value = false; }
+}
+
+async function exportLegacy() {
+  legacyError.value = '';
+  try { legacyExportCode.value = await api.exportLegacy(String(route.params.id)); showLegacyExport.value = true; }
+  catch (e: any) { legacyError.value = e?.message || 'No se pudo exportar el código legacy.'; }
 }
 
 async function closeDraft() {
@@ -577,19 +662,49 @@ async function closeDraft() {
       minorAttributes: Object.fromEntries((source.minorAttributes ?? []).map(attribute => [attribute.key, attribute.value ?? attribute.ranks ?? 0])),
       visible: true,
       final: true,
+      evolutionPoints: legacyEvolutionPoints.value,
     });
     character.value = result.character;
     editing.value = false;
+    legacyDraft.value = false; legacyEvolutionPoints.value = null;
   } catch (e: any) { closeError.value = e?.message || 'No se pudo cerrar la ficha.'; }
   finally { closeBusy.value = false; }
 }
 
+async function cancelChanges() {
+  if (!editing.value || cancelChangesBusy.value || !confirm('¿Cancelar todos los cambios y volver a la última versión cerrada?')) return;
+  cancelChangesBusy.value = true; closeError.value = '';
+  try {
+    const result = await api.cancelChanges(String(route.params.id)) as { character: Character };
+    character.value = result.character; editing.value = false; legacyDraft.value = false; legacyEvolutionPoints.value = null; startModifierDraft();
+  } catch (e: any) { closeError.value = e?.message || 'No se pudieron cancelar los cambios.'; }
+  finally { cancelChangesBusy.value = false; }
+}
+
+async function openHistory() {
+  historyLoading.value = true; historyError.value = '';
+  try { history.value = await api.milestones(String(route.params.id)) as HistoryVersion[]; selectedHistory.value = history.value[0] ?? null; showHistory.value = true; }
+  catch (e: any) { historyError.value = e?.message || 'No se pudo cargar el historial.'; }
+  finally { historyLoading.value = false; }
+}
+
+async function recoverHistory(version: HistoryVersion) {
+  if (historyRecovering.value || !confirm(`¿Recuperar la versión de nivel ${version.level} del ${new Date(version.createdAt).toLocaleString('es-ES')}?`)) return;
+  historyRecovering.value = version.id; historyError.value = '';
+  try {
+    const result = await api.recoverMilestone(String(route.params.id), version.id) as { character: Character };
+    character.value = result.character; editing.value = false; legacyDraft.value = false; legacyEvolutionPoints.value = null; startModifierDraft();
+    history.value = await api.milestones(String(route.params.id)) as HistoryVersion[]; selectedHistory.value = history.value[0] ?? null;
+  } catch (e: any) { historyError.value = e?.message || 'No se pudo recuperar la versión.'; }
+  finally { historyRecovering.value = ''; }
+}
+
 async function openLastUpgrade() { if (!character.value?.closed || lastUpgradeLoading.value) return; showLastUpgrade.value = true; currentUpgradeMode.value = false; lastUpgrade.value = null; lastUpgradeError.value = ''; lastUpgradeLoading.value = true; try { lastUpgrade.value = await api.lastUpgrade(String(route.params.id)) as LastUpgrade; } catch (e: any) { lastUpgradeError.value = e?.message || 'No se pudo comparar la última subida.'; } finally { lastUpgradeLoading.value = false; } }
-async function openCurrentUpgrade() { if (!editing.value || lastUpgradeLoading.value) return; showLastUpgrade.value = true; currentUpgradeMode.value = true; lastUpgrade.value = null; lastUpgradeError.value = ''; lastUpgradeLoading.value = true; try { lastUpgrade.value = await api.currentUpgrade(String(route.params.id)) as LastUpgrade; } catch (e: any) { lastUpgradeError.value = e?.message || 'No se pudo comparar la subida actual.'; } finally { lastUpgradeLoading.value = false; } }
+async function openCurrentUpgrade() { if (!editing.value || lastUpgradeLoading.value) return; if (!await saveModifiers()) return; showLastUpgrade.value = true; currentUpgradeMode.value = true; lastUpgrade.value = null; lastUpgradeError.value = ''; lastUpgradeLoading.value = true; try { lastUpgrade.value = await api.currentUpgrade(String(route.params.id)) as LastUpgrade; } catch (e: any) { lastUpgradeError.value = e?.message || 'No se pudo comparar la subida actual.'; } finally { lastUpgradeLoading.value = false; } }
 function closeLastUpgrade() { showLastUpgrade.value = false; currentUpgradeMode.value = false; lastUpgrade.value = null; lastUpgradeError.value = ''; }
 function upgradeScoreLabel(change: { key:string; type:string }) { return change.type === 'genetic' ? geneticLabels[change.key] || change.key : attributeLabels[change.key] || customMinor(change.key)?.name || change.key; }
 
-function draftFor(source: Character, targetLevel: number, targetExperience: number, evolutionAvailable: number, geneticsAvailable: number): AllocationDraft {
+function draftFor(source: Character, targetLevel: number, targetExperience: number, evolutionAvailable: number, geneticsAvailable: number, minorEvolutionCost = source.allocation?.minorEvolutionCost ?? 5): AllocationDraft {
   const sourceAttributes = source.attributes ?? {};
   const sourceGenetics = source.genetics ?? source.genetic ?? {};
   const attributes: Record<string, number> = {};
@@ -598,7 +713,7 @@ function draftFor(source: Character, targetLevel: number, targetExperience: numb
   geneticGroups.flatMap(group => group.keys).forEach(key => { genetics[key] = Math.max(0, sourceGenetics[key] ?? 0); });
   const minorAttributes: Record<string, number> = {};
   (source.minorAttributes ?? []).forEach(attribute => { minorAttributes[attribute.key] = Math.max(0, attribute.value ?? attribute.ranks ?? 0); });
-  return { level: targetLevel, experience: targetExperience, evolutionAvailable, geneticsAvailable, attributes, genetics, minorAttributes,
+  return { level: targetLevel, experience: targetExperience, evolutionAvailable, geneticsAvailable, minorEvolutionCost, attributes, genetics, minorAttributes,
     baseAttributes: { ...attributes }, baseGenetics: { ...genetics }, baseMinorAttributes: { ...minorAttributes } };
 }
 
@@ -610,8 +725,8 @@ async function openLevelUp(all = false) {
   allocationStep.value = 1;
   allocationTotal.value = all ? Math.max(2, Math.floor(source.experience / 100)) : 1;
   const currentAllocation = source.allocation;
-  const evolutionReward = 35 + Math.max(0, source.attributes?.evolcurva ?? 0);
-  const geneticsReward = 3;
+  const evolutionReward = source.allocation?.nextEvolutionReward ?? (35 + Math.max(0, source.attributes?.evolcurva ?? 0));
+  const geneticsReward = source.allocation?.nextGeneticsReward ?? 3;
   allocationDraft.value = draftFor(source, source.level + 1, source.experience - 100,
     (currentAllocation?.evolutionRemaining ?? 0) + evolutionReward,
     (currentAllocation?.geneticsRemaining ?? 0) + geneticsReward);
@@ -639,8 +754,9 @@ async function submitAllocation() {
     if (!finalStep) {
       allocationStep.value += 1;
       allocationDraft.value = draftFor(updatedCharacter, updatedCharacter.level + 1, updatedCharacter.experience - 100,
-        (updatedCharacter.allocation?.evolutionRemaining ?? 0) + 35 + Math.max(0, updatedCharacter.attributes?.evolcurva ?? 0),
-        (updatedCharacter.allocation?.geneticsRemaining ?? 0) + 3);
+        (updatedCharacter.allocation?.evolutionRemaining ?? 0) + (updatedCharacter.allocation?.nextEvolutionReward ?? (35 + Math.max(0, updatedCharacter.attributes?.evolcurva ?? 0))),
+        (updatedCharacter.allocation?.geneticsRemaining ?? 0) + (updatedCharacter.allocation?.nextGeneticsReward ?? 3),
+        updatedCharacter.allocation?.minorEvolutionCost ?? 5);
       clampAllocationMinors();
       await nextTick();
       allocationModal.value?.scrollTo({ top: 0 });
@@ -666,6 +782,37 @@ async function deleteAttribute() {
   finally { deletingAttribute.value = false; }
 }
 
+async function openUniqueReview() {
+  uniqueReviewError.value = '';
+  try { pendingUniqueAbilities.value = await api.pendingUniqueAbilities(String(route.params.id)) as PendingUniqueAbility[]; showUniqueReview.value = true; }
+  catch (e: any) { uniqueReviewError.value = e?.message || 'No se pudieron cargar las habilidades únicas pendientes.'; }
+}
+async function decideUniqueAbility(ability: PendingUniqueAbility, decision: 'accepted' | 'rejected') {
+  uniqueReviewBusy.value = ability.name; uniqueReviewError.value = '';
+  try {
+    character.value = await api.decideUniqueAbility(String(route.params.id), ability.name, decision) as Character;
+    pendingUniqueAbilities.value = pendingUniqueAbilities.value.filter(item => item.name !== ability.name);
+    if (!pendingUniqueAbilities.value.length) showUniqueReview.value = false;
+  } catch (e: any) { uniqueReviewError.value = e?.message || 'No se pudo guardar la decisión.'; }
+  finally { uniqueReviewBusy.value = ''; }
+}
+async function deleteCharacter() {
+  if (!confirm(`¿Borrar definitivamente a ${character.value?.name}? Esta acción no se puede deshacer.`)) return;
+  try { await api.deleteCharacter(String(route.params.id)); back(); } catch (e: any) { error.value = e?.message || 'No se pudo borrar el personaje.'; }
+}
+function requirementLines(requirements: unknown) {
+  const labels: Record<string, string> = {
+    EvolutivoCurva: 'Evolución curva', EvoluccionCurva: 'Evolución curva', CruzarBifrost: 'Cruzar Bifrost', FisicaQuimica: 'Física/Química', Enganno: 'Engaño', SentirYggdrasil: 'Sentir Yggdrasil', Astronavegar: 'Astronavegar', Atractivo: 'Atractivo', Buscar: 'Buscar', Conduccion: 'Conducción', Deporte: 'Deporte', Destreza: 'Destreza', Diplomacia: 'Diplomacia', Einherjer: 'Einherjer', Esconderse: 'Esconderse', Esquiva: 'Esquiva', Fuerza: 'Fuerza', Informatica: 'Informática', Intimidar: 'Intimidar', Labia: 'Labia', Liderazgo: 'Liderazgo', Medicina: 'Medicina', Provocar: 'Provocar', Punteria: 'Puntería', Resistencia: 'Resistencia', Heroe: 'Héroe', Norna: 'Norna', Alfar: 'Alfar', Valkiria: 'Valkiria', Risa: 'Risa', Dvergr: 'Dvergr'
+  };
+  const ignored = new Set(['Nombre', 'Descripcion', 'Lanzamiento', 'Coste', 'Prueba', 'Unica']);
+  const alternatives = Array.isArray(requirements) ? requirements : [requirements];
+  return alternatives.map((alternative, index) => {
+    if (!alternative || typeof alternative !== 'object') return { title: alternatives.length > 1 ? `Alternativa ${index + 1}` : 'Requisito', items: [{ label: 'Requisito', value: String(alternative) }] };
+    const record = alternative as Record<string, unknown>;
+    const items = Object.entries(record).filter(([key, value]) => !ignored.has(key) && typeof value === 'number').map(([key, value]) => ({ label: labels[key] || key, value: String(value) }));
+    return { title: alternatives.length > 1 ? `Alternativa ${index + 1}` : 'Requisitos', items };
+  }).filter(group => group.items.length);
+}
 function back() { campaign.value?.id ? router.push({ path: '/', query: { campaign: campaign.value.id } }) : router.push('/'); }
 
 const obtainedAbilities = computed(() => (character.value?.abilities ?? []).map(name =>
@@ -715,7 +862,7 @@ watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) 
         <dl class="sheet-meta"><dt>Campaña</dt><dd>{{ campaign?.name || 'Sin campaña' }}</dd><dt>Versión</dt><dd>{{ character.closed ? 'Cerrada' : 'Borrador' }}</dd><dt>Último guardado</dt><dd>{{ savedAt }}</dd></dl>
         <p v-if="closeError" class="error-banner" role="alert">{{ closeError }}</p>
 
-        <template v-if="editing"><button class="button button-primary" :disabled="closeBusy || levelBusy || modifierSaveBusy" @click="closeDraft">{{ closeBusy ? 'Guardando…' : 'Guardar' }}</button><button class="button button-quiet" type="button" @click="openCurrentUpgrade">Ver subida actual</button></template><template v-else><button class="button button-quiet" type="button" @click="startEdit">Editar ficha</button><button class="button button-quiet" type="button" @click="openLastUpgrade">Última subida</button></template><button class="button button-quiet" type="button" @click="sheetView = sheetView === 'sheet' ? 'abilities' : 'sheet'">{{ sheetView === 'sheet' ? 'Ver habilidades' : 'Ver hoja' }}</button><button class="button button-quiet" type="button" @click="back">Volver</button>
+        <template v-if="editing"><button class="button button-primary" :disabled="closeBusy || levelBusy || modifierSaveBusy" @click="closeDraft">{{ closeBusy ? 'Guardando…' : 'Guardar' }}</button><button class="button button-quiet" type="button" :disabled="cancelChangesBusy" @click="cancelChanges">{{ cancelChangesBusy ? 'Cancelando…' : 'Cancelar cambios' }}</button><button class="button button-quiet" type="button" @click="showLegacyImport=true; legacyError=''">Cargar legacy</button><button class="button button-quiet" type="button" @click="openCurrentUpgrade">Ver subida actual</button></template><template v-else><button class="button button-quiet" type="button" @click="startEdit">Editar ficha</button><button class="button button-quiet" type="button" @click="exportLegacy">Exportar legacy</button><button class="button button-quiet" type="button" @click="openLastUpgrade">Última subida</button></template><button class="button button-quiet" type="button" @click="openHistory">Historial</button><button v-if="isDirector && (character.pendingUniqueAbilities?.length ?? 0)" class="button button-primary unique-review-trigger" type="button" @click="openUniqueReview">Revisar habilidades únicas</button><button class="button button-quiet" type="button" @click="sheetView = sheetView === 'sheet' ? 'abilities' : 'sheet'">{{ sheetView === 'sheet' ? 'Ver habilidades' : 'Ver hoja' }}</button><button class="button button-quiet" type="button" @click="back">Volver</button><button v-if="isDirector" class="button button-danger" type="button" @click="deleteCharacter">Borrar personaje</button>
         <p v-if="editing" class="field-hint">Haz clic en un atributo para editar sus modificadores varios.</p><p v-if="modifierError" class="error-banner" role="alert">{{ modifierError }}</p>
 
       </aside>
@@ -760,6 +907,22 @@ watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) 
         </div>
       </div>
 
+      <div v-if="showLegacyImport" class="modal-backdrop" @click.self="showLegacyImport=false">
+        <section class="modal-card legacy-modal" role="dialog" aria-modal="true" aria-labelledby="legacy-import-title">
+          <header class="modal-header"><div><p class="eyebrow accent">BACKUP LEGACY</p><h2 id="legacy-import-title">Cargar legacy</h2><p class="modal-copy">Sustituirá todas las puntuaciones y modificadores del borrador. Los cambios quedan pendientes de guardar.</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="showLegacyImport=false">×</button></header>
+          <div class="modal-body"><label class="modal-field"><span>Código legacy</span><textarea v-model="legacyCode" class="legacy-textarea" rows="12" autofocus></textarea></label><p v-if="legacyError" class="error-banner" role="alert">{{ legacyError }}</p></div>
+          <footer class="modal-actions"><button class="button button-quiet" type="button" @click="showLegacyImport=false">Cancelar</button><button class="button button-primary" type="button" :disabled="legacyBusy || !legacyCode.trim()" @click="importLegacy">{{ legacyBusy ? 'Cargando…' : 'Cargar legacy' }}</button></footer>
+        </section>
+      </div>
+
+      <div v-if="showLegacyExport" class="modal-backdrop" @click.self="showLegacyExport=false">
+        <section class="modal-card legacy-modal" role="dialog" aria-modal="true" aria-labelledby="legacy-export-title">
+          <header class="modal-header"><div><p class="eyebrow accent">BACKUP LEGACY</p><h2 id="legacy-export-title">Exportar legacy</h2><p class="modal-copy">Copia este código y pégalo en «Cargar Backup» del HTML estático.</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="showLegacyExport=false">×</button></header>
+          <div class="modal-body"><textarea readonly class="legacy-textarea" rows="12" :value="legacyExportCode"></textarea></div>
+          <footer class="modal-actions"><button class="button button-quiet" type="button" @click="showLegacyExport=false">Cerrar</button></footer>
+        </section>
+      </div>
+
       <div v-if="showAllocationModal && allocationDraft" class="modal-backdrop" @click.self="closeAllocation">
         <section ref="allocationModal" class="modal-card allocation-modal" role="dialog" aria-modal="true" aria-labelledby="allocation-modal-title">
           <header class="modal-header"><div><p class="eyebrow accent">PERSONAJE · PROGRESIÓN</p><h2 id="allocation-modal-title">{{ allocationMode === 'all' ? `Asignación · nivel ${allocationDraft.level} (${allocationStep}/${allocationTotal})` : `Asignación · nivel ${allocationDraft.level}` }}</h2><p class="modal-copy">Los cambios sólo se guardan al confirmar este paso.</p></div><button type="button" class="modal-close" aria-label="Cerrar ventana" @click="closeAllocation">×</button></header>
@@ -791,12 +954,20 @@ watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) 
           <div class="modal-body" v-if="detailLoading"><p class="sheet-state">Cargando atributo…</p></div>
           <div class="modal-body" v-else-if="attributeDetail">
             <p v-if="detailError" class="error-banner" role="alert">{{ detailError }}</p>
-            <div class="attribute-detail-summary"><div><span>Puntuación total actual</span><strong>{{ detailTotal() }}</strong></div><div><span>Bonificadores +1</span><strong>+{{ editing ? detailBonus('plusOne') : attributeDetail.plusOne }}</strong></div><div><span>Bonificadores +D6</span><strong>+{{ editing ? detailBonus('plusD6') : attributeDetail.plusD6 }}D6</strong></div></div>
-            <div class="detail-grid"><p><span>Rangos actuales</span><strong>{{ attributeDetail.ranks }}</strong></p><p><span>Rangos máximos</span><strong>{{ attributeDetail.maxRanks ?? 'No aplica' }}</strong></p><p class="detail-wide"><span>Fórmula máxima</span><strong>{{ attributeDetail.formula }}<template v-if="attributeDetail.maxRanks !== null"> = {{ attributeDetail.calculatedValue }}</template></strong></p></div>
+            <div class="attribute-detail-summary"><div><span>{{ attributeDetail.type === 'DERIVED' ? 'Valor total' : 'Puntuación total actual' }}</span><strong>{{ detailTotal() }}</strong></div><div v-if="attributeDetail.type !== 'DERIVED'"><span>Bonificadores +1</span><strong>+{{ editing ? detailBonus('plusOne') : attributeDetail.plusOne }}</strong></div><div v-if="attributeDetail.type !== 'DERIVED'"><span>Bonificadores +D6</span><strong>+{{ editing ? detailBonus('plusD6') : attributeDetail.plusD6 }}D6</strong></div></div>
+            <div class="detail-grid"><template v-if="attributeDetail.type !== 'DERIVED'"><p><span>Rangos actuales</span><strong>{{ attributeDetail.ranks }}</strong></p><p><span>Rangos máximos</span><strong>{{ attributeDetail.maxRanks ?? 'No aplica' }}</strong></p></template><p class="detail-wide"><span>{{ attributeDetail.type === 'DERIVED' ? 'Fórmula' : 'Fórmula máxima' }}</span><strong>{{ attributeDetail.formula }}<template v-if="attributeDetail.type === 'DERIVED'"> = {{ attributeDetail.calculatedValue }}</template><template v-else-if="attributeDetail.maxRanks !== null"> = {{ attributeDetail.calculatedValue }}</template></strong></p></div>
             <section class="detail-section"><h3>Modificadores varios</h3><ul v-if="(editing ? modifierRows(attributeDetail.key) : attributeDetail.modifiers).length" class="modifier-list"><li v-for="modifier in (editing ? modifierRows(attributeDetail.key) : attributeDetail.modifiers)" :key="modifier.name"><span>{{ modifier.name }}</span><strong>{{ modifier.value > 0 ? '+' : '' }}{{ modifier.value }}</strong></li></ul><p v-else class="sheet-muted">Sin modificadores varios.</p></section><section v-if="editing" class="detail-section modifier-editor"><h3>Editar modificadores</h3><div v-for="(modifier, index) in modifierRows(attributeDetail.key)" :key="index" class="modifier-edit-row"><input v-model="modifier.name" aria-label="Nombre del modificador" placeholder="Nombre"><input v-model.number="modifier.value" type="number" step="1" aria-label="Valor del modificador"><button class="button button-danger" type="button" @click="removeModifier(attributeDetail.key, index)">Eliminar</button></div><button class="button button-quiet" type="button" @click="addModifier(attributeDetail.key)">Añadir modificador</button></section>
-            <section class="detail-section"><h3>Progresión</h3><div class="progression-groups"><div><h4>+1</h4><div class="progression-list"><span v-for="item in attributeDetail.progressions.filter(p => p.kind === '+1')" :key="`${item.kind}-${item.number}`" :class="['progression-item', { obtained: editing ? detailTotal() >= item.threshold : item.obtained }]">{{ item.threshold }}</span></div></div><div><h4>+D6</h4><div class="progression-list"><span v-for="item in attributeDetail.progressions.filter(p => p.kind === '+D6')" :key="`${item.kind}-${item.number}`" :class="['progression-item', { obtained: editing ? detailTotal() >= item.threshold : item.obtained }]">{{ item.threshold }}</span></div></div></div></section>
+            <section v-if="attributeDetail.type !== 'DERIVED'" class="detail-section"><h3>Progresión</h3><div class="progression-groups"><div><h4>+1</h4><div class="progression-list"><span v-for="item in attributeDetail.progressions.filter(p => p.kind === '+1')" :key="`${item.kind}-${item.number}`" :class="['progression-item', { obtained: editing ? detailTotal() >= item.threshold : item.obtained }]">{{ item.threshold }}</span></div></div><div><h4>+D6</h4><div class="progression-list"><span v-for="item in attributeDetail.progressions.filter(p => p.kind === '+D6')" :key="`${item.kind}-${item.number}`" :class="['progression-item', { obtained: editing ? detailTotal() >= item.threshold : item.obtained }]">{{ item.threshold }}</span></div></div></div></section>
           </div>
           <footer class="modal-actions"><button class="button button-quiet" type="button" @click="closeAttributeDetail">Cerrar</button><button v-if="attributeDetail?.deletable" class="button button-danger" type="button" :disabled="deletingAttribute" @click="deleteAttribute">{{ deletingAttribute ? 'Eliminando…' : 'Eliminar' }}</button></footer>
+        </section>
+      </div>
+
+      <div v-if="showUniqueReview" class="modal-backdrop" @click.self="showUniqueReview=false">
+        <section class="modal-card unique-review-modal" role="dialog" aria-modal="true" aria-labelledby="unique-review-title">
+          <header class="modal-header"><div><p class="eyebrow accent">DIRECTOR</p><h2 id="unique-review-title">Habilidades únicas pendientes</h2><p class="modal-copy">Acepta para incorporarla a la ficha o rechaza para ocultarla definitivamente al jugador.</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="showUniqueReview=false">×</button></header>
+          <div class="modal-body"><p v-if="uniqueReviewError" class="error-banner" role="alert">{{ uniqueReviewError }}</p><p v-if="!pendingUniqueAbilities.length" class="sheet-state">No hay habilidades únicas pendientes.</p><article v-for="ability in pendingUniqueAbilities" :key="ability.name" class="unique-ability-review"><div class="unique-ability-heading"><span class="unique-badge">ÚNICA</span><h3>{{ ability.name }}</h3></div><p class="unique-ability-description">{{ ability.description || 'Sin descripción disponible.' }}</p><dl class="ability-meta"><div><dt>Lanzamiento</dt><dd>{{ ability.launchType || '—' }}</dd></div><div><dt>Coste</dt><dd>{{ ability.cost ?? '—' }}</dd></div><div><dt>Prueba</dt><dd>{{ ability.test || '—' }}</dd></div></dl><div class="unique-requirements"><h4>Requisitos</h4><div v-for="group in requirementLines(ability.requirements)" :key="group.title" class="requirement-group"><span class="requirement-group-title">{{ group.title }}</span><div class="requirement-chips"><span v-for="item in group.items" :key="item.label" class="requirement-chip"><strong>{{ item.label }}</strong><em>{{ item.value }}</em></span></div></div></div><div class="modal-actions"><button class="button button-danger" type="button" :disabled="uniqueReviewBusy === ability.name" @click="decideUniqueAbility(ability, 'rejected')">Rechazar</button><button class="button button-primary" type="button" :disabled="uniqueReviewBusy === ability.name" @click="decideUniqueAbility(ability, 'accepted')">{{ uniqueReviewBusy === ability.name ? 'Guardando…' : 'Aceptar' }}</button></div></article></div>
+          <footer class="modal-actions"><button class="button button-quiet" type="button" @click="showUniqueReview=false">Cerrar</button></footer>
         </section>
       </div>
 
@@ -811,7 +982,9 @@ watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) 
         </section>
       </div>
 
-<div v-if="showLastUpgrade" class="modal-backdrop" @click.self="closeLastUpgrade"><section class="modal-card last-upgrade-modal" role="dialog" aria-modal="true" aria-labelledby="last-upgrade-title"><header class="modal-header"><div><p class="eyebrow accent">PROGRESIÓN</p><h2 id="last-upgrade-title">{{ currentUpgradeMode ? 'Ver subida actual' : 'Última subida' }}</h2><p v-if="lastUpgrade?.available" class="modal-copy">Comparación entre la versión actual y el nivel {{ lastUpgrade.previous?.level }}.</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="closeLastUpgrade">×</button></header><div class="modal-body"><p v-if="lastUpgradeLoading" class="sheet-state">{{ currentUpgradeMode ? 'Comparando subida actual…' : 'Comparando versiones cerradas…' }}</p><p v-else-if="lastUpgradeError" class="error-banner" role="alert">{{ lastUpgradeError }}</p><p v-else-if="!lastUpgrade?.available" class="sheet-state">Aún no existe una versión cerrada anterior para comparar.</p><template v-else><section class="upgrade-section"><h3>Nuevas puntuaciones</h3><ul v-if="lastUpgrade.scores?.length" class="upgrade-list"><li v-for="change in lastUpgrade.scores" :key="`${change.type}-${change.key}`"><span>{{ upgradeScoreLabel(change) }}</span><strong>{{ change.before }} → {{ change.after }} <em>+{{ change.increase }}</em></strong></li></ul><p v-else class="sheet-muted">Sin nuevas puntuaciones.</p></section><section class="upgrade-section"><h3>Nuevos bonificadores</h3><ul v-if="lastUpgrade.bonuses?.length" class="upgrade-list"><li v-for="bonus in lastUpgrade.bonuses" :key="bonus.key"><span>{{ attributeLabels[bonus.key] || bonus.key }}</span><strong><template v-if="bonus.plusOne">+{{ bonus.plusOne }}</template><template v-if="bonus.plusOne && bonus.plusD6"> · </template><template v-if="bonus.plusD6">+{{ bonus.plusD6 }}D6</template></strong></li></ul><p v-else class="sheet-muted">Sin nuevos +1 ni +D6.</p></section><section class="upgrade-section"><h3>Nuevas habilidades</h3><ul v-if="lastUpgradeAbilities.length" class="upgrade-list"><li v-for="ability in lastUpgradeAbilities" :key="ability.name"><button class="upgrade-ability-link" type="button" @click="openAbilityDetail(ability)">{{ ability.name }}</button></li></ul><p v-else class="sheet-muted">No se han obtenido habilidades nuevas.</p></section></template></div><footer class="modal-actions"><button class="button button-quiet" type="button" @click="closeLastUpgrade">Cerrar</button></footer></section></div>
+<div v-if="showHistory" class="modal-backdrop" @click.self="showHistory=false"><section class="modal-card history-modal" role="dialog" aria-modal="true" aria-labelledby="history-title"><header class="modal-header"><div><p class="eyebrow accent">FICHA · HISTORIAL</p><h2 id="history-title">Versiones cerradas</h2><p class="modal-copy">Recorre las versiones guardadas y recupera una como nueva versión actual.</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="showHistory=false">×</button></header><div class="modal-body"><p v-if="historyLoading" class="sheet-state">Cargando historial…</p><p v-else-if="historyError" class="error-banner" role="alert">{{ historyError }}</p><p v-else-if="!history.length" class="sheet-state">Aún no hay versiones cerradas.</p><ol v-else class="history-list"><li v-for="version in history" :key="version.id" class="history-item"><button class="history-select" type="button" @click="selectedHistory=version"><div><strong>Nivel {{ version.level }}</strong><span>{{ new Date(version.createdAt).toLocaleString('es-ES') }}</span><small>{{ version.experience }} PX · {{ Object.keys(version.snapshot?.attributes || {}).length }} atributos</small></div></button><button class="button button-primary" type="button" :disabled="historyRecovering === version.id" @click.stop="recoverHistory(version)">{{ historyRecovering === version.id ? 'Recuperando…' : 'Recuperar' }}</button></li></ol><section v-if="selectedHistory" class="history-detail"><h3>Versión seleccionada</h3><p><strong>{{ selectedHistory.snapshot?.name || character.name }}</strong> · Nivel {{ selectedHistory.level }} · {{ selectedHistory.experience }} PX</p><p class="sheet-muted">Evolución: {{ selectedHistory.snapshot?.evolutionPoints ?? 'no disponible' }} · Genética: {{ selectedHistory.snapshot?.geneticsPoints ?? 'no disponible' }}</p><p class="sheet-muted">Habilidades: {{ (selectedHistory.snapshot?.abilities || []).length }} · Modificadores: {{ Object.values(selectedHistory.snapshot?.modifiers || {}).flat().length }}</p></section></div><footer class="modal-actions"><button class="button button-quiet" type="button" @click="showHistory=false">Cerrar</button></footer></section></div>
+
+      <div v-if="showLastUpgrade" class="modal-backdrop" @click.self="closeLastUpgrade"><section class="modal-card last-upgrade-modal" role="dialog" aria-modal="true" aria-labelledby="last-upgrade-title"><header class="modal-header"><div><p class="eyebrow accent">PROGRESIÓN</p><h2 id="last-upgrade-title">{{ currentUpgradeMode ? 'Ver subida actual' : 'Última subida' }}</h2><p v-if="lastUpgrade?.available" class="modal-copy">Comparación entre la versión actual y el nivel {{ lastUpgrade.previous?.level }}.</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="closeLastUpgrade">×</button></header><div class="modal-body"><p v-if="lastUpgradeLoading" class="sheet-state">{{ currentUpgradeMode ? 'Comparando subida actual…' : 'Comparando versiones cerradas…' }}</p><p v-else-if="lastUpgradeError" class="error-banner" role="alert">{{ lastUpgradeError }}</p><p v-else-if="!lastUpgrade?.available" class="sheet-state">Aún no existe una versión cerrada anterior para comparar.</p><template v-else><section class="upgrade-section"><h3>Nuevas puntuaciones</h3><ul v-if="lastUpgrade.scores?.length" class="upgrade-list"><li v-for="change in lastUpgrade.scores" :key="`${change.type}-${change.key}`"><span>{{ upgradeScoreLabel(change) }}</span><strong>{{ change.before }} → {{ change.after }} <em>+{{ change.increase }}</em></strong></li></ul><p v-else class="sheet-muted">Sin nuevas puntuaciones.</p></section><section class="upgrade-section"><h3>Modificadores varios</h3><ul v-if="lastUpgrade.modifiers?.length" class="upgrade-list"><li v-for="change in lastUpgrade.modifiers" :key="`${change.key}-${change.name}`"><span>{{ attributeLabels[change.key] || change.key }} · {{ change.name }}</span><strong>{{ change.before ?? '—' }} → {{ change.after ?? '—' }}</strong></li></ul><p v-else class="sheet-muted">Sin cambios en modificadores varios.</p></section><section class="upgrade-section"><h3>Nuevos bonificadores</h3><ul v-if="lastUpgrade.bonuses?.length" class="upgrade-list"><li v-for="bonus in lastUpgrade.bonuses" :key="bonus.key"><span>{{ attributeLabels[bonus.key] || bonus.key }}</span><strong><template v-if="bonus.plusOne">+{{ bonus.plusOne }}</template><template v-if="bonus.plusOne && bonus.plusD6"> · </template><template v-if="bonus.plusD6">+{{ bonus.plusD6 }}D6</template></strong></li></ul><p v-else class="sheet-muted">Sin nuevos +1 ni +D6.</p></section><section class="upgrade-section"><h3>Nuevas habilidades</h3><ul v-if="lastUpgradeAbilities.length" class="upgrade-list"><li v-for="ability in lastUpgradeAbilities" :key="ability.name"><button class="upgrade-ability-link" type="button" @click="openAbilityDetail(ability)">{{ ability.name }}</button></li></ul><p v-else class="sheet-muted">No se han obtenido habilidades nuevas.</p></section></template></div><footer class="modal-actions"><button class="button button-quiet" type="button" @click="closeLastUpgrade">Cerrar</button></footer></section></div>
 
       <section v-if="sheetView === 'sheet'" class="sheet-content" aria-labelledby="sheet-title">
 
@@ -821,7 +994,9 @@ watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) 
 
         <section class="sheet-panel"><div class="sheet-panel-heading"><h3>Atributos Menores</h3><button v-if="editing" class="button button-quiet" type="button" @click="showMinorModal=true">Añadir atributo menor</button></div><div class="value-grid attributes-grid"><div v-for="[key, value] in minorAttributes" :key="key" class="value-row attribute-row attribute-clickable" role="button" tabindex="0" @click="openAttributeDetail(key)" @keydown.enter="openAttributeDetail(key)" @keydown.space.prevent="openAttributeDetail(key)"><span>{{ attributeLabels[key] || customMinor(key)?.name || key }}</span><strong>{{ displayedAttributeTotal(key, customMinor(key)?.total ?? value) }}</strong><small>+{{ maxBonus(key, displayedAttributeTotal(key, customMinor(key)?.total ?? value), false) }} · +{{ maxD6(key, displayedAttributeTotal(key, customMinor(key)?.total ?? value), false) }}D6</small></div></div></section>
 
-        <section class="sheet-panel"><h3>Genética</h3><div class="genetic-groups"><div v-for="group in geneticGroups" :key="group.label" class="genetic-group"><h4>{{ group.label }}</h4><div class="value-grid genetic-grid"><div v-for="key in group.keys" :key="key" class="value-row"><span>{{ geneticLabels[key] || key }}</span><strong>{{ genetics[key] ?? 0 }}</strong></div></div></div></div><p v-if="!Object.keys(genetics).length" class="sheet-muted">Sin valores genéticos.</p></section>
+        <section class="sheet-panel"><h3>Genética</h3><div class="genetic-groups"><div v-for="group in geneticGroups" :key="group.label" class="genetic-group"><h4>{{ group.label }}</h4><div class="value-grid genetic-grid"><div v-for="key in group.keys" :key="key" class="value-row attribute-clickable" role="button" tabindex="0" @click="openAttributeDetail(key)" @keydown.enter="openAttributeDetail(key)" @keydown.space.prevent="openAttributeDetail(key)"><span>{{ geneticLabels[key] || key }}</span><strong>{{ geneticTotals[key] ?? 0 }}</strong></div></div></div></div><p v-if="!Object.keys(genetics).length" class="sheet-muted">Sin valores genéticos.</p></section>
+
+        <section class="sheet-panel"><h3>Valores calculados</h3><div class="value-grid attributes-grid derived-stats-grid"><div v-for="key in derivedStatKeys" :key="key" class="value-row attribute-row attribute-clickable" role="button" tabindex="0" @click="openAttributeDetail(key)" @keydown.enter="openAttributeDetail(key)" @keydown.space.prevent="openAttributeDetail(key)"><span>{{ derivedStats[key]?.name || key }}</span><strong>{{ displayedAttributeTotal(key, derivedStats[key]?.total ?? 0) }}</strong><small>{{ derivedStats[key]?.formula || '—' }}</small></div></div></section>
 
       </section>
 

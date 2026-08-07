@@ -22,7 +22,7 @@ public class MinorAttributeService {
         this.modifiers = modifiers;
     }
 
-    public List<MinorAttributeDefinitionEntity> list(String campaign) { return defs.findByCampaignIdOrderByNameAsc(campaign); }
+    public List<MinorAttributeDefinitionEntity> list(String campaign) { return defs.findByCampaignIdOrderByNameAsc(campaign).stream().filter(d -> d.getOwnerCharacterId() == null).toList(); }
 
     @Transactional
     public MinorAttributeDefinitionEntity create(String campaign, String key, String name, String formula, String source, String type) {
@@ -65,7 +65,9 @@ public class MinorAttributeService {
                 CharacterAttributeModifierEntity::getAttributeKey, LinkedHashMap::new,
                 java.util.stream.Collectors.summingInt(CharacterAttributeModifierEntity::getScore)));
         var out = new ArrayList<Map<String, Object>>();
-        defs.findByCampaignIdOrderByNameAsc(character.getCampaignId()).forEach(definition -> {
+        defs.findByCampaignIdOrderByNameAsc(character.getCampaignId()).stream()
+                .filter(definition -> definition.getOwnerCharacterId() == null || characterId.equals(definition.getOwnerCharacterId()))
+                .forEach(definition -> {
             int ranks = vals.findByCharacterIdAndDefinitionId(characterId, definition.getId())
                     .map(CharacterMinorAttributeValueEntity::getValue).orElse(0);
             var modifierRows = modifiers.findByCharacterIdAndAttributeKey(characterId, definition.getKey());

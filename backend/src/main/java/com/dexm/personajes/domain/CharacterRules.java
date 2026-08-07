@@ -69,6 +69,28 @@ public final class CharacterRules {
                 attributes, genetics, customMinorAttributes);
     }
 
+    public static AllocationBudget allocationBudget(int evolutionAvailable, int geneticsAvailable,
+                                                     Map<String, Integer> currentAttributes,
+                                                     Map<String, Integer> currentGenetics,
+                                                     Map<String, Integer> currentCustomMinorAttributes,
+                                                     Map<String, Integer> requestedAttributes,
+                                                     Map<String, Integer> requestedGenetics,
+                                                     Map<String, Integer> requestedCustomMinorAttributes,
+                                                     boolean proteinShake) {
+        int major = deltaMajor(currentAttributes, requestedAttributes) * EVOLUTION_POINTS_PER_MAJOR_RANK;
+        int minor = deltaMinor(currentAttributes, requestedAttributes) * EVOLUTION_POINTS_PER_MINOR_RANK;
+        if (proteinShake) minor -= deltaForKey(currentAttributes, requestedAttributes, "fuerza");
+        int custom = delta(currentCustomMinorAttributes, requestedCustomMinorAttributes) * EVOLUTION_POINTS_PER_MINOR_RANK;
+        int geneticsSpent = delta(currentGenetics, requestedGenetics);
+        return new AllocationBudget(Math.max(0, evolutionAvailable), major + minor + custom,
+                evolutionAvailable - major - minor - custom, Math.max(0, geneticsAvailable), geneticsSpent,
+                geneticsAvailable - geneticsSpent);
+    }
+
+    private static int deltaForKey(Map<String,Integer> current, Map<String,Integer> requested, String key) {
+        return Math.max(0, requested.getOrDefault(key, 0) - current.getOrDefault(key, 0));
+    }
+
     public static int delta(Map<String, Integer> current, Map<String, Integer> requested) {
         return requested.keySet().stream().mapToInt(key -> Math.max(0, requested.getOrDefault(key, 0) - current.getOrDefault(key, 0))).sum();
     }
@@ -146,6 +168,37 @@ public final class CharacterRules {
     public static int[] plusD6Thresholds(String key) {
         return d6Threshold(key).clone();
     }
+
+    /** Calculates the sheet values derived from effective attribute totals. */
+    public static Map<String, DerivedStat> derivedStats(Map<String, Integer> attributes,
+                                                         Map<String, Integer> modifierTotals) {
+        var effective = new LinkedHashMap<String, Integer>();
+        ATTRIBUTES.forEach(key -> effective.put(key,
+                attributes.getOrDefault(key, 0) + modifierTotals.getOrDefault(key, 0)));
+        int esquivaPlusOne = count(Math.max(0, effective.getOrDefault("esquiva", 0)), bonoThreshold("esquiva"));
+        int destrezaPlusOne = count(Math.max(0, effective.getOrDefault("destreza", 0)), bonoThreshold("destreza"));
+        var result = new LinkedHashMap<String, DerivedStat>();
+        int fisico = effective.getOrDefault("fisico", 0);
+        int mente = effective.getOrDefault("mente", 0);
+        int vidaBase = fisico <= 15 ? 70 + fisico * 5 : 70 + 15 * 5 + Math.floorDiv((fisico - 15) * 5, 2);
+        int bifrostBase = mente * 10;
+        result.put("vida", stat("vida", "Vida máxima", "70 + (fisico x 5 / fisico(>15) x 2.5)",
+                vidaBase, modifierTotals));
+        result.put("bifrost", stat("bifrost", "Bifrost máximo", "Mente × 10",
+                bifrostBase, modifierTotals));
+        result.put("defensaCuerpo", stat("defensaCuerpo", "Defensa cuerpo a cuerpo",
+                "10 + +1 Esquiva + +1 Destreza", 10 + esquivaPlusOne + destrezaPlusOne, modifierTotals));
+        result.put("defensaDistancia", stat("defensaDistancia", "Defensa a distancia",
+                "15 + +1 Esquiva", 15 + esquivaPlusOne, modifierTotals));
+        return result;
+    }
+
+    private static DerivedStat stat(String key, String name, String formula, int base,
+                                    Map<String, Integer> modifierTotals) {
+        return new DerivedStat(key, name, formula, base, base + modifierTotals.getOrDefault(key, 0));
+    }
+
+    public record DerivedStat(String key, String name, String formula, int baseValue, int total) {}
 
     public record Projection(int level,int experienceRemainder,int evolutionAvailable,int evolutionSpent,int geneticsAvailable,int geneticsSpent,Map<String,Bonus> bonuses) {}
 }
