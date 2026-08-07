@@ -1,0 +1,1 @@
+package com.dexm.personajes.adapter.out.persistence; import org.springframework.data.jpa.repository.JpaRepository; import java.util.*; public interface AbilityRepository extends JpaRepository<AbilityEntity,String>{Optional<AbilityEntity> findByName(String name);}

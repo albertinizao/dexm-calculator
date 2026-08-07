@@ -1,0 +1,12 @@
+server:
+  port: ${SERVER_PORT:8084}
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mariadb://localhost:3306/dexm_personajes}
+    username: ${DB_USERNAME:dexm}
+    password: ${DB_PASSWORD:KpDC5EvmZPTymucP0pbr}
+  jpa:
+    hibernate.ddl-auto: validate
+    open-in-view: false
+  flyway.enabled: true
+

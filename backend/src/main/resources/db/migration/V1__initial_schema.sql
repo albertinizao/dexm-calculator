@@ -1,0 +1,4 @@
+create table characters (id varchar(36) primary key, name varchar(160) not null, experience int not null, attributes_json text not null, genetics_json text not null, created_at timestamp not null, updated_at timestamp not null);
+create table character_milestones (id varchar(36) primary key, character_id varchar(36) not null, level int not null, experience int not null, snapshot_json text not null, new_bonuses_json text not null, new_abilities_json text not null, created_at timestamp not null, constraint fk_milestone_character foreign key(character_id) references characters(id));
+create table abilities (id varchar(36) primary key, name varchar(255) not null, description text, launch_type varchar(80), cost int, unique_flag varchar(10), alternatives_json text not null, updated_at timestamp not null);
+create index ix_milestone_character on character_milestones(character_id, created_at);
