@@ -28,7 +28,7 @@ type DerivedStat = { key: string; name: string; formula: string; baseValue: numb
 type Progression = { kind: string; number: number; threshold: number; obtained: boolean };
 type AttributeDetail = { key:string; definitionId?:string | null; name:string; type:string; total:number; ranks:number; maxRanks:number | null; formula:string; calculatedValue:number; plusOne:number; plusD6:number; modifiers:AttributeModifier[]; progressions:Progression[]; deletable:boolean };
 type AttributeRow = { key:string; name:string; value:number; definitionId?:string; deletable?:boolean };
-type Ability = { name:string; description?:string; launchType?:string; cost?:number | string | null; test?:string; uniqueFlag?:string };
+type Ability = { name:string; description?:string; launchType?:string; cost?:number | string | null; test?:string; alternativesJson?:string; uniqueFlag?:string };
 type PendingUniqueAbility = Ability & { requirements: unknown };
 type LastUpgrade = { available:boolean; current?:{level:number; closedAt:string}; previous?:{level:number; closedAt:string}; scores?:{key:string; type:string; before:number; after:number; increase:number}[]; bonuses?:{key:string; plusOne:number; plusD6:number}[]; modifiers?:{key:string; name:string; before:number|null; after:number|null}[]; abilities?:string[] };
 type HistoryVersion = { id:string; level:number; experience:number; createdAt:string; snapshot: Record<string, any> };
@@ -821,6 +821,46 @@ const obtainedAbilities = computed(() => (character.value?.abilities ?? []).map(
 const lastUpgradeAbilities = computed(() => (lastUpgrade.value?.abilities ?? []).map(name =>
   abilityCatalog.value.find(ability => ability.name === name) ?? { name }));
 
+function abilityTestValue(ability: Ability | null): string | undefined {
+  if (!ability) return undefined;
+  if (ability.test) return ability.test;
+  try {
+    const alternatives = JSON.parse(ability.alternativesJson || '[]');
+    return Array.isArray(alternatives) ? alternatives[0]?.Prueba : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+const abilityActivationTest = computed(() => {
+  const rawTest = abilityTestValue(selectedAbility.value)?.trim();
+  if (!rawTest) return null;
+
+  const match = rawTest.match(/^(.+?)\s+(\d+|\*)\+?$/);
+  const testName = match?.[1]?.trim() ?? rawTest;
+  const normalizedName = testName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ');
+  const key = normalizedName === 'cruzar bifrost' ? 'cruzarbifrost'
+    : normalizedName === 'sentir yggdrasil' ? 'sentiryggdrasil'
+      : normalizedName === 'fisica/quimica' ? 'fisicaquimica'
+        : normalizedName.replace(/[ /]/g, '');
+  const isKnownAttribute = majorKeys.includes(key) || minorKeys.includes(key) || Boolean(customMinor(key));
+  if (!isKnownAttribute) {
+    return { rawTest, testName, difficulty: match?.[2] === '*' ? '*' : match?.[2] ? `${match[2]}+` : null, score: null, plusOne: null, plusD6: null };
+  }
+
+  const custom = customMinor(key);
+  const score = displayedAttributeTotal(key, custom?.total ?? attributes.value[key] ?? 0);
+  return {
+    rawTest,
+    testName,
+    difficulty: match?.[2] === '*' ? '*' : match?.[2] ? `${match[2]}+` : null,
+    score,
+    plusOne: custom?.plusOne ?? oneBonus(key, score, majorKeys.includes(key)),
+    plusD6: custom?.plusD6 ?? d6Bonus(key, score, majorKeys.includes(key)),
+  };
+});
+
 async function loadAbilities() {
   abilityCatalogLoading.value = true; abilityCatalogError.value = '';
   try { abilityCatalog.value = await api.abilities() as Ability[]; }
@@ -976,7 +1016,7 @@ watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) 
           <header class="modal-header"><div><p class="eyebrow accent">HABILIDAD OBTENIDA</p><h2 id="ability-detail-title">{{ selectedAbility.name }}</h2></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="closeAbilityDetail">×</button></header>
           <div class="modal-body ability-detail-body">
             <p class="ability-description">{{ selectedAbility.description || 'Sin descripción disponible.' }}</p>
-            <dl class="ability-meta"><div><dt>Lanzamiento</dt><dd>{{ selectedAbility.launchType || '€”' }}</dd></div><div><dt>Coste</dt><dd>{{ selectedAbility.cost ?? '€”' }}</dd></div></dl>
+            <dl class="ability-meta"><div><dt>Lanzamiento</dt><dd>{{ selectedAbility.launchType || '—' }}</dd></div><div><dt>Coste</dt><dd>{{ selectedAbility.cost ?? '—' }}</dd></div><div><dt>Prueba de activación</dt><dd v-if="abilityActivationTest">{{ abilityActivationTest.difficulty ? abilityActivationTest.testName + ' ' + abilityActivationTest.difficulty : abilityActivationTest.rawTest }}<template v-if="abilityActivationTest.score !== null"> (+{{ abilityActivationTest.plusOne }} +{{ abilityActivationTest.plusD6 }}D6)</template></dd><dd v-else>—</dd></div></dl>
           </div>
           <footer class="modal-actions"><button class="button button-quiet" type="button" @click="closeAbilityDetail">Cerrar</button></footer>
         </section>
