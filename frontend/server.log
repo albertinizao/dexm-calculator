@@ -1,0 +1,23 @@
+$ vite "--host" "0.0.0.0"
+
+  [32m[1mVITE[22m v7.3.6[39m  [2mready in [0m[1m572[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5177[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.1.201:[1m5177[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://172.25.208.1:[1m5177[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://172.20.240.1:[1m5177[22m/[39m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+[2m21:21:03[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/characters/5459d3c0-fb30-4637-9125-b779931f6974[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1193:18)
+    at afterConnectMultiple (node:net:1783:7)
+[2m21:21:03[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/campaigns[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1193:18)
+    at afterConnectMultiple (node:net:1783:7)
+[2m21:21:03[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/abilities[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1193:18)
+    at afterConnectMultiple (node:net:1783:7)
+[2m21:24:40[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m21:24:40[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m

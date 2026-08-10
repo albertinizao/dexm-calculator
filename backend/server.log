@@ -1,0 +1,76 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------------< com.dexm:personajes >-------------------------
+[INFO] Building personajes 0.1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:4.1.0:run (default-cli) > test-compile @ personajes >>>
+[INFO] 
+[INFO] --- resources:3.5.0:resources (default-resources) @ personajes ---
+[INFO] Copying 2 resources from src\main\resources to target\classes
+[INFO] Copying 183 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.15.0:compile (default-compile) @ personajes ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ personajes ---
+[INFO] skip non existing resourceDirectory C:\Users\Alberto\workspace\dexm-calculator\backend\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ personajes ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] <<< spring-boot:4.1.0:run (default-cli) < test-compile @ personajes <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:4.1.0:run (default-cli) @ personajes ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.0)
+
+2026-08-10T21:21:28.389+02:00  INFO 35356 --- [           main] c.d.p.DexmPersonajesApplication          : Starting DexmPersonajesApplication using Java 25 with PID 35356 (C:\Users\Alberto\workspace\dexm-calculator\backend\target\classes started by Alberto in C:\Users\Alberto\workspace\dexm-calculator\backend)
+2026-08-10T21:21:28.393+02:00  INFO 35356 --- [           main] c.d.p.DexmPersonajesApplication          : No active profile set, falling back to 1 default profile: "default"
+2026-08-10T21:21:28.984+02:00  INFO 35356 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-08-10T21:21:29.051+02:00  INFO 35356 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 58 ms. Found 11 JPA repository interfaces.
+2026-08-10T21:21:29.466+02:00  INFO 35356 --- [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8084 (http)
+2026-08-10T21:21:29.478+02:00  INFO 35356 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-10T21:21:29.478+02:00  INFO 35356 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.22]
+2026-08-10T21:21:29.575+02:00  INFO 35356 --- [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 1130 ms
+2026-08-10T21:21:29.787+02:00  INFO 35356 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-10T21:21:29.922+02:00  INFO 35356 --- [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.mariadb.jdbc.Connection@224c7de4
+2026-08-10T21:21:29.924+02:00  INFO 35356 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-10T21:21:29.937+02:00  INFO 35356 --- [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:mariadb://localhost/dexm_personajes?user=dexm&password=******** (MariaDB 12.3)
+2026-08-10T21:21:29.957+02:00  WARN 35356 --- [           main] o.m.jdbc.message.server.ErrorPacket      : Error: 1193-HY000: Unknown system variable 'WSREP_ON'
+2026-08-10T21:21:29.988+02:00  WARN 35356 --- [           main] o.f.c.internal.database.base.Database    : Using MariaDB 12.3 which is newer than the version Flyway has been verified with. The latest verified version of MariaDB is 11.7.
+2026-08-10T21:21:30.035+02:00  INFO 35356 --- [           main] o.f.core.internal.command.DbMigrate      : Current version of schema `dexm_personajes`: 22
+2026-08-10T21:21:30.037+02:00  INFO 35356 --- [           main] o.f.core.internal.command.DbMigrate      : Schema `dexm_personajes` is up to date. No migration necessary.
+2026-08-10T21:21:30.107+02:00  INFO 35356 --- [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-08-10T21:21:30.151+02:00  INFO 35356 --- [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.1.Final
+2026-08-10T21:21:30.504+02:00  INFO 35356 --- [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-08-10T21:21:30.569+02:00  INFO 35356 --- [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:mariadb://localhost/dexm_personajes?user=dexm&password=***]
+	Database driver: MariaDB Connector/J
+	Database dialect: MariaDBDialect
+	Database version: 12.3.2
+	Default catalog/schema: dexm_personajes/undefined
+	Autocommit mode: undefined/unknown
+	Isolation level: REPEATABLE_READ [default REPEATABLE_READ]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-08-10T21:21:31.510+02:00  INFO 35356 --- [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-08-10T21:21:31.557+02:00  INFO 35356 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-08-10T21:21:31.621+02:00  INFO 35356 --- [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-08-10T21:21:32.236+02:00  INFO 35356 --- [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8084 (http) with context path '/'
+2026-08-10T21:21:32.240+02:00  INFO 35356 --- [           main] c.d.p.DexmPersonajesApplication          : Started DexmPersonajesApplication in 4.232 seconds (process running for 4.564)
+2026-08-10T21:22:54.771+02:00  INFO 35356 --- [nio-8084-exec-3] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-08-10T21:22:54.771+02:00  INFO 35356 --- [nio-8084-exec-3] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-08-10T21:22:54.772+02:00  INFO 35356 --- [nio-8084-exec-3] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms

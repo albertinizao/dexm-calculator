@@ -1,6 +1,7 @@
 package com.dexm.personajes.adapter.in.web;
 
 import java.util.List;
+import java.math.BigDecimal;
 
 /** Common response used by major, predefined minor and custom minor attributes. */
 public record AttributeDetailDto(
@@ -19,7 +20,7 @@ public record AttributeDetailDto(
         List<ProgressionDto> progressions,
         boolean deletable
 ) {
-    public record ModifierDto(String name, int value) {}
+    public record ModifierDto(String name, BigDecimal value, String source) {}
 
     public record ProgressionDto(String kind, int number, int threshold, boolean obtained) {}
 }

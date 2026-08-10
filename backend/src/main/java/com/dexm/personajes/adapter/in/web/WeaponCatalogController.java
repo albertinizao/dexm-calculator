@@ -1,0 +1,20 @@
+package com.dexm.personajes.adapter.in.web;
+
+import com.dexm.personajes.application.WeaponCatalogService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.CacheControl;
+import java.util.concurrent.TimeUnit;
+
+@RestController
+@RequestMapping("/api/weapon-catalog")
+public class WeaponCatalogController {
+    private final WeaponCatalogService catalog;
+    public WeaponCatalogController(WeaponCatalogService catalog) { this.catalog=catalog; }
+    @GetMapping public Object search(@RequestParam(required=false) String slot, @RequestParam(required=false) String name, @RequestParam(required=false) String type) { return catalog.search(slot, name, type); }
+    @PostMapping public ResponseEntity<?> createCustom(@Valid @RequestBody CharacterController.WeaponCatalogCreateRequest request) { return ResponseEntity.status(HttpStatus.CREATED).body(catalog.createCustom(request)); }
+    @PostMapping("/{catalogId}/characters/{characterId}") public Object copyToCharacter(@PathVariable String catalogId, @PathVariable String characterId, @RequestBody CharacterController.WeaponCatalogCopyRequest request) { return catalog.copyToCharacter(catalogId, characterId, request.slot()); }
+    @GetMapping("/{catalogId}/image") public ResponseEntity<byte[]> image(@PathVariable String catalogId) { var image=catalog.image(catalogId); return ResponseEntity.ok().contentType(image.mediaType()).cacheControl(CacheControl.maxAge(7, TimeUnit.DAYS).cachePublic()).body(image.bytes()); }
+}

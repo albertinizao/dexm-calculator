@@ -18,6 +18,36 @@ export type AllocationPayload = {
   final: boolean;
 };
 
+export type CreationConfigurationPayload = {
+  mode: 'empty' | 'guided';
+  race?: string | null;
+  einherjer?: boolean | null;
+  awakened?: boolean | null;
+  einherjerOrigin?: 'converted' | 'born_human' | 'born_einherjer' | null;
+  startingAge?: number | null;
+  awakeningAge?: number | null;
+  sheetAge?: number | null;
+  selectedMajorAttributes: string[];
+  wizardState: 'empty' | 'started' | 'race' | 'majors' | 'einherjer' | 'complete';
+};
+
+export type OtherInventoryItem = {
+  id: string;
+  name: string;
+  description?: string | null;
+  location?: string | null;
+  quantity: number;
+  unitValue?: number | null;
+};
+
+export type Weapon = {
+  id: string; slot: string; name: string; weaponType: string; size: string;
+  range: number; reload: number; rate: string; damageVital: number; damageNormal: number;
+  damageLight: number; damageVeryLight: number; aim?: number | null; automaticFire?: string | null;
+  capacity: number; caliber: string; extraRule?: string | null; catalogWeaponId?: string | null; imageUrl?: string | null;
+};
+export type WeaponCatalogItem = Omit<Weapon, 'slot'> & { official: boolean };
+
 export const api = {
   campaigns: () => request('/api/campaigns'),
   createCampaign: (name: string) => request('/api/campaigns', { method: 'POST', body: JSON.stringify({ name }) }),
@@ -28,6 +58,26 @@ export const api = {
   deleteMinorAttribute: (characterId: string, definitionId: string) => request('/api/characters/' + characterId + '/minor-attributes/' + definitionId, { method: 'DELETE' }),
   characters: (campaignId: string) => request('/api/campaigns/' + campaignId + '/characters'),
   createCharacter: (campaignId: string, body: unknown) => request('/api/campaigns/' + campaignId + '/characters', { method: 'POST', body: JSON.stringify(body) }),
+  configureCreation: (id: string, body: CreationConfigurationPayload) => request('/api/characters/' + id + '/creation', { method: 'POST', body: JSON.stringify(body) }),
+  training: (id: string) => request('/api/characters/' + id + '/training'),
+  otherInventory: (id: string) => request('/api/characters/' + id + '/inventory/others') as Promise<OtherInventoryItem[]>,
+  createOtherInventory: (id: string, body: Omit<OtherInventoryItem, 'id'>) => request('/api/characters/' + id + '/inventory/others', { method: 'POST', body: JSON.stringify(body) }) as Promise<OtherInventoryItem>,
+  getOtherInventory: (id: string, itemId: string) => request('/api/characters/' + id + '/inventory/others/' + encodeURIComponent(itemId)) as Promise<OtherInventoryItem>,
+  updateOtherInventory: (id: string, itemId: string, body: Omit<OtherInventoryItem, 'id'>) => request('/api/characters/' + id + '/inventory/others/' + encodeURIComponent(itemId), { method: 'PUT', body: JSON.stringify(body) }) as Promise<OtherInventoryItem>,
+  deleteOtherInventory: (id: string, itemId: string) => request('/api/characters/' + id + '/inventory/others/' + encodeURIComponent(itemId), { method: 'DELETE' }),
+  weapons: (id: string) => request('/api/characters/' + id + '/inventory/weapons') as Promise<Weapon[]>,
+  createWeapon: (id: string, body: Omit<Weapon, 'id'>) => request('/api/characters/' + id + '/inventory/weapons', { method: 'POST', body: JSON.stringify(body) }) as Promise<Weapon>,
+  updateWeapon: (id: string, weaponId: string, body: Omit<Weapon, 'id'>) => request('/api/characters/' + id + '/inventory/weapons/' + encodeURIComponent(weaponId), { method: 'PUT', body: JSON.stringify(body) }) as Promise<Weapon>,
+  deleteWeapon: (id: string, weaponId: string) => request('/api/characters/' + id + '/inventory/weapons/' + encodeURIComponent(weaponId), { method: 'DELETE' }),
+  moveWeapon: (id: string, weaponId: string, slot: string) => request('/api/characters/' + id + '/inventory/weapons/' + encodeURIComponent(weaponId) + '/move', { method: 'POST', body: JSON.stringify({ slot }) }) as Promise<Weapon>,
+  weaponCatalog: (slot?: string, name?: string, type?: string) => request('/api/weapon-catalog?' + new URLSearchParams(Object.entries({ slot:slot || '', name:name || '', type:type || '' }).filter(([, value]) => value) as [string,string][])) as Promise<WeaponCatalogItem[]>,
+  createCatalogWeapon: (body: Omit<WeaponCatalogItem, 'id' | 'official'>) => request('/api/weapon-catalog', { method: 'POST', body: JSON.stringify(body) }) as Promise<WeaponCatalogItem>,
+  addCatalogWeaponToCharacter: (catalogId: string, characterId: string, slot: string) => request('/api/weapon-catalog/' + encodeURIComponent(catalogId) + '/characters/' + encodeURIComponent(characterId), { method: 'POST', body: JSON.stringify({ slot }) }) as Promise<Weapon>,
+  previewTraining: (id: string, body: unknown) => request('/api/characters/' + id + '/training/preview', { method: 'POST', body: JSON.stringify(body) }),
+  reorderTraining: (id: string, activityIds: string[]) => request('/api/characters/' + id + '/training/reorder', { method: 'POST', body: JSON.stringify({ activityIds }) }),
+  addTraining: (id: string, body: unknown) => request('/api/characters/' + id + '/training', { method: 'POST', body: JSON.stringify(body) }),
+  updateTraining: (id: string, activityId: string, body: unknown) => request('/api/characters/' + id + '/training/' + encodeURIComponent(activityId), { method: 'PUT', body: JSON.stringify(body) }),
+  deleteTraining: (id: string, activityId: string) => request('/api/characters/' + id + '/training/' + encodeURIComponent(activityId), { method: 'DELETE' }),
   list: () => request('/api/characters'),
   create: (name: string) => request('/api/characters', { method: 'POST', body: JSON.stringify({ name }) }),
   get: (id: string) => request('/api/characters/' + id),
