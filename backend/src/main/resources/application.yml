@@ -8,7 +8,7 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:mariadb://localhost:3306/dexm_personajes}
     username: ${DB_USERNAME:dexm}
-    password: ${DB_PASSWORD:KpDC5EvmZPTymucP0pbr}
+    password: ${DB_PASSWORD:XXXX}
   jpa:
     hibernate.ddl-auto: validate
     open-in-view: false
@@ -18,7 +18,7 @@ spring:
       client:
         registration:
           google:
-            client-id: ${GOOGLE_CLIENT_ID:367992681997-ssehf8iobicne0n2jdnvq9d85dbgu6ke.apps.googleusercontent.com}
+            client-id: ${GOOGLE_CLIENT_ID:XXXX-ssehf8iobicne0n2jdnvq9d85dbgu6ke.apps.googleusercontent.com}
             client-secret: ${GOOGLE_CLIENT_SECRET}
             scope: openid,profile,email
             redirect-uri: ${app.security.frontend-url}login/oauth2/code/{registrationId}
