@@ -12,3 +12,12 @@ The default connection is `jdbc:mariadb://localhost:3306/dexm_personajes` with
 `dexm` credentials. Override `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` and
 `SERVER_PORT` for another local environment. Tests use H2 with the `test`
 profile.
+
+## Google login (local)
+
+Create a Google OAuth web client and register
+`http://localhost:8084/login/oauth2/code/google` as an authorized redirect URI.
+Before starting the backend, set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
+The administrator defaults to `albertinizao@gmail.com`; override it with
+`APP_SECURITY_ADMIN_EMAILS` (comma-separated). Set `APP_SECURITY_FRONTEND_URL`
+to the public frontend URL in production.

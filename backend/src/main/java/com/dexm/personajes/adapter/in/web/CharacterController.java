@@ -3,6 +3,8 @@ package com.dexm.personajes.adapter.in.web;
 import com.dexm.personajes.application.CharacterService;
 import com.dexm.personajes.application.OtherInventoryService;
 import com.dexm.personajes.application.WeaponInventoryService;
+import com.dexm.personajes.application.ProtectiveEquipmentService;
+import com.dexm.personajes.application.AmmunitionInventoryService;
 import com.dexm.personajes.domain.CharacterCreationRules;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
@@ -17,15 +19,18 @@ import java.util.List;
 import java.util.Map;
 import java.math.BigDecimal;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import com.dexm.personajes.security.AuthorizationService;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @RestController
 @RequestMapping("/api/characters")
 public class CharacterController {
     private final CharacterService service;
     private final OtherInventoryService otherInventory;
-    private final WeaponInventoryService weaponInventory;
+    private final WeaponInventoryService weaponInventory; private final ProtectiveEquipmentService protective; private final AmmunitionInventoryService ammunition; private final AuthorizationService authorization;
 
-    public CharacterController(CharacterService service, OtherInventoryService otherInventory, WeaponInventoryService weaponInventory) { this.service = service; this.otherInventory = otherInventory; this.weaponInventory = weaponInventory; }
+    public CharacterController(CharacterService service, OtherInventoryService otherInventory, WeaponInventoryService weaponInventory, ProtectiveEquipmentService protective, AmmunitionInventoryService ammunition, AuthorizationService authorization) { this.service = service; this.otherInventory = otherInventory; this.weaponInventory = weaponInventory; this.protective = protective; this.ammunition = ammunition; this.authorization = authorization; }
 
     public record CreateRequest(@NotBlank String name) {}
 
@@ -80,7 +85,9 @@ public class CharacterController {
                                 @NotBlank String rate, @NotNull @DecimalMin("0.0") BigDecimal damageVital,
                                 @NotNull @DecimalMin("0.0") BigDecimal damageNormal, @NotNull @DecimalMin("0.0") BigDecimal damageLight,
                                 @NotNull @DecimalMin("0.0") BigDecimal damageVeryLight, BigDecimal aim,
-                                String automaticFire, @NotNull @DecimalMin("0.0") BigDecimal capacity, @NotBlank String caliber,
+                                String automaticFire, @NotNull @DecimalMin("0.0") BigDecimal capacity,
+                                @Digits(integer = 12, fraction = 0) @DecimalMin("0.0") BigDecimal loadedBullets,
+                                @NotBlank String caliber,
                                 String extraRule) {}
     public record WeaponCatalogCreateRequest(@NotBlank String name, @NotBlank String weaponType, @NotBlank String size,
                                 @NotNull @DecimalMin("0.0") BigDecimal range, @NotNull @DecimalMin("0.0") BigDecimal reload,
@@ -89,12 +96,18 @@ public class CharacterController {
                                 BigDecimal aim, String automaticFire, @NotNull @DecimalMin("0.0") BigDecimal capacity, @NotBlank String caliber,
                                 String extraRule, String imageUrl) {}
     public record WeaponCatalogCopyRequest(@NotBlank String slot) {}
+    public record ArmorRequest(@NotBlank String name, String description, @NotNull Map<String, Map<String, Integer>> slots, String imageUrl) {}
+    public record ShieldRequest(@NotBlank String name, String description, @NotNull @Min(0) Integer hitPoints, String imageUrl) {}
+    public record PhysicalShieldRequest(@NotBlank String name, String description, @NotNull @Min(0) Integer rd, @NotNull @Min(0) Integer armor, @NotNull Integer defense, String otherEffects, String imageUrl) {}
+    public record AmmunitionRequest(@NotBlank String caliber, @NotNull @Min(1) Integer quantity) {}
+    public record AmmunitionDecrementRequest(Integer amount) {}
 
     @GetMapping
     public List<?> list() { return service.list(); }
 
     @PostMapping
     public ResponseEntity<?> create(@Valid @RequestBody CreateRequest request) {
+        authorization.requireAdmin(SecurityContextHolder.getContext().getAuthentication());
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request.name()));
     }
 
@@ -140,6 +153,57 @@ public class CharacterController {
     public void deleteWeapon(@PathVariable String id, @PathVariable String weaponId) { weaponInventory.delete(id, weaponId); }
     @PostMapping("/{id}/inventory/weapons/{weaponId}/move")
     public Object moveWeapon(@PathVariable String id, @PathVariable String weaponId, @RequestBody Map<String,String> request) { return weaponInventory.move(id, weaponId, request.get("slot")); }
+    @PostMapping("/{id}/inventory/weapons/{weaponId}/reload")
+    public Object reloadWeapon(@PathVariable String id, @PathVariable String weaponId) { return ammunition.reload(id, weaponId); }
+    @PostMapping("/{id}/inventory/weapons/{weaponId}/shoot")
+    public Object shootWeapon(@PathVariable String id, @PathVariable String weaponId, @RequestBody Map<String, Object> request) {
+        return weaponInventory.shoot(id, weaponId, shootCommand(request));
+    }
+
+    private WeaponInventoryService.ShootCommand shootCommand(Map<String, Object> request) {
+        if (request == null) throw new IllegalArgumentException("El disparo es obligatorio");
+        Object modeValue = request.get("mode");
+        String mode = modeValue == null ? null : String.valueOf(modeValue);
+        Object shotsNode = request.containsKey("shots") ? request.get("shots")
+                : request.containsKey("count") ? request.get("count")
+                : request.get("requested");
+        Integer shots = null;
+        if (shotsNode != null) {
+            if (!(shotsNode instanceof Number number) || number.doubleValue() % 1 != 0) {
+                throw new IllegalArgumentException("La cantidad de disparos debe ser un entero");
+            }
+            shots = number.intValue();
+        }
+        if (mode == null && shots != null) mode = "normal";
+        return new WeaponInventoryService.ShootCommand(mode, shots);
+    }
+
+    @GetMapping("/{id}/inventory/ammunition")
+    public Object ammunition(@PathVariable String id) { return ammunition.list(id); }
+    @GetMapping("/{id}/inventory/ammunition/calibers")
+    public Object ammunitionCalibers(@PathVariable String id) { return ammunition.calibers(id); }
+    @PostMapping("/{id}/inventory/ammunition")
+    public ResponseEntity<?> createAmmunition(@PathVariable String id, @Valid @RequestBody AmmunitionRequest request) { return ResponseEntity.status(HttpStatus.CREATED).body(ammunition.create(id, request)); }
+    @PutMapping("/{id}/inventory/ammunition/{ammunitionId}")
+    public Object updateAmmunition(@PathVariable String id, @PathVariable String ammunitionId, @Valid @RequestBody AmmunitionRequest request) { return ammunition.update(id, ammunitionId, request); }
+    @PostMapping("/{id}/inventory/ammunition/{ammunitionId}/decrement")
+    public ResponseEntity<?> decrementAmmunition(@PathVariable String id, @PathVariable String ammunitionId, @RequestBody AmmunitionDecrementRequest request) {
+        var result = ammunition.decrement(id, ammunitionId, request == null ? null : request.amount());
+        return result == null ? ResponseEntity.noContent().build() : ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/{id}/inventory/armors") public Object armors(@PathVariable String id){return protective.listArmors(id);}
+    @PostMapping("/{id}/inventory/armors") public ResponseEntity<?> createArmor(@PathVariable String id,@Valid @RequestBody ArmorRequest r){return ResponseEntity.status(HttpStatus.CREATED).body(protective.createArmor(id,r));}
+    @PutMapping("/{id}/inventory/armors/{armorId}") public Object updateArmor(@PathVariable String id,@PathVariable String armorId,@Valid @RequestBody ArmorRequest r){return protective.updateArmor(id,armorId,r);}
+    @DeleteMapping("/{id}/inventory/armors/{armorId}") @ResponseStatus(HttpStatus.NO_CONTENT) public void deleteArmor(@PathVariable String id,@PathVariable String armorId){protective.deleteArmor(id,armorId);}
+    @GetMapping("/{id}/inventory/shields") public Object shields(@PathVariable String id){return protective.listShields(id);}
+    @PostMapping("/{id}/inventory/shields") public ResponseEntity<?> createShield(@PathVariable String id,@Valid @RequestBody ShieldRequest r){return ResponseEntity.status(HttpStatus.CREATED).body(protective.createShield(id,r));}
+    @PutMapping("/{id}/inventory/shields/{shieldId}") public Object updateShield(@PathVariable String id,@PathVariable String shieldId,@Valid @RequestBody ShieldRequest r){return protective.updateShield(id,shieldId,r);}
+    @DeleteMapping("/{id}/inventory/shields/{shieldId}") @ResponseStatus(HttpStatus.NO_CONTENT) public void deleteShield(@PathVariable String id,@PathVariable String shieldId){protective.deleteShield(id,shieldId);}
+    @GetMapping("/{id}/inventory/physical-shields") public Object physicalShields(@PathVariable String id){return protective.listPhysicalShields(id);}
+    @PostMapping("/{id}/inventory/physical-shields") public ResponseEntity<?> createPhysicalShield(@PathVariable String id,@Valid @RequestBody PhysicalShieldRequest r){return ResponseEntity.status(HttpStatus.CREATED).body(protective.createPhysicalShield(id,r));}
+    @PutMapping("/{id}/inventory/physical-shields/{shieldId}") public Object updatePhysicalShield(@PathVariable String id,@PathVariable String shieldId,@Valid @RequestBody PhysicalShieldRequest r){return protective.updatePhysicalShield(id,shieldId,r);}
+    @DeleteMapping("/{id}/inventory/physical-shields/{shieldId}") @ResponseStatus(HttpStatus.NO_CONTENT) public void deletePhysicalShield(@PathVariable String id,@PathVariable String shieldId){protective.deletePhysicalShield(id,shieldId);}
 
     @PostMapping("/{id}/training/preview")
     public Object previewTraining(@PathVariable String id, @Valid @RequestBody TrainingPreviewRequest request) {

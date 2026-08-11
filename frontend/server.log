@@ -21,3 +21,171 @@ AggregateError [ECONNREFUSED]:
     at afterConnectMultiple (node:net:1783:7)
 [2m21:24:40[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
 [2m21:24:40[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m23:54:47[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue, /src/CharacterSheet.vue[22m
+[2m23:54:53[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue, /src/CharacterSheet.vue[22m
+[2m23:55:13[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue[22m
+[2m23:55:27[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue[22m
+[2m23:55:45[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue[22m
+[2m23:57:47[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m10:54:19[22m [36m[1m[vite][22m[39m [32mvite.config.ts changed, restarting server...[39m
+[2m10:54:19[22m [36m[1m[vite][22m[39m server restarted.
+[2m11:07:12[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue, /src/CharacterSheet.vue[22m
+[2m11:07:13[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue[22m
+[2m11:11:44[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue[22m
+[2m11:22:10[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue[22m
+[2m11:22:20[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m11:27:38[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m11:32:11[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m11:34:50[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m11:48:27[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m11:55:10[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m12:00:04[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m12:00:35[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m12:00:56[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m12:05:12[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m12:05:21[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m13:16:52[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue, /src/CharacterSheet.vue[22m
+[2m13:17:07[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m13:20:33[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m13:21:17[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m13:21:17[22m [31m[1m[vite][22m[39m [31mInternal server error: v-else/v-else-if has no adjacent v-if or v-else-if.[39m
+  Plugin: [35mvite:vue[39m
+  File: [36mC:/Users/Alberto/workspace/dexm-calculator/frontend/src/CharacterSheet.vue[39m:1268:7
+[33m  1266 |        </section>
+  1267 |  
+  1268 |        <section v-else-if="sheetView === 'armor-detail'" class="sheet-content inventory-content"><div class="sheet-hea...
+       |         ^
+  1269 |  
+  1270 |        <section v-else-if="sheetView === 'shield-detail'" class="sheet-content inventory-content"><div class="sheet-he...[39m
+      at createCompilerError (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:1378:17)
+      at processIf (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:4772:13)
+      at C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:4705:12
+      at Array.<anonymous> (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:3686:26)
+      at traverseNode (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:3628:38)
+      at traverseChildren (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:3620:5)
+      at traverseNode (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:3663:7)
+      at traverseChildren (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:3620:5)
+      at traverseNode (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:3663:7)
+      at processIf (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:4798:9)
+[2m13:21:22[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m13:21:58[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m13:22:05[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue, /src/CharacterSheet.vue[22m
+[2m13:24:03[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m13:32:14[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m13:32:14[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m13:38:01[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m13:38:12[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m13:43:17[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m13:43:37[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m13:47:44[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m13:47:54[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m13:48:05[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m13:48:12[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m13:48:19[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m13:58:45[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue, /src/CharacterSheet.vue[22m
+[2m13:59:22[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m14:00:17[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m14:01:02[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m14:01:39[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m14:01:58[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m14:02:11[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m14:02:21[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m14:02:32[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m14:07:00[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m14:07:06[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m14:07:11[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m14:10:43[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m14:11:22[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m14:11:22[22m [31m[1m[vite][22m[39m [31mInternal server error: Error parsing JavaScript expression: Unexpected token, expected "," (1:17)[39m
+  Plugin: [35mvite:vue[39m
+  File: [36mC:/Users/Alberto/workspace/dexm-calculator/frontend/src/CharacterSheet.vue[39m:1292:27
+[33m  1290 |  
+  1291 |        <section v-else-if="sheetView === 'shield-detail'" class="sheet-content inventory-content"><div class="sheet-he...
+  1292 |        <section v-else-if="sheetView === ''physical-shield-detail''" class="sheet-content inventory-content"><div clas...
+       |                             ^
+  1293 |  
+  1294 |  [39m
+      at createCompilerError (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:1378:17)
+      at emitError (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:3035:5)
+      at createExp (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:3028:7)
+      at Object.onattribend (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:2553:29)
+      at Tokenizer.handleInAttrValue (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:959:16)
+      at Tokenizer.stateInAttrValueDoubleQuotes (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:969:10)
+      at Tokenizer.parse (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:1113:16)
+      at Object.baseParse (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:3074:13)
+      at Object.parse (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-dom@3.5.40\node_modules\@vue\compiler-dom\dist\compiler-dom.cjs.js:910:23)
+      at Object.parse$1 [as parse] (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-sfc@3.5.40\node_modules\@vue\compiler-sfc\dist\compiler-sfc.cjs.js:1824:24)
+[2m14:11:47[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m14:12:15[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m15:37:48[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue, /src/CharacterSheet.vue[22m
+[2m15:38:21[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m15:38:59[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m15:39:05[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m16:54:00[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue, /src/CharacterSheet.vue[22m
+[2m16:54:00[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m16:54:00[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m16:54:21[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m17:07:13[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m17:07:13[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m17:08:10[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m17:16:16[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue, /src/CharacterSheet.vue[22m
+[2m17:16:16[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m17:37:42[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m17:37:42[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m17:48:24[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue, /src/CharacterSheet.vue[22m
+[2m17:48:24[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m17:48:24[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m18:09:07[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue, /src/CharacterSheet.vue[22m
+[2m18:09:48[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m18:10:12[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m18:11:07[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m18:11:14[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m18:13:59[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue, /src/CharacterSheet.vue[22m
+[2m18:15:04[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.vue, /src/CharacterSheet.vue[22m
+[2m18:20:27[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m18:20:46[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m19:06:45[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m19:07:06[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m19:07:11[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m19:07:37[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m19:07:48[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m19:07:53[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m19:08:57[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m19:09:16[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m19:12:21[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m19:13:36[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m19:13:45[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m19:13:49[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m19:38:32[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m19:38:41[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m19:38:48[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m19:41:34[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m19:48:23[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m19:48:30[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m19:49:49[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m19:53:53[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m19:53:53[22m [31m[1m[vite][22m[39m [31mInternal server error: Element is missing end tag.[39m
+  Plugin: [35mvite:vue[39m
+  File: [36mC:/Users/Alberto/workspace/dexm-calculator/frontend/src/CharacterSheet.vue[39m:1532:13
+[33m  1530 |            <p class="attribute-roll-help">Selecciona 1 D10 y 2 D6. Los dados seleccionados se suman al resultado.</p>
+  1531 |            <div class="attribute-roll-layout">
+  1532 |              <section class="attribute-roll-dice-group attribute-roll-d10-group" aria-labelledby="attribute-roll-d10-l...
+       |               ^
+  1533 |                <h3 id="attribute-roll-d10-label">D10</h3>
+  1534 |                <div class="attribute-roll-dice d10-dice">[39m
+      at createCompilerError (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:1378:17)
+      at emitError (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:3035:5)
+      at Object.onclosetag (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:2402:13)
+      at Tokenizer.stateInClosingTagName (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:799:16)
+      at Tokenizer.parse (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:1157:16)
+      at Object.baseParse (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-core@3.5.40\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:3074:13)
+      at Object.parse (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-dom@3.5.40\node_modules\@vue\compiler-dom\dist\compiler-dom.cjs.js:910:23)
+      at Object.parse$1 [as parse] (C:\Users\Alberto\workspace\dexm-calculator\frontend\node_modules\.pnpm\@vue+compiler-sfc@3.5.40\node_modules\@vue\compiler-sfc\dist\compiler-sfc.cjs.js:1824:24)
+      at createDescriptor (file:///C:/Users/Alberto/workspace/dexm-calculator/frontend/node_modules/.pnpm/@vitejs+plugin-vue@6.0.8_vi_ec2ecaa1a70101908f8159cb98b0e997/node_modules/@vitejs/plugin-vue/dist/index.mjs:50:42)
+      at handleHotUpdate (file:///C:/Users/Alberto/workspace/dexm-calculator/frontend/node_modules/.pnpm/@vitejs+plugin-vue@6.0.8_vi_ec2ecaa1a70101908f8159cb98b0e997/node_modules/@vitejs/plugin-vue/dist/index.mjs:1197:25)
+[2m19:54:02[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m19:54:18[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m19:55:58[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m20:02:23[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/CharacterSheet.vue[22m
+[2m20:02:35[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m
+[2m20:07:43[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles.css[22m

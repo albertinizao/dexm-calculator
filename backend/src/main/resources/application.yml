@@ -9,4 +9,15 @@ spring:
     hibernate.ddl-auto: validate
     open-in-view: false
   flyway.enabled: true
-
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:367992681997-ssehf8iobicne0n2jdnvq9d85dbgu6ke.apps.googleusercontent.com}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: openid,profile,email
+app:
+  security:
+    admin-emails: ${APP_SECURITY_ADMIN_EMAILS:albertinizao@gmail.com}
+    frontend-url: ${APP_SECURITY_FRONTEND_URL:http://localhost:5177/}

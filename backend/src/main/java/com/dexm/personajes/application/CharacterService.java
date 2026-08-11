@@ -16,6 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.math.BigDecimal;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.dexm.personajes.security.SecurityIdentityService;
 
 @Service
 public class CharacterService {
@@ -45,6 +48,7 @@ public class CharacterService {
     private final MinorAttributeDefinitionRepository minorDefs;
     private final CharacterAttributeModifierRepository modifiers;
     private final TrainingActivityRepository trainingActivities;
+    @Autowired private SecurityIdentityService identities;
 
     public CharacterService(CharacterRepository characters, MilestoneRepository milestones, AbilityRepository abilities,
                              ObjectMapper json, MinorAttributeService minorAttributes,
@@ -71,7 +75,13 @@ public class CharacterService {
         this.trainingActivities = trainingActivities;
     }
 
-    public List<CharacterEntity> list() { return characters.findAll(); }
+    public List<CharacterEntity> list() {
+        var all=characters.findAll();
+        var auth=SecurityContextHolder.getContext().getAuthentication();
+        if (identities==null || auth==null || !auth.isAuthenticated() || identities.isAdmin(identities.current(auth))) return all;
+        var owner=identities.requireCurrentUser(auth).getId();
+        return all.stream().filter(c->owner.equals(c.getOwnerUserId())).toList();
+    }
     public List<CharacterEntity> listByCampaign(String campaignId) { return characters.findByCampaignIdOrderByNameAsc(campaignId); }
 
     @Transactional
@@ -118,6 +128,7 @@ public class CharacterService {
             var gen = CharacterRules.zeroValues(CharacterRules.GENETICS);
             var c = new CharacterEntity(UUID.randomUUID().toString(), campaignId, name, imageUrl, 0,
                     json.writeValueAsString(attrs), json.writeValueAsString(gen));
+            if (identities != null) c.setOwnerUserId(identities.requireCurrentUser(SecurityContextHolder.getContext().getAuthentication()).getId());
             c.setClosed(true);
             return characters.save(c);
         } catch (Exception e) {

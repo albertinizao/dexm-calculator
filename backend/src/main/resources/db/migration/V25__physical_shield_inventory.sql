@@ -1,0 +1,2 @@
+create table physical_shield_inventory (id varchar(255) not null, character_id varchar(255) not null, name varchar(255) not null, description text, rd int not null, armor int not null, defense int not null, other_effects text, image_url longtext, primary key (id), constraint uk_physical_shield_character unique(character_id));
+create table physical_shield_catalog (id varchar(255) not null, name varchar(255) not null, description text, rd int not null, armor int not null, defense int not null, other_effects text, image_url longtext, official boolean not null, primary key(id));

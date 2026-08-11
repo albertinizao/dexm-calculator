@@ -4,7 +4,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import { useRoute, useRouter } from 'vue-router';
 
-import { api, type AllocationPayload, type OtherInventoryItem, type Weapon, type WeaponCatalogItem } from './services/api';
+import { api, type AllocationPayload, type Ammunition, type Armor, type ArmorCatalogItem, type ArmorSlot, type OtherInventoryItem, type PhysicalShield, type PhysicalShieldCatalogItem, type Shield, type ShieldCatalogItem, type Weapon, type WeaponCatalogItem } from './services/api';
 
 
 
@@ -28,6 +28,8 @@ type DerivedStat = { key: string; name: string; formula: string; baseValue: numb
 type Progression = { kind: string; number: number; threshold: number; obtained: boolean };
 type AttributeDetail = { key:string; definitionId?:string | null; name:string; type:string; total:number; ranks:number; maxRanks:number | null; formula:string; calculatedValue:number; plusOne:number; plusD6:number; modifiers:AttributeModifier[]; progressions:Progression[]; deletable:boolean };
 type AttributeRow = { key:string; name:string; value:number; definitionId?:string; deletable?:boolean };
+type AttributeRollDie = { id:string; type:'d10' | 'd6'; value:number; selected:boolean };
+type AttributeRollState = { key:string; name:string; score:number; plusOne:number; plusD6:number; dice:AttributeRollDie[] };
 type Ability = { name:string; description?:string; launchType?:string; cost?:number | string | null; test?:string; alternativesJson?:string; uniqueFlag?:string };
 type PendingUniqueAbility = Ability & { requirements: unknown };
 type LastUpgrade = { available:boolean; current?:{level:number; closedAt:string}; previous?:{level:number; closedAt:string}; scores?:{key:string; type:string; before:number; after:number; increase:number}[]; bonuses?:{key:string; plusOne:number; plusD6:number}[]; modifiers?:{key:string; name:string; before:number|null; after:number|null}[]; abilities?:string[] };
@@ -54,6 +56,8 @@ const attributeDetail = ref<AttributeDetail | null>(null);
 const detailLoading = ref(false);
 const detailError = ref('');
 const showAttributeDetail = ref(false);
+const showAttributeRoll = ref(false);
+const attributeRoll = ref<AttributeRollState | null>(null);
 const deletingAttribute = ref(false);
 const modifierDraft = ref<Record<string, AttributeModifier[]>>({});
 const modifierSaveBusy = ref(false);
@@ -75,7 +79,7 @@ const allocationModal = ref<HTMLElement | null>(null);
 const abilityCatalog = ref<Ability[]>([]);
 const abilityCatalogLoading = ref(false);
 const abilityCatalogError = ref('');
-const sheetView = ref<'sheet' | 'abilities' | 'inventory' | 'inventory-type' | 'inventory-detail' | 'weapon-choice' | 'weapon-catalog' | 'weapon-detail'>('sheet');
+const sheetView = ref<'sheet' | 'abilities' | 'inventory' | 'inventory-type' | 'inventory-detail' | 'ammunition-detail' | 'weapon-choice' | 'weapon-catalog' | 'weapon-detail' | 'armor-choice' | 'armor-catalog' | 'armor-detail' | 'shield-choice' | 'shield-catalog' | 'shield-detail' | 'physical-shield-detail'>('sheet');
 const otherInventory = ref<OtherInventoryItem[]>([]);
 const inventoryLoading = ref(false);
 const inventoryError = ref('');
@@ -83,12 +87,42 @@ const selectedOtherItem = ref<OtherInventoryItem | null>(null);
 const inventoryDraft = ref<Omit<OtherInventoryItem, 'id'>>({ name: '', description: '', location: '', quantity: 1, unitValue: 0 });
 const inventorySaving = ref(false);
 const inventoryDeleting = ref(false);
+const ammunition = ref<Ammunition[]>([]);
+const ammunitionCalibers = ref<string[]>([]);
+const selectedAmmunition = ref<Ammunition | null>(null);
+const ammunitionDraft = ref<Omit<Ammunition, 'id'>>({ caliber: '', quantity: 1 });
+const ammunitionSaving = ref(false);
+const ammunitionDeleting = ref(false);
 const weapons = ref<Weapon[]>([]);
-const weaponDraft = ref<Omit<Weapon, 'id'>>({slot:'SMALL_1',name:'',weaponType:'PISTOLA',size:'PEQUENA',range:0,reload:0,rate:'',damageVital:0,damageNormal:0,damageLight:0,damageVeryLight:0,aim:null,automaticFire:'',capacity:0,caliber:'',extraRule:''});
+const weaponDraft = ref<Omit<Weapon, 'id'>>({slot:'SMALL_1',name:'',weaponType:'PISTOLA',size:'PEQUENA',range:0,reload:0,rate:'',damageVital:0,damageNormal:0,damageLight:0,damageVeryLight:0,aim:null,automaticFire:'',capacity:0,loadedBullets:0,caliber:'',extraRule:''});
 const catalogWeapons = ref<WeaponCatalogItem[]>([]); const catalogSearch = ref(''); const catalogType = ref(''); const catalogLoading = ref(false); const catalogSlot = ref('SMALL_1'); const customImageUrl = ref<string | null>(null);
 const selectedWeapon = ref<Weapon | null>(null);
+const showWeaponDetailModal = ref(false);
+const weaponEditMode = ref(false);
+const selectedCatalogWeapon = ref<WeaponCatalogItem | null>(null);
+const showCatalogWeaponModal = ref(false);
 const weaponSlotLocked = ref(false);
 const weaponSaving = ref(false); const weaponDeleting = ref(false); const weaponMoving = ref(false);
+const weaponReloading = ref(false); const weaponShooting = ref(false);
+const shootWeaponTarget = ref<Weapon | null>(null); const showShootModal = ref(false);
+const armors = ref<Armor[]>([]); const shields = ref<Shield[]>([]); const physicalShields = ref<PhysicalShield[]>([]);
+const armorDraft = ref<Omit<Armor, 'id'>>({ name:'', description:'', slots:[], rdBySlot:{HEAD:0,BODY:0,LEGS:0,ARMS:0}, armorBySlot:{HEAD:0,BODY:0,LEGS:0,ARMS:0}, imageUrl:null });
+const shieldDraft = ref<Omit<Shield, 'id'>>({ name:'', description:'', hitPoints:0, imageUrl:null });
+const physicalShieldDraft = ref<Omit<PhysicalShield, 'id'>>({ name:'', description:'', rd:0, armor:0, defense:0, otherEffects:'', imageUrl:null });
+const catalogArmors = ref<ArmorCatalogItem[]>([]); const catalogShields = ref<ShieldCatalogItem[]>([]);
+const selectedArmor = ref<Armor | null>(null); const selectedShield = ref<Shield | null>(null);
+const selectedPhysicalShield = ref<PhysicalShield | null>(null);
+const showArmorDetailModal = ref(false);
+const showShieldDetailModal = ref(false);
+const showPhysicalShieldDetailModal = ref(false);
+const selectedCatalogArmor = ref<ArmorCatalogItem | null>(null); const selectedCatalogShield = ref<ShieldCatalogItem | null>(null);
+const showCatalogArmorModal = ref(false); const showCatalogShieldModal = ref(false);
+const armorCatalogMode = ref(false); const shieldCatalogMode = ref(false);
+const armorImageUrl = ref<string | null>(null); const shieldImageUrl = ref<string | null>(null);
+const armorCatalogLoading = ref(false); const shieldCatalogLoading = ref(false);
+const armorSaving = ref(false); const armorDeleting = ref(false); const shieldSaving = ref(false); const shieldDeleting = ref(false);
+const armorSlots = [{value:'HEAD' as ArmorSlot,label:'Cabeza'},{value:'BODY' as ArmorSlot,label:'Cuerpo'},{value:'LEGS' as ArmorSlot,label:'Piernas'},{value:'ARMS' as ArmorSlot,label:'Brazos'}];
+const occupiedArmorSlots = computed(() => new Set(armors.value.filter(item => !selectedArmor.value || item.id !== selectedArmor.value.id).flatMap(item => item.slots)));
 const weaponTypes = [{value:'PISTOLA',label:'Pistola'},{value:'SUBFUSIL',label:'Subfusil'},{value:'FUSIL',label:'Fusil'},{value:'RIFLE_CAZA',label:'Rifle de caza'},{value:'FUSIL_FRANCOTIRADOR',label:'Fusil de francotirador'},{value:'AMETRALLADORA_LIGERA',label:'Ametralladora ligera'},{value:'ESCOPETA',label:'Escopeta'},{value:'CUERPO_PEQUENA',label:'Cuerpo a cuerpo pequeña'},{value:'CUERPO_MEDIANA',label:'Cuerpo a cuerpo mediana'},{value:'CUERPO_PESADA',label:'Cuerpo a cuerpo pesada'}];
 const weaponSizes = [{value:'PEQUENA',label:'Pequeña'},{value:'MEDIANA',label:'Mediana'},{value:'GRANDE',label:'Grande'},{value:'ENORME',label:'Enorme'}];
 const weaponSlots = [{value:'SMALL_1',label:'Pequeña 1',kind:'small'},{value:'SMALL_2',label:'Pequeña 2',kind:'small'},{value:'SMALL_3',label:'Pequeña 3',kind:'small'},{value:'MEDIUM_1',label:'Mediana 1',kind:'medium'},{value:'MEDIUM_2',label:'Mediana 2',kind:'medium'},{value:'ANY',label:'Universal',kind:'any'}];
@@ -512,6 +546,87 @@ function d6Bonus(key: string, value: number, major: boolean) {
 
 }
 
+function attributeRollDetails(key: string, fallback: number, major: boolean): Omit<AttributeRollState, 'dice'> {
+  const custom = customMinor(key);
+  const score = displayedAttributeTotal(key, custom?.total ?? fallback);
+  return {
+    key,
+    name: attributeLabels[key] || custom?.name || key,
+    score,
+    plusOne: custom?.plusOne ?? oneBonus(key, score, major),
+    plusD6: custom?.plusD6 ?? d6Bonus(key, score, major),
+  };
+}
+
+function randomDieValue(sides: number): number {
+  return Math.floor(Math.random() * sides) + 1;
+}
+
+function createAttributeRollDice(plusD6: number): AttributeRollDie[] {
+  const d10: AttributeRollDie = { id: 'd10', type: 'd10', value: randomDieValue(10), selected: true };
+  const d6Dice = Array.from({ length: 2 + Math.max(0, Math.floor(Number(plusD6) || 0)) }, (_, index) => ({
+    id: `d6-${index + 1}`,
+    type: 'd6' as const,
+    value: randomDieValue(6),
+    selected: false,
+  }));
+  const selectedD6Ids = new Set(d6Dice
+    .slice()
+    .sort((left, right) => right.value - left.value || left.id.localeCompare(right.id))
+    .slice(0, 2)
+    .map(die => die.id));
+  return [d10, ...d6Dice.map(die => ({ ...die, selected: selectedD6Ids.has(die.id) }))];
+}
+
+function openAttributeRoll(key: string, fallback: number, major: boolean) {
+  const details = attributeRollDetails(key, fallback, major);
+  attributeRoll.value = { ...details, dice: createAttributeRollDice(details.plusD6) };
+  showAttributeRoll.value = true;
+  nextTick(() => document.getElementById('attribute-roll-close')?.focus());
+}
+
+function closeAttributeRoll() {
+  showAttributeRoll.value = false;
+  attributeRoll.value = null;
+}
+
+function rerollAttribute() {
+  if (!attributeRoll.value) return;
+  attributeRoll.value = { ...attributeRoll.value, dice: createAttributeRollDice(attributeRoll.value.plusD6) };
+}
+
+function toggleAttributeRollDie(id: string) {
+  if (!attributeRoll.value) return;
+  attributeRoll.value = {
+    ...attributeRoll.value,
+    dice: attributeRoll.value.dice.map(die => die.id === id ? { ...die, selected: !die.selected } : die),
+  };
+}
+
+function attributeRollDieImage(die: AttributeRollDie): string {
+  const sides = die.type === 'd10' ? 'D10' : 'D6';
+  return die.selected ? `/dice${sides}.png` : `/dice${sides}Blanco.png`;
+}
+
+const selectedAttributeRollD10 = computed(() => attributeRoll.value?.dice.find(die => die.type === 'd10' && die.selected)?.value ?? null);
+const selectedAttributeRollD6 = computed(() => attributeRoll.value?.dice.filter(die => die.type === 'd6' && die.selected).map(die => die.value) ?? []);
+const attributeRollD10Dice = computed(() => attributeRoll.value?.dice.filter(die => die.type === 'd10') ?? []);
+const attributeRollD6Dice = computed(() => attributeRoll.value?.dice.filter(die => die.type === 'd6') ?? []);
+const attributeRollHasValidSelection = computed(() => selectedAttributeRollD10.value !== null && selectedAttributeRollD6.value.length === 2);
+const attributeRollMissingSelection = computed(() => {
+  const missing: string[] = [];
+  if (selectedAttributeRollD10.value === null) missing.push('1 D10');
+  if (selectedAttributeRollD6.value.length < 2) missing.push(`${2 - selectedAttributeRollD6.value.length} D6`);
+  if (selectedAttributeRollD6.value.length > 2) missing.push(`deselecciona ${selectedAttributeRollD6.value.length - 2} D6`);
+  return missing.join(' y ');
+});
+const attributeRollResult = computed(() => attributeRollHasValidSelection.value && attributeRoll.value
+  ? selectedAttributeRollD10.value! + selectedAttributeRollD6.value.reduce((sum, value) => sum + value, 0) + attributeRoll.value.plusOne
+  : null);
+const attributeRollIsCritical = computed(() => attributeRollHasValidSelection.value
+  && selectedAttributeRollD10.value === 10
+  && selectedAttributeRollD6.value.every(value => value === 6));
+
 const savedAt = computed(() => character.value?.lastClosedAt ? new Date(character.value.lastClosedAt).toLocaleString('es-ES') : 'Sin guardar');
 
 
@@ -524,7 +639,7 @@ async function load() {
 
     character.value = await api.get(String(route.params.id));
     await loadTraining();
-    await loadOtherInventory(); await loadWeapons();
+    await loadOtherInventory(); await loadWeapons(); await loadProtectiveEquipment(); await loadAmmunition();
     legacyDraft.value = false; legacyEvolutionPoints.value = null;
     editing.value = !character.value?.closed;
     if (editing.value) startModifierDraft();
@@ -544,29 +659,121 @@ async function loadOtherInventory() {
   catch (e: any) { inventoryError.value = e?.message || 'No se pudo cargar el inventario.'; }
   finally { inventoryLoading.value = false; }
 }
+async function loadAmmunition() {
+  if (!route.params.id) return;
+  try {
+    const [items, calibers] = await Promise.all([api.ammunition(String(route.params.id)), api.ammunitionCalibers(String(route.params.id))]);
+    ammunition.value = items;
+    ammunitionCalibers.value = calibers;
+  } catch (e: any) { inventoryError.value = e?.message || 'No se pudo cargar la munición.'; }
+}
 async function loadWeapons() { if (!route.params.id) return; try { weapons.value = await api.weapons(String(route.params.id)); } catch (e:any) { inventoryError.value = e?.message || 'No se pudieron cargar las armas.'; } }
+async function loadProtectiveEquipment() { if (!route.params.id) return; try { armors.value=await api.armors(String(route.params.id)); shields.value=await api.shields(String(route.params.id)); physicalShields.value=await api.physicalShields(String(route.params.id)); } catch(e:any){ inventoryError.value=e?.message||'No se pudo cargar las protecciones.'; } }
+function armorAtSlot(slot:ArmorSlot){ return armors.value.find(item => item.slots.includes(slot)); }
+function openArmorDetail(a?:Armor, slot?:ArmorSlot){ selectedArmor.value=a||null; armorDraft.value=a?{...a,slots:[...a.slots],rdBySlot:{...a.rdBySlot},armorBySlot:{...a.armorBySlot}}:{name:'',description:'',slots:slot?[slot]:[],rdBySlot:{HEAD:0,BODY:0,LEGS:0,ARMS:0},armorBySlot:{HEAD:0,BODY:0,LEGS:0,ARMS:0},imageUrl:null}; if(a){showArmorDetailModal.value=true;sheetView.value='inventory';}else{sheetView.value='armor-detail';} }
+function closeArmorDetailModal(){showArmorDetailModal.value=false;selectedArmor.value=null;sheetView.value='inventory';}
+function editSelectedArmor(){if(!selectedArmor.value)return;showArmorDetailModal.value=false;sheetView.value='armor-detail';}
+function openShieldDetail(s?:Shield){ selectedShield.value=s||null; shieldDraft.value=s?{...s}:{name:'',description:'',hitPoints:0,imageUrl:null}; if(s){showShieldDetailModal.value=true;sheetView.value='inventory';}else{sheetView.value='shield-detail';} }
+function closeShieldDetailModal(){showShieldDetailModal.value=false;selectedShield.value=null;sheetView.value='inventory';}
+function editSelectedShield(){if(!selectedShield.value)return;showShieldDetailModal.value=false;sheetView.value='shield-detail';}
+function openPhysicalShieldDetail(s?:PhysicalShield){selectedPhysicalShield.value=s||null;physicalShieldDraft.value=s?{...s}:{name:'',description:'',rd:0,armor:0,defense:0,otherEffects:'',imageUrl:null};if(s){showPhysicalShieldDetailModal.value=true;sheetView.value='inventory';}else{sheetView.value='physical-shield-detail';}}
+function closePhysicalShieldDetailModal(){showPhysicalShieldDetailModal.value=false;selectedPhysicalShield.value=null;sheetView.value='inventory';}
+function editSelectedPhysicalShield(){if(!selectedPhysicalShield.value)return;showPhysicalShieldDetailModal.value=false;sheetView.value='physical-shield-detail';}
+function armorSlotUnavailable(slot:ArmorSlot){ return occupiedArmorSlots.value.has(slot) && !armorDraft.value.slots.includes(slot); }
+function toggleArmorSlot(slot:ArmorSlot){ if(armorSlotUnavailable(slot)) return; const slots=armorDraft.value.slots; armorDraft.value.slots=slots.includes(slot)?slots.filter(x=>x!==slot):[...slots,slot]; }
+async function onProtectiveImage(event:Event,target:'armor'|'shield'|'physicalShield'){const file=(event.target as HTMLInputElement).files?.[0];if(!file)return;if(!file.type.startsWith('image/')||file.size>5_000_000){inventoryError.value='Selecciona una imagen de hasta 5 MB.';return;}const url=await new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=reject;reader.readAsDataURL(file);});if(target==='armor')armorDraft.value.imageUrl=url;else if(target==='shield')shieldDraft.value.imageUrl=url;else physicalShieldDraft.value.imageUrl=url;}
+async function saveArmor(){ if(!route.params.id||!armorDraft.value.name.trim()||!armorDraft.value.slots.length)return; armorSaving.value=true;inventoryError.value='';try{const b={...armorDraft.value,name:armorDraft.value.name.trim(),slots:Object.fromEntries(armorDraft.value.slots.map(s=>[s,{rd:Number(armorDraft.value.rdBySlot[s]||0),armor:Number(armorDraft.value.armorBySlot[s]||0)}]))};if(selectedArmor.value)await api.updateArmor(String(route.params.id),selectedArmor.value.id,b);else await api.createArmorInventory(String(route.params.id),b);await loadProtectiveEquipment();sheetView.value='inventory';}catch(e:any){inventoryError.value=e?.message||'No se pudo guardar la armadura.';}finally{armorSaving.value=false;}}
+async function saveShield(){if(!route.params.id||!shieldDraft.value.name.trim())return;shieldSaving.value=true;inventoryError.value='';try{const b={...shieldDraft.value,name:shieldDraft.value.name.trim(),hitPoints:Number(shieldDraft.value.hitPoints)};if(selectedShield.value)await api.updateShield(String(route.params.id),selectedShield.value.id,b);else await api.createShieldInventory(String(route.params.id),b);await loadProtectiveEquipment();sheetView.value='inventory';}catch(e:any){inventoryError.value=e?.message||'No se pudo guardar el escudo.';}finally{shieldSaving.value=false;}}
+async function savePhysicalShield(){if(!route.params.id||!physicalShieldDraft.value.name.trim())return;shieldSaving.value=true;inventoryError.value='';try{const b={...physicalShieldDraft.value,name:physicalShieldDraft.value.name.trim(),rd:Number(physicalShieldDraft.value.rd),armor:Number(physicalShieldDraft.value.armor),defense:Number(physicalShieldDraft.value.defense)};if(selectedPhysicalShield.value)await api.updatePhysicalShield(String(route.params.id),selectedPhysicalShield.value.id,b);else await api.createPhysicalShieldInventory(String(route.params.id),b);await loadProtectiveEquipment();sheetView.value='inventory';}catch(e:any){inventoryError.value=e?.message||'No se pudo guardar el escudo.';}finally{shieldSaving.value=false;}}
+async function deleteArmor(){if(!route.params.id||!selectedArmor.value||!confirm(`¿Eliminar ${selectedArmor.value.name}?`))return;await api.deleteArmor(String(route.params.id),selectedArmor.value.id);await loadProtectiveEquipment();closeArmorDetailModal();}
+async function deleteShield(){if(!route.params.id||!selectedShield.value||!confirm(`¿Eliminar ${selectedShield.value.name}?`))return;await api.deleteShield(String(route.params.id),selectedShield.value.id);await loadProtectiveEquipment();closeShieldDetailModal();}
+async function deletePhysicalShield(){if(!route.params.id||!selectedPhysicalShield.value||!confirm(`¿Eliminar ${selectedPhysicalShield.value.name}?`))return;await api.deletePhysicalShield(String(route.params.id),selectedPhysicalShield.value.id);await loadProtectiveEquipment();closePhysicalShieldDetailModal();}
 function weaponAt(slot:string){ return weapons.value.find(w => w.slot === slot); }
-function weaponImage(weapon: Weapon | WeaponCatalogItem){ return weapon.imageUrl?.startsWith('/weapons/') && 'catalogWeaponId' in weapon && weapon.catalogWeaponId ? `/api/weapon-catalog/${encodeURIComponent(weapon.catalogWeaponId)}/image` : weapon.imageUrl || undefined; }
+function weaponImage(weapon: Weapon | WeaponCatalogItem){ const url=weapon.imageUrl?.startsWith('/weapons/') && 'catalogWeaponId' in weapon && weapon.catalogWeaponId ? `/api/weapon-catalog/${encodeURIComponent(weapon.catalogWeaponId)}/image` : weapon.imageUrl || undefined; return url?.startsWith('/api/weapon-catalog/') ? `${url}?v=3` : url; }
+function weaponCatalogImage(weapon: WeaponCatalogItem){ return weapon.imageUrl?.startsWith('/api/weapon-catalog/') ? `${weapon.imageUrl}?v=3` : weapon.imageUrl || undefined; }
 function weaponDamage(weapon: Weapon | WeaponCatalogItem){ return [weapon.damageVital, weapon.damageNormal, weapon.damageLight, weapon.damageVeryLight].join('/'); }
 function weaponRate(rate: string | null | undefined){ const value=String(rate ?? '').trim(); return value ? (value.toLowerCase().includes('x') ? value : `x${value}`) : '—'; }
-function emptyWeaponDraft(slot='SMALL_1'): Omit<Weapon,'id'> { return {slot,name:'',weaponType:'PISTOLA',size:'PEQUENA',range:0,reload:0,rate:'',damageVital:0,damageNormal:0,damageLight:0,damageVeryLight:0,aim:null,automaticFire:'',capacity:0,caliber:'',extraRule:''}; }
+function numericWeaponValue(value: string | number | null | undefined){ const match=String(value ?? '').match(/\d+(?:[.,]\d+)?/); return match ? Math.max(0, Math.floor(Number(match[0].replace(',', '.')))) : 0; }
+function weaponCadence(weapon: Weapon){ return Math.max(1, numericWeaponValue(weapon.rate)); }
+function weaponAutomaticShots(weapon: Weapon){ return numericWeaponValue(weapon.automaticFire); }
+function shootOptions(weapon: Weapon){
+  const maximum=Math.min(weaponCadence(weapon), weapon.loadedBullets);
+  const options=Array.from({length: maximum}, (_, index) => ({label:`${index + 1} disparo${index ? 's' : ''}`, shots:index + 1, automatic:false}));
+  const automaticShots=weaponCadence(weapon) * weaponAutomaticShots(weapon);
+  if(weaponAutomaticShots(weapon) > 0 && weapon.loadedBullets >= automaticShots) options.push({label:'Automático', shots:automaticShots, automatic:true});
+  return options;
+}
+function emptyWeaponDraft(slot='SMALL_1'): Omit<Weapon,'id'> { return {slot,name:'',weaponType:'PISTOLA',size:'PEQUENA',range:0,reload:0,rate:'',damageVital:0,damageNormal:0,damageLight:0,damageVeryLight:0,aim:null,automaticFire:'',capacity:0,loadedBullets:0,caliber:'',extraRule:''}; }
 function compatibleSlots(size:string){ return weaponSlots.filter(s => size === 'PEQUENA' || (size === 'MEDIANA' ? s.kind !== 'small' : s.kind === 'any')).map(s=>s.value); }
 function compatibleSizes(slot:string){ return slot.startsWith('SMALL_') ? ['PEQUENA'] : slot.startsWith('MEDIUM_') ? ['PEQUENA','MEDIANA'] : weaponSizes.map(s=>s.value); }
+function weaponMoveTargets(w:Weapon){ return compatibleSlots(w.size).filter(targetSlot => { const targetWeapon=weaponAt(targetSlot); return !targetWeapon || compatibleSlots(targetWeapon.size).includes(w.slot); }); }
 function onWeaponSlotChange(){ if(!compatibleSizes(weaponDraft.value.slot).includes(weaponDraft.value.size)) weaponDraft.value.size=compatibleSizes(weaponDraft.value.slot)[0]; }
 function onWeaponSizeChange(){ if(!compatibleSlots(weaponDraft.value.size).includes(weaponDraft.value.slot)) weaponDraft.value.slot=compatibleSlots(weaponDraft.value.size)[0]; }
 function openNewWeapon(slot?:string){ selectedWeapon.value=null; weaponSlotLocked.value=slot !== undefined; catalogSlot.value=slot ?? 'SMALL_1'; weaponDraft.value=emptyWeaponDraft(catalogSlot.value); customImageUrl.value=null; sheetView.value='weapon-choice'; }
 async function loadWeaponCatalog(){ catalogLoading.value=true; inventoryError.value=''; try { catalogWeapons.value=await api.weaponCatalog(catalogSlot.value,catalogSearch.value,catalogType.value); } catch(e:any) { inventoryError.value=e?.message || 'No se pudo cargar el catálogo de armas.'; } finally { catalogLoading.value=false; } }
 function openWeaponCatalog(){ sheetView.value='weapon-catalog'; loadWeaponCatalog(); }
-async function selectCatalogWeapon(item:WeaponCatalogItem){ if(!route.params.id) return; catalogLoading.value=true; inventoryError.value=''; try { await api.addCatalogWeaponToCharacter(item.id,String(route.params.id),catalogSlot.value); await loadWeapons(); closeWeaponDetail(); } catch(e:any) { inventoryError.value=e?.message || 'No se pudo añadir el arma seleccionada.'; } finally { catalogLoading.value=false; } }
+async function selectCatalogWeapon(item:WeaponCatalogItem){ selectedCatalogWeapon.value=item; showCatalogWeaponModal.value=true; }
+async function addSelectedCatalogWeapon(){ if(!route.params.id || !selectedCatalogWeapon.value) return; catalogLoading.value=true; inventoryError.value=''; try { await api.addCatalogWeaponToCharacter(selectedCatalogWeapon.value.id,String(route.params.id),catalogSlot.value); await loadWeapons(); showCatalogWeaponModal.value=false; selectedCatalogWeapon.value=null; sheetView.value='inventory'; } catch(e:any) { inventoryError.value=e?.message || 'No se pudo añadir el arma seleccionada.'; } finally { catalogLoading.value=false; } }
 async function onCustomWeaponImage(event:Event){ const file=(event.target as HTMLInputElement).files?.[0]; if(!file) return; if(!file.type.startsWith('image/') || file.size>5_000_000){ inventoryError.value='Selecciona una imagen de hasta 5 MB.'; return; } customImageUrl.value=await new Promise<string>((resolve,reject)=>{ const reader=new FileReader(); reader.onload=()=>resolve(String(reader.result)); reader.onerror=reject; reader.readAsDataURL(file); }); }
 function openInventoryType(){ sheetView.value='inventory-type'; }
-function openWeapon(w:Weapon){ selectedWeapon.value=w; weaponSlotLocked.value=true; weaponDraft.value={...w}; sheetView.value='weapon-detail'; }
-function closeWeaponDetail(){selectedWeapon.value=null;weaponSlotLocked.value=false;sheetView.value='inventory';}
-async function saveWeapon(){ if(!route.params.id || !weaponDraft.value.name.trim() || !weaponDraft.value.caliber.trim() || !weaponDraft.value.rate.trim()) return; weaponSaving.value=true; inventoryError.value=''; try { const body={...weaponDraft.value,name:weaponDraft.value.name.trim(),caliber:weaponDraft.value.caliber.trim(),rate:weaponDraft.value.rate.trim(),range:Number(weaponDraft.value.range),reload:Number(weaponDraft.value.reload),damageVital:Number(weaponDraft.value.damageVital),damageNormal:Number(weaponDraft.value.damageNormal),damageLight:Number(weaponDraft.value.damageLight),damageVeryLight:Number(weaponDraft.value.damageVeryLight),aim:weaponDraft.value.aim==null?null:Number(weaponDraft.value.aim),capacity:Number(weaponDraft.value.capacity)}; if(selectedWeapon.value) await api.updateWeapon(String(route.params.id),selectedWeapon.value.id,body); else { const catalog=await api.createCatalogWeapon({...body,imageUrl:customImageUrl.value}); await api.addCatalogWeaponToCharacter(catalog.id,String(route.params.id),weaponDraft.value.slot); } await loadWeapons(); closeWeaponDetail(); } catch(e:any){inventoryError.value=e?.message||'No se pudo guardar el arma.';} finally{weaponSaving.value=false;} }
+function openWeapon(w:Weapon){ selectedWeapon.value=w; weaponSlotLocked.value=true; weaponEditMode.value=false; weaponDraft.value={...w}; showWeaponDetailModal.value=true; }
+function closeWeaponDetail(){showWeaponDetailModal.value=false; selectedWeapon.value=null; weaponEditMode.value=false; weaponSlotLocked.value=false; sheetView.value='inventory';}
+function editSelectedWeapon(){ if(!selectedWeapon.value) return; weaponEditMode.value=true; showWeaponDetailModal.value=false; sheetView.value='weapon-detail'; }
+async function reloadWeapon(weapon: Weapon){
+  if(!route.params.id || weaponReloading.value) return;
+  if(weapon.loadedBullets >= weapon.capacity && !confirm('El cargador ya contiene todas las balas. ¿Quieres recargarlo de nuevo?')) return;
+  weaponReloading.value=true; inventoryError.value='';
+  try {
+    const result = await api.reloadWeapon(String(route.params.id), weapon.id);
+    await loadWeapons();
+    await loadAmmunition();
+    inventoryError.value = result.missing > 0
+      ? `Recarga parcial: se consumieron ${result.consumed} balas y faltan ${result.missing} balas.`
+      : '';
+  }
+  catch(e:any){ inventoryError.value=e?.message||'No se pudo recargar el arma.'; }
+  finally { weaponReloading.value=false; }
+}
+function openShoot(weapon: Weapon){ if(weapon.loadedBullets <= 0) return; if(weaponCadence(weapon) <= 1){ shootWeapon(weapon, 1); return; } shootWeaponTarget.value=weapon; showShootModal.value=true; inventoryError.value=''; }
+function closeShoot(){ showShootModal.value=false; shootWeaponTarget.value=null; }
+async function shootWeapon(weapon: Weapon, shots: number, automatic=false){
+  if(!route.params.id || weaponShooting.value) return;
+  weaponShooting.value=true; inventoryError.value='';
+  try { await api.shootWeapon(String(route.params.id), weapon.id, shots, automatic); await loadWeapons(); closeShoot(); }
+  catch(e:any){ inventoryError.value=e?.message||'No se pudo disparar el arma.'; }
+  finally { weaponShooting.value=false; }
+}
+function ammunitionForCaliber(caliber: string | null | undefined){
+  if(!caliber) return 0;
+  return ammunition.value.find(item => item.caliber === caliber)?.quantity ?? 0;
+}
+async function saveWeapon(){ if(!route.params.id || !weaponDraft.value.name.trim() || !weaponDraft.value.caliber.trim() || !weaponDraft.value.rate.trim()) return; weaponSaving.value=true; inventoryError.value=''; try { const body={...weaponDraft.value,name:weaponDraft.value.name.trim(),caliber:weaponDraft.value.caliber.trim(),rate:weaponDraft.value.rate.trim(),range:Number(weaponDraft.value.range),reload:Number(weaponDraft.value.reload),damageVital:Number(weaponDraft.value.damageVital),damageNormal:Number(weaponDraft.value.damageNormal),damageLight:Number(weaponDraft.value.damageLight),damageVeryLight:Number(weaponDraft.value.damageVeryLight),aim:weaponDraft.value.aim==null?null:Number(weaponDraft.value.aim),capacity:Number(weaponDraft.value.capacity),loadedBullets:Number(weaponDraft.value.loadedBullets)}; if(selectedWeapon.value) await api.updateWeapon(String(route.params.id),selectedWeapon.value.id,body); else { const { loadedBullets: _loadedBullets, ...catalogBody } = body; const catalog=await api.createCatalogWeapon({...catalogBody,imageUrl:customImageUrl.value}); await api.addCatalogWeaponToCharacter(catalog.id,String(route.params.id),weaponDraft.value.slot); } await loadWeapons(); closeWeaponDetail(); } catch(e:any){inventoryError.value=e?.message||'No se pudo guardar el arma.';} finally{weaponSaving.value=false;} }
 async function deleteWeapon(){if(!route.params.id||!selectedWeapon.value||!confirm(`¿Eliminar ${selectedWeapon.value.name}?`))return;weaponDeleting.value=true;try{await api.deleteWeapon(String(route.params.id),selectedWeapon.value.id);await loadWeapons();closeWeaponDetail();}catch(e:any){inventoryError.value=e?.message||'No se pudo eliminar el arma.';}finally{weaponDeleting.value=false;}}
-async function moveWeapon(w:Weapon,slot:string){if(slot===w.slot||!route.params.id)return;weaponMoving.value=true;try{const moved=await api.moveWeapon(String(route.params.id),w.id,slot);if(selectedWeapon.value?.id===w.id){selectedWeapon.value=moved;weaponDraft.value={...moved};}await loadWeapons();}catch(e:any){inventoryError.value=e?.message||'El arma no cabe en ese hueco.';}finally{weaponMoving.value=false;}}
+async function moveWeapon(w:Weapon,slot:string){if(slot===w.slot||!route.params.id)return;if(!weaponMoveTargets(w).includes(slot)){inventoryError.value='El intercambio no es válido: ambas armas deben poder entrar en el hueco de la otra.';return;}weaponMoving.value=true;try{const moved=await api.moveWeapon(String(route.params.id),w.id,slot);if(selectedWeapon.value?.id===w.id){selectedWeapon.value=moved;weaponDraft.value={...moved};}await loadWeapons();}catch(e:any){inventoryError.value=e?.message||'El arma no cabe en ese hueco.';}finally{weaponMoving.value=false;}}
 function emptyInventoryDraft(): Omit<OtherInventoryItem, 'id'> { return { name: '', description: '', location: '', quantity: 1, unitValue: 0 }; }
-function openInventory() { sheetView.value = 'inventory'; loadOtherInventory(); }
+function openInventory() { sheetView.value = 'inventory'; loadOtherInventory(); loadAmmunition(); }
+function emptyAmmunitionDraft(): Omit<Ammunition, 'id'> { return { caliber: ammunitionCalibers.value[0] || '', quantity: 1 }; }
+function openNewAmmunition() { selectedAmmunition.value = null; ammunitionDraft.value = emptyAmmunitionDraft(); sheetView.value = 'ammunition-detail'; }
+function openAmmunition(item: Ammunition) { selectedAmmunition.value = item; ammunitionDraft.value = { caliber: item.caliber, quantity: item.quantity }; sheetView.value = 'ammunition-detail'; }
+function closeAmmunitionDetail() { selectedAmmunition.value = null; sheetView.value = 'inventory'; }
+async function saveAmmunition() {
+  if (!route.params.id || !ammunitionDraft.value.caliber || Number(ammunitionDraft.value.quantity) < 1) return;
+  ammunitionSaving.value = true; inventoryError.value = '';
+  try {
+    const body = { caliber: ammunitionDraft.value.caliber, quantity: Number(ammunitionDraft.value.quantity) };
+    if (selectedAmmunition.value) await api.updateAmmunition(String(route.params.id), selectedAmmunition.value.id, body);
+    else await api.createAmmunition(String(route.params.id), body);
+    await loadAmmunition(); closeAmmunitionDetail();
+  } catch (e: any) { inventoryError.value = e?.message || 'No se pudo guardar la munición.'; }
+  finally { ammunitionSaving.value = false; }
+}
+async function decrementAmmunition(item: Ammunition, amount: -1 | -5 | -10) {
+  if (!route.params.id || item.quantity < Math.abs(amount)) return;
+  ammunitionDeleting.value = true; inventoryError.value = '';
+  try { await api.decrementAmmunition(String(route.params.id), item.id, amount); await loadAmmunition(); }
+  catch (e: any) { inventoryError.value = e?.message || 'No se pudo descontar la munición.'; }
+  finally { ammunitionDeleting.value = false; }
+}
 function openNewOtherItem() { selectedOtherItem.value = null; inventoryDraft.value = emptyInventoryDraft(); sheetView.value = 'inventory-detail'; }
 function openOtherItem(item: OtherInventoryItem) { selectedOtherItem.value = item; inventoryDraft.value = { name: item.name, description: item.description || '', location: item.location || '', quantity: item.quantity, unitValue: item.unitValue ?? 0 }; sheetView.value = 'inventory-detail'; }
 function closeInventoryDetail() { selectedOtherItem.value = null; sheetView.value = 'inventory'; }
@@ -1010,7 +1217,11 @@ async function loadAbilities() {
 
 function openAbilityDetail(ability: Ability) { selectedAbility.value = ability; }
 function closeAbilityDetail() { selectedAbility.value = null; }
-function onEscape(event: KeyboardEvent) { if (event.key === 'Escape') closeAbilityDetail(); }
+function onEscape(event: KeyboardEvent) {
+  if (event.key !== 'Escape') return;
+  if (showAttributeRoll.value) closeAttributeRoll();
+  else closeAbilityDetail();
+}
 
 onMounted(() => { load(); loadAbilities(); window.addEventListener('keydown', onEscape); });
 onBeforeUnmount(() => { window.removeEventListener('keydown', onEscape); if (trainingPreviewTimer) clearTimeout(trainingPreviewTimer); });
@@ -1183,9 +1394,9 @@ watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) 
       <section v-if="sheetView === 'sheet'" class="sheet-content" aria-labelledby="sheet-title">
 
 <div class="sheet-heading"><div><p class="eyebrow accent">HOJA DE PERSONAJE</p><h2 id="sheet-title">{{ character.name }}</h2><p v-if="levelError" class="error-banner" role="alert">{{ levelError }}</p></div><div class="sheet-level"><span>Nivel</span><strong>{{ level }}</strong><small @dblclick="editing && (showExperienceModal=true, experienceError='')" title="Doble clic para añadir experiencia">{{ character.experience }} PX</small><div class="level-actions"><button v-if="trainingData.enabled" class="button button-quiet" type="button" @click="showTrainingModal=true; showTrainingForm=false">Formación</button><template v-if="editing"><button class="button button-quiet" type="button" :disabled="!canLevelUp || levelBusy" @click="openLevelUp()">Subir nivel</button><button class="button button-quiet" type="button" :disabled="!canLevelUpAll || levelBusy" @click="openLevelUp(true)">Subir varios niveles</button><button class="button button-quiet" type="button" @click="showExperienceModal=true; experienceError=''">Añadir experiencia</button></template></div></div></div>
-<section class="sheet-panel"><h3>Atributos Mayores</h3><div class="value-grid attributes-grid major-attributes-grid"><div v-for="[key, value] in majorAttributes" :key="key" class="value-row attribute-row attribute-clickable" role="button" tabindex="0" @click="openAttributeDetail(key)" @keydown.enter="openAttributeDetail(key)" @keydown.space.prevent="openAttributeDetail(key)"><span>{{ attributeLabels[key] || key }}</span><strong>{{ displayedAttributeTotal(key, value) }}</strong><small>+{{ oneBonus(key, displayedAttributeTotal(key, value), true) }} · +{{ d6Bonus(key, displayedAttributeTotal(key, value), true) }}D6</small></div><p v-if="!Object.keys(attributes).length" class="sheet-muted">Sin atributos registrados.</p></div></section>
+<section class="sheet-panel"><h3>Atributos Mayores</h3><div class="value-grid attributes-grid major-attributes-grid"><div v-for="[key, value] in majorAttributes" :key="key" class="attribute-card"><button class="value-row attribute-row attribute-clickable attribute-detail-trigger" type="button" @click="openAttributeDetail(key)"><span>{{ attributeLabels[key] || key }}</span><strong>{{ displayedAttributeTotal(key, value) }}</strong></button><div class="attribute-card-footer"><button class="attribute-roll-trigger" type="button" :aria-label="`Tirar D10 de ${attributeLabels[key] || key}`" @click="openAttributeRoll(key, value, true)"><span class="attribute-roll-icon" aria-hidden="true"><img src="/diceD10.png" alt=""></span></button><small class="attribute-bonus">+{{ oneBonus(key, displayedAttributeTotal(key, value), true) }} · +{{ d6Bonus(key, displayedAttributeTotal(key, value), true) }}D6</small></div></div><p v-if="!Object.keys(attributes).length" class="sheet-muted">Sin atributos registrados.</p></div></section>
 
-        <section class="sheet-panel"><div class="sheet-panel-heading"><h3>Atributos Menores</h3><button v-if="editing" class="button button-quiet" type="button" @click="showMinorModal=true">Añadir atributo menor</button></div><div class="value-grid attributes-grid"><div v-for="[key, value] in minorAttributes" :key="key" class="value-row attribute-row attribute-clickable" role="button" tabindex="0" @click="openAttributeDetail(key)" @keydown.enter="openAttributeDetail(key)" @keydown.space.prevent="openAttributeDetail(key)"><span>{{ attributeLabels[key] || customMinor(key)?.name || key }}</span><strong>{{ displayedAttributeTotal(key, customMinor(key)?.total ?? value) }}</strong><small>+{{ maxBonus(key, displayedAttributeTotal(key, customMinor(key)?.total ?? value), false) }} · +{{ maxD6(key, displayedAttributeTotal(key, customMinor(key)?.total ?? value), false) }}D6</small></div></div></section>
+        <section class="sheet-panel"><div class="sheet-panel-heading"><h3>Atributos Menores</h3><button v-if="editing" class="button button-quiet" type="button" @click="showMinorModal=true">Añadir atributo menor</button></div><div class="value-grid attributes-grid"><div v-for="[key, value] in minorAttributes" :key="key" class="attribute-card"><button class="value-row attribute-row attribute-clickable attribute-detail-trigger" type="button" @click="openAttributeDetail(key)"><span>{{ attributeLabels[key] || customMinor(key)?.name || key }}</span><strong>{{ displayedAttributeTotal(key, customMinor(key)?.total ?? value) }}</strong></button><div class="attribute-card-footer"><button class="attribute-roll-trigger" type="button" :aria-label="`Tirar D10 de ${attributeLabels[key] || customMinor(key)?.name || key}`" @click="openAttributeRoll(key, value, false)"><span class="attribute-roll-icon" aria-hidden="true"><img src="/diceD10.png" alt=""></span></button><small class="attribute-bonus">+{{ maxBonus(key, displayedAttributeTotal(key, customMinor(key)?.total ?? value), false) }} · +{{ maxD6(key, displayedAttributeTotal(key, customMinor(key)?.total ?? value), false) }}D6</small></div></div></div></section>
 
         <section class="sheet-panel"><h3>Genética</h3><div class="genetic-groups"><div v-for="group in geneticGroups" :key="group.label" class="genetic-group"><h4>{{ group.label }}</h4><div class="value-grid genetic-grid"><div v-for="key in group.keys" :key="key" class="value-row attribute-clickable" role="button" tabindex="0" @click="openAttributeDetail(key)" @keydown.enter="openAttributeDetail(key)" @keydown.space.prevent="openAttributeDetail(key)"><span>{{ geneticLabels[key] || key }}</span><strong>{{ geneticTotals[key] ?? 0 }}</strong></div></div></div></div><p v-if="!Object.keys(genetics).length" class="sheet-muted">Sin valores genéticos.</p></section>
 
@@ -1195,25 +1406,31 @@ watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) 
 
       <section v-else-if="sheetView === 'inventory'" class="sheet-content inventory-content" aria-labelledby="inventory-title">
         <div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO</p><h2 id="inventory-title">Equipamiento</h2><p class="modal-copy">Armas equipadas y otros objetos personales.</p></div><button class="button button-primary" type="button" @click="openInventoryType">＋ Añadir objeto</button></div>
-        <p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p><p v-if="inventoryLoading" class="sheet-state">Cargando inventario…</p><p v-else-if="!otherInventory.length" class="sheet-state">No hay objetos registrados.</p>
-        <section class="weapon-section"><div class="sheet-panel-heading"><h3>Armas</h3><span class="field-hint">3 pequeñas · 2 medianas · 1 universal</span></div><div class="weapon-slots"><article v-for="slot in weaponSlots" :key="slot.value" class="weapon-slot"><header><strong>{{ slot.label }}</strong><button v-if="!weaponAt(slot.value)" class="button button-quiet" type="button" @click="openNewWeapon(slot.value)">Añadir</button></header><template v-if="weaponAt(slot.value)"><button class="inventory-item weapon-card" type="button" @click="openWeapon(weaponAt(slot.value)!)"><img v-if="weaponAt(slot.value)!.imageUrl" class="weapon-thumbnail" :src="weaponImage(weaponAt(slot.value)!)" alt=""><span><strong>{{ weaponAt(slot.value)!.name }}</strong><small>{{ weaponTypes.find(type=>type.value===weaponAt(slot.value)!.weaponType)?.label || weaponAt(slot.value)!.weaponType }}</small><small class="weapon-card-stats">Puntería {{ weaponAt(slot.value)!.aim ?? '—' }} · Daño {{ weaponDamage(weaponAt(slot.value)!) }} · {{ weaponRate(weaponAt(slot.value)!.rate) }}</small></span></button></template><p v-else class="sheet-muted">Hueco libre</p></article></div></section>
+         <p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p><p v-if="inventoryLoading" class="sheet-state">Cargando inventario…</p>
+         <section class="weapon-section"><div class="sheet-panel-heading"><h3>Armas</h3><span class="field-hint">3 pequeñas · 2 medianas · 1 universal</span></div><div class="weapon-slots"><article v-for="slot in weaponSlots" :key="slot.value" class="weapon-slot"><header><strong>{{ slot.label }}</strong><button v-if="!weaponAt(slot.value)" class="button button-quiet" type="button" @click="openNewWeapon(slot.value)">Añadir</button></header><template v-if="weaponAt(slot.value)"><div class="inventory-item weapon-card" role="button" tabindex="0" :aria-label="'Ver detalles de ' + weaponAt(slot.value)!.name" @click="openWeapon(weaponAt(slot.value)!)" @keydown.enter.prevent="openWeapon(weaponAt(slot.value)!)" @keydown.space.prevent="openWeapon(weaponAt(slot.value)!)"><img v-if="weaponAt(slot.value)!.imageUrl" class="weapon-thumbnail" :src="weaponImage(weaponAt(slot.value)!)" alt=""><button class="button weapon-card-shoot-button" type="button" :aria-label="'Disparar ' + weaponAt(slot.value)!.name" title="Disparar arma" :disabled="weaponShooting || weaponAt(slot.value)!.loadedBullets <= 0" @click.stop="openShoot(weaponAt(slot.value)!)" @keydown.stop>Disparar</button><button class="button weapon-card-reload-button" type="button" :aria-label="'Recargar ' + weaponAt(slot.value)!.name" title="Recargar arma" :disabled="weaponReloading" @click.stop="reloadWeapon(weaponAt(slot.value)!)" @keydown.stop>{{ weaponReloading ? 'Recargando…' : 'Recargar' }}</button><span><strong>{{ weaponAt(slot.value)!.name }}</strong><small>{{ weaponTypes.find(type=>type.value===weaponAt(slot.value)!.weaponType)?.label || weaponAt(slot.value)!.weaponType }}</small><small class="weapon-card-stats">Balas cargadas {{ weaponAt(slot.value)!.loadedBullets }}/{{ weaponAt(slot.value)!.capacity }} · Puntería {{ weaponAt(slot.value)!.aim ?? '—' }} · Daño {{ weaponDamage(weaponAt(slot.value)!) }} · {{ weaponRate(weaponAt(slot.value)!.rate) }}</small></span></div></template><p v-else class="sheet-muted">Hueco libre</p></article></div></section>
+        <section class="weapon-section protection-section"><div class="sheet-panel-heading"><h3>Protecciones</h3></div><div class="weapon-slots protection-slots">
+          <article v-for="slot in armorSlots" :key="slot.value" class="weapon-slot protection-slot"><header><strong>Armadura {{ slot.label.toLowerCase() }}</strong><button v-if="!armorAtSlot(slot.value)" class="button button-quiet" type="button" @click="openArmorDetail(undefined, slot.value)">Añadir</button></header><template v-if="armorAtSlot(slot.value)"><button class="inventory-item weapon-card armor-card" type="button" @click="openArmorDetail(armorAtSlot(slot.value)!)"><img v-if="armorAtSlot(slot.value)!.imageUrl" class="weapon-thumbnail" :src="armorAtSlot(slot.value)!.imageUrl!" :alt="armorAtSlot(slot.value)!.name"><span><strong>{{ armorAtSlot(slot.value)!.name }}</strong><small>Armadura activa</small><small class="weapon-card-stats">RD {{ armorAtSlot(slot.value)!.rdBySlot[slot.value] }} · Armadura {{ armorAtSlot(slot.value)!.armorBySlot[slot.value] }}</small></span></button></template><p v-else class="sheet-muted">Hueco libre</p></article>
+          <article class="weapon-slot protection-slot"><header><strong>Escudo</strong><button v-if="!physicalShields.length" class="button button-quiet" type="button" @click="openPhysicalShieldDetail()">Añadir</button></header><template v-if="physicalShields.length"><button class="inventory-item weapon-card shield-card" type="button" @click="openPhysicalShieldDetail(physicalShields[0])"><img v-if="physicalShields[0].imageUrl" class="weapon-thumbnail" :src="physicalShields[0].imageUrl" :alt="physicalShields[0].name"><span><strong>{{ physicalShields[0].name }}</strong><small>Escudo físico activo</small><small class="weapon-card-stats">RD {{ physicalShields[0].rd }} · Armadura {{ physicalShields[0].armor }} · Defensa {{ physicalShields[0].defense }}</small></span></button></template><p v-else class="sheet-muted">Hueco libre</p></article>
+          <article class="weapon-slot protection-slot"><header><strong>Escudo de energía</strong><button v-if="!shields.length" class="button button-quiet" type="button" @click="openShieldDetail()">Añadir</button></header><template v-if="shields.length"><button class="inventory-item weapon-card shield-card" type="button" @click="openShieldDetail(shields[0])"><img v-if="shields[0].imageUrl" class="weapon-thumbnail" :src="shields[0].imageUrl" :alt="shields[0].name"><span><strong>{{ shields[0].name }}</strong><small>Escudo de energía activo</small><small class="weapon-card-stats">{{ shields[0].hitPoints }} PV</small></span></button></template><p v-else class="sheet-muted">Hueco libre</p></article>
+        </div></section>
+        <section class="weapon-section ammunition-section"><div class="sheet-panel-heading"><h3>Munición</h3><button class="button button-quiet" type="button" @click="openNewAmmunition">＋ Añadir munición</button></div><p v-if="!ammunition.length" class="sheet-state">No hay munición registrada.</p><div v-else class="ammunition-list"><article v-for="item in ammunition" :key="item.id" class="ammunition-item"><button class="inventory-item ammunition-summary" type="button" @click="openAmmunition(item)"><span><strong>{{ item.caliber }}</strong><small>Munición disponible</small></span><strong>{{ item.quantity }} ud.</strong></button><div class="ammunition-actions" aria-label="Descontar munición"><button v-for="amount in [-1, -5, -10]" :key="amount" class="button button-quiet" type="button" :disabled="ammunitionDeleting || item.quantity < Math.abs(amount)" @click="decrementAmmunition(item, amount as -1 | -5 | -10)">{{ amount }}</button></div></article></div></section>
         <section class="weapon-section"><div class="sheet-panel-heading"><h3>Otros objetos</h3><button class="button button-quiet" type="button" @click="openNewOtherItem">＋ Añadir objeto</button></div><p v-if="!otherInventory.length" class="sheet-state">No hay objetos registrados.</p><div v-else class="inventory-list"><button v-for="item in otherInventory" :key="item.id" class="inventory-item" type="button" @click="openOtherItem(item)"><span><strong>{{ item.name }}</strong><small>{{ item.location || 'Sin localización' }} · {{ item.quantity }} ud.</small></span><strong>{{ item.unitValue ?? 0 }}</strong></button></div></section>
       </section>
 
       <section v-else-if="sheetView === 'inventory-type'" class="sheet-content inventory-content" aria-labelledby="inventory-type-title">
         <div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO</p><h2 id="inventory-type-title">Añadir objeto</h2><p class="modal-copy">Selecciona qué tipo de objeto quieres añadir al inventario.</p></div></div>
-        <div class="inventory-type-grid"><button class="inventory-type-card" type="button" @click="openNewWeapon()"><strong>Arma</strong><span>Una de las armas que lleva equipada el personaje.</span></button><button class="inventory-type-card" type="button" @click="openNewOtherItem()"><strong>Otro</strong><span>Un objeto personal que no es un arma.</span></button></div>
+        <div class="inventory-type-grid"><button class="inventory-type-card" type="button" @click="openNewWeapon()"><strong>Arma</strong><span>Una de las armas que lleva equipada el personaje.</span></button><button class="inventory-type-card" type="button" @click="openArmorDetail()"><strong>Armadura</strong><span>Protección con RD y Armadura por hueco.</span></button><button class="inventory-type-card" type="button" @click="openShieldDetail()"><strong>Escudo de energía</strong><span>Protección activa con PV.</span></button><button class="inventory-type-card" type="button" @click="openPhysicalShieldDetail()"><strong>Escudo</strong><span>Escudo físico con RD, Armadura y Defensa.</span></button><button class="inventory-type-card" type="button" @click="openNewAmmunition()"><strong>Munición</strong><span>Una reserva agrupada por calibre.</span></button><button class="inventory-type-card" type="button" @click="openNewOtherItem()"><strong>Otro</strong><span>Un objeto personal que no es un arma.</span></button></div>
         <div class="modal-actions"><button class="button button-quiet" type="button" @click="sheetView='inventory'">Cancelar</button></div>
       </section>
 
       <section v-else-if="sheetView === 'weapon-choice'" class="sheet-content inventory-content"><div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO · ARMAS</p><h2>Añadir arma</h2><p class="modal-copy">Elige una arma de lista o crea una plantilla personalizada.</p></div></div><div class="inventory-type-grid"><button class="inventory-type-card" type="button" @click="openWeaponCatalog"><strong>Lista</strong><span>Busca las armas oficiales y las personalizadas guardadas.</span></button><button class="inventory-type-card" type="button" @click="sheetView='weapon-detail'"><strong>Personalizado</strong><span>Crea un arma reutilizable con su propia imagen.</span></button></div><div class="modal-actions"><button class="button button-quiet" type="button" @click="sheetView='inventory'">Cancelar</button></div></section>
 
-      <section v-else-if="sheetView === 'weapon-catalog'" class="sheet-content inventory-content"><div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO · ARMAS</p><h2>Lista de armas</h2><p class="modal-copy">Solo se muestran armas compatibles con {{ weaponSlots.find(slot=>slot.value===catalogSlot)?.label }}.</p></div></div><p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p><div class="inventory-form-grid"><label class="modal-field"><span>Buscar por nombre</span><input v-model="catalogSearch" @input="loadWeaponCatalog" autofocus></label><label class="modal-field"><span>Tipo</span><select v-model="catalogType" @change="loadWeaponCatalog"><option value="">Todos</option><option v-for="type in weaponTypes" :key="type.value" :value="type.value">{{ type.label }}</option></select></label></div><p v-if="catalogLoading" class="sheet-state">Cargando armas…</p><div v-else class="character-grid weapon-catalog-grid"><button v-for="item in catalogWeapons" :key="item.id" class="weapon-catalog-card character-card" type="button" @click="selectCatalogWeapon(item)"><div class="portrait weapon-portrait"><img v-if="item.imageUrl" :src="item.imageUrl" :alt="item.name"><span v-else>⚔</span></div><div class="character-info weapon-catalog-info"><p class="eyebrow accent">ARMA</p><h3>{{ item.name }}</h3><small class="weapon-catalog-type">{{ weaponTypes.find(type=>type.value===item.weaponType)?.label || item.weaponType }}</small><dl class="weapon-catalog-stats"><div><dt>Puntería</dt><dd>{{ item.aim ?? '—' }}</dd></div><div><dt>Daño</dt><dd :title="`Vital / Normal / Leve / Muy leve: ${item.damageVital} / ${item.damageNormal} / ${item.damageLight} / ${item.damageVeryLight}`">{{ weaponDamage(item) }}</dd></div><div class="weapon-catalog-rate"><dd>{{ weaponRate(item.rate) }}</dd></div></dl></div></button></div><p v-if="!catalogLoading && !catalogWeapons.length" class="sheet-state">No hay armas compatibles.</p><div class="modal-actions"><button class="button button-quiet" type="button" @click="sheetView='weapon-choice'">Volver</button></div></section>
+      <section v-else-if="sheetView === 'weapon-catalog'" class="sheet-content inventory-content"><div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO · ARMAS</p><h2>Lista de armas</h2><p class="modal-copy">Solo se muestran armas compatibles con {{ weaponSlots.find(slot=>slot.value===catalogSlot)?.label }}.</p></div></div><p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p><div class="inventory-form-grid"><label class="modal-field"><span>Buscar por nombre</span><input v-model="catalogSearch" @input="loadWeaponCatalog" autofocus></label><label class="modal-field"><span>Tipo</span><select v-model="catalogType" @change="loadWeaponCatalog"><option value="">Todos</option><option v-for="type in weaponTypes" :key="type.value" :value="type.value">{{ type.label }}</option></select></label></div><p v-if="catalogLoading" class="sheet-state">Cargando armas…</p><div v-else class="character-grid weapon-catalog-grid"><button v-for="item in catalogWeapons" :key="item.id" class="weapon-catalog-card character-card" type="button" @click="selectCatalogWeapon(item)"><div class="portrait weapon-portrait"><img v-if="item.imageUrl" :src="weaponCatalogImage(item)" :alt="item.name"><span v-else>⚔</span></div><div class="character-info weapon-catalog-info"><p class="eyebrow accent">ARMA</p><h3>{{ item.name }}</h3><small class="weapon-catalog-type">{{ weaponTypes.find(type=>type.value===item.weaponType)?.label || item.weaponType }}</small><dl class="weapon-catalog-stats"><div><dt>Puntería</dt><dd>{{ item.aim ?? '—' }}</dd></div><div><dt>Daño</dt><dd :title="`Vital / Normal / Leve / Muy leve: ${item.damageVital} / ${item.damageNormal} / ${item.damageLight} / ${item.damageVeryLight}`">{{ weaponDamage(item) }}</dd></div><div class="weapon-catalog-rate"><dd>{{ weaponRate(item.rate) }}</dd></div></dl></div></button></div><p v-if="!catalogLoading && !catalogWeapons.length" class="sheet-state">No hay armas compatibles.</p><div class="modal-actions"><button class="button button-quiet" type="button" @click="sheetView='weapon-choice'">Volver</button></div></section>
 
       <section v-else-if="sheetView === 'weapon-detail'" class="sheet-content inventory-content" aria-labelledby="weapon-detail-title">
         <div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO · ARMAS</p><h2 id="weapon-detail-title">{{ selectedWeapon ? 'Editar arma' : 'Añadir arma' }}</h2><p class="modal-copy">Completa las características del arma.</p></div></div>
         <p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p>
-        <form class="inventory-form" @submit.prevent="saveWeapon"><div class="inventory-form-grid"><label class="modal-field"><span>Hueco</span><select v-model="weaponDraft.slot" :disabled="weaponSlotLocked || !!selectedWeapon" @change="onWeaponSlotChange"><option v-for="slot in weaponSlots" :key="slot.value" :value="slot.value" :disabled="!compatibleSlots(weaponDraft.size).includes(slot.value)">{{ slot.label }}</option></select></label><label class="modal-field"><span>Nombre</span><input v-model="weaponDraft.name" required maxlength="255" autofocus /></label><label class="modal-field"><span>Tipo</span><select v-model="weaponDraft.weaponType" :disabled="!!selectedWeapon?.catalogWeaponId"><option v-for="type in weaponTypes" :key="type.value" :value="type.value">{{ type.label }}</option></select></label></div><label v-if="!selectedWeapon" class="modal-field"><span>Imagen</span><input type="file" accept="image/png,image/jpeg,image/gif,image/webp" @change="onCustomWeaponImage"><img v-if="customImageUrl" class="weapon-image-preview" :src="customImageUrl" alt="Vista previa"></label><label v-if="selectedWeapon" class="modal-field weapon-move"><span>Mover a</span><select :value="selectedWeapon.slot" :disabled="weaponMoving" @change="moveWeapon(selectedWeapon, ($event.target as HTMLSelectElement).value)"><option v-for="target in compatibleSlots(selectedWeapon.size)" :key="target" :value="target">{{ weaponSlots.find(s=>s.value===target)?.label }}</option></select></label><div class="inventory-form-grid"><label class="modal-field"><span>Tamaño</span><select v-model="weaponDraft.size" @change="onWeaponSizeChange"><option v-for="size in weaponSizes" :key="size.value" :value="size.value" :disabled="!compatibleSizes(weaponDraft.slot).includes(size.value)">{{ size.label }}</option></select></label><label class="modal-field"><span>Alcance</span><input v-model.number="weaponDraft.range" type="number" min="0" step="any" required /></label><label class="modal-field"><span>Recarga</span><input v-model.number="weaponDraft.reload" type="number" min="0" step="any" required /></label><label class="modal-field"><span>Cadencia</span><input v-model="weaponDraft.rate" required /></label></div><section class="modal-section-panel"><h3 class="modal-section-title">Daño</h3><div class="weapon-damage-grid"><label class="modal-field"><span>Vital</span><input v-model.number="weaponDraft.damageVital" type="number" min="0" step="any" required /></label><label class="modal-field"><span>Normal</span><input v-model.number="weaponDraft.damageNormal" type="number" min="0" step="any" required /></label><label class="modal-field"><span>Leve</span><input v-model.number="weaponDraft.damageLight" type="number" min="0" step="any" required /></label><label class="modal-field"><span>Muy leve</span><input v-model.number="weaponDraft.damageVeryLight" type="number" min="0" step="any" required /></label></div></section><div class="inventory-form-grid"><label class="modal-field"><span>Puntería</span><input v-model.number="weaponDraft.aim" type="number" step="any" /></label><label class="modal-field"><span>Fuego automático</span><input v-model="weaponDraft.automaticFire" /></label><label class="modal-field"><span>Capacidad</span><input v-model.number="weaponDraft.capacity" type="number" min="0" step="any" required /></label><label class="modal-field"><span>Calibre</span><input v-model="weaponDraft.caliber" required /></label></div><label class="modal-field"><span>Regla extra</span><textarea v-model="weaponDraft.extraRule" rows="4"></textarea></label><div class="modal-actions"><button class="button button-primary" type="submit" :disabled="weaponSaving">{{ weaponSaving ? 'Guardando…' : 'Guardar arma' }}</button><button class="button button-quiet" type="button" @click="closeWeaponDetail">Cancelar</button><button v-if="selectedWeapon" class="button button-danger" type="button" :disabled="weaponDeleting" @click="deleteWeapon">{{ weaponDeleting ? 'Borrando…' : 'Borrar arma' }}</button></div></form>
+         <form class="inventory-form" @submit.prevent="saveWeapon"><div class="inventory-form-grid"><label class="modal-field"><span>Hueco</span><select v-model="weaponDraft.slot" :disabled="weaponSlotLocked || !!selectedWeapon" @change="onWeaponSlotChange"><option v-for="slot in weaponSlots" :key="slot.value" :value="slot.value" :disabled="!compatibleSlots(weaponDraft.size).includes(slot.value)">{{ slot.label }}</option></select></label><label class="modal-field"><span>Nombre</span><input v-model="weaponDraft.name" required maxlength="255" autofocus /></label><label class="modal-field"><span>Tipo</span><select v-model="weaponDraft.weaponType" :disabled="!!selectedWeapon?.catalogWeaponId"><option v-for="type in weaponTypes" :key="type.value" :value="type.value">{{ type.label }}</option></select></label></div><label v-if="!selectedWeapon" class="modal-field"><span>Imagen</span><input type="file" accept="image/png,image/jpeg,image/gif,image/webp" @change="onCustomWeaponImage"><img v-if="customImageUrl" class="weapon-image-preview" :src="customImageUrl" alt="Vista previa"></label><label v-if="selectedWeapon" class="modal-field weapon-move"><span>Mover a</span><select :value="selectedWeapon.slot" :disabled="weaponMoving" @change="moveWeapon(selectedWeapon, ($event.target as HTMLSelectElement).value)"><option v-for="target in weaponMoveTargets(selectedWeapon)" :key="target" :value="target">{{ weaponSlots.find(s=>s.value===target)?.label }}</option></select></label><div class="inventory-form-grid"><label class="modal-field"><span>Tamaño</span><select v-model="weaponDraft.size" @change="onWeaponSizeChange"><option v-for="size in weaponSizes" :key="size.value" :value="size.value" :disabled="!compatibleSizes(weaponDraft.slot).includes(size.value)">{{ size.label }}</option></select></label><label class="modal-field"><span>Alcance</span><input v-model.number="weaponDraft.range" type="number" min="0" step="any" required /></label><label class="modal-field"><span>Recarga</span><input v-model.number="weaponDraft.reload" type="number" min="0" step="any" required /></label><label class="modal-field"><span>Cadencia</span><input v-model="weaponDraft.rate" required /></label></div><section class="modal-section-panel"><h3 class="modal-section-title">Daño</h3><div class="weapon-damage-grid"><label class="modal-field"><span>Vital</span><input v-model.number="weaponDraft.damageVital" type="number" min="0" step="any" required /></label><label class="modal-field"><span>Normal</span><input v-model.number="weaponDraft.damageNormal" type="number" min="0" step="any" required /></label><label class="modal-field"><span>Leve</span><input v-model.number="weaponDraft.damageLight" type="number" min="0" step="any" required /></label><label class="modal-field"><span>Muy leve</span><input v-model.number="weaponDraft.damageVeryLight" type="number" min="0" step="any" required /></label></div></section><div class="inventory-form-grid"><label class="modal-field"><span>Puntería</span><input v-model.number="weaponDraft.aim" type="number" step="any" /></label><label class="modal-field"><span>Fuego automático</span><input v-model="weaponDraft.automaticFire" /></label><label class="modal-field"><span>Capacidad</span><input v-model.number="weaponDraft.capacity" type="number" min="1" step="1" required /></label><label class="modal-field"><span>Balas cargadas</span><input v-model.number="weaponDraft.loadedBullets" type="number" min="0" :max="weaponDraft.capacity" step="1" required /></label><label class="modal-field"><span>Calibre</span><input v-model="weaponDraft.caliber" required /></label></div><label class="modal-field"><span>Regla extra</span><textarea v-model="weaponDraft.extraRule" rows="4"></textarea></label><div class="modal-actions"><button class="button button-primary" type="submit" :disabled="weaponSaving">{{ weaponSaving ? 'Guardando…' : 'Guardar arma' }}</button><button class="button button-quiet" type="button" @click="closeWeaponDetail">Cancelar</button><button v-if="selectedWeapon" class="button button-danger" type="button" :disabled="weaponDeleting" @click="deleteWeapon">{{ weaponDeleting ? 'Borrando…' : 'Borrar arma' }}</button></div></form>
       </section>
 
       <section v-else-if="sheetView === 'inventory-detail'" class="sheet-content inventory-content" aria-labelledby="inventory-detail-title">
@@ -1227,12 +1444,120 @@ watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) 
         </form>
       </section>
 
-      <section v-else class="sheet-content abilities-content" aria-labelledby="abilities-title">
+      <section v-else-if="sheetView === 'abilities'" class="sheet-content abilities-content" aria-labelledby="abilities-title">
         <div class="sheet-heading"><div><p class="eyebrow accent">HABILIDADES</p><h2 id="abilities-title">{{ character.name }}</h2><p class="modal-copy">Todas las habilidades obtenidas en la última versión cerrada.</p></div><strong class="ability-count">{{ obtainedAbilities.length }}</strong></div>
         <p v-if="abilityCatalogLoading" class="sheet-state">Cargando habilidades…</p>
         <p v-else-if="abilityCatalogError" class="error-banner" role="alert">{{ abilityCatalogError }}</p>
         <div v-else-if="obtainedAbilities.length" class="abilities-grid"><button v-for="ability in obtainedAbilities" :key="ability.name" class="ability-card" type="button" @click="openAbilityDetail(ability)">{{ ability.name }}</button></div>
         <p v-else class="sheet-state">No hay habilidades obtenidas en una versión cerrada.</p>
+      </section>
+
+      <section v-else-if="sheetView === 'ammunition-detail'" class="sheet-content inventory-content" aria-labelledby="ammunition-detail-title">
+        <div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO · MUNICIÓN</p><h2 id="ammunition-detail-title">{{ selectedAmmunition ? 'Editar munición' : 'Añadir munición' }}</h2><p class="modal-copy">La munición se agrupa automáticamente por calibre.</p></div></div>
+        <p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p>
+        <form class="inventory-form" @submit.prevent="saveAmmunition">
+          <label class="modal-field"><span>Calibre</span><select v-model="ammunitionDraft.caliber" :disabled="!!selectedAmmunition" required><option value="" disabled>Selecciona un calibre</option><option v-for="caliber in ammunitionCalibers" :key="caliber" :value="caliber">{{ caliber }}</option></select></label>
+          <label class="modal-field"><span>Cantidad</span><input v-model.number="ammunitionDraft.quantity" type="number" min="1" step="1" required></label>
+          <p v-if="!ammunitionCalibers.length" class="sheet-state">No hay calibres disponibles. Añade un arma con calibre para habilitar munición.</p>
+          <div class="modal-actions"><button class="button button-primary" type="submit" :disabled="ammunitionSaving || !ammunitionDraft.caliber || Number(ammunitionDraft.quantity) < 1">{{ ammunitionSaving ? 'Guardando…' : 'Guardar munición' }}</button><button class="button button-quiet" type="button" @click="closeAmmunitionDetail">Cancelar</button></div>
+        </form>
+      </section>
+
+        <section v-else-if="sheetView === 'armor-detail'" class="sheet-content inventory-content"><div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO · ARMADURA</p><h2>{{ selectedArmor ? 'Editar armadura' : 'Añadir armadura' }}</h2></div></div><p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p><form class="inventory-form" @submit.prevent="saveArmor"><label class="modal-field"><span>Nombre</span><input v-model="armorDraft.name" required maxlength="255" autofocus></label><label class="modal-field"><span>Descripción</span><textarea v-model="armorDraft.description" rows="3"></textarea></label><label class="modal-field"><span>Imagen</span><input type="file" accept="image/png,image/jpeg,image/gif,image/webp" @change="onProtectiveImage($event,'armor')"><img v-if="armorDraft.imageUrl" class="weapon-image-preview" :src="armorDraft.imageUrl" alt="Vista previa"></label><section class="modal-section-panel"><h3 class="modal-section-title">Huecos y valores</h3><div v-for="slot in armorSlots" :key="slot.value" class="armor-slot-editor"><label><input type="checkbox" :checked="armorDraft.slots.includes(slot.value)" :disabled="armorSlotUnavailable(slot.value)" @change="toggleArmorSlot(slot.value)"> {{ slot.label }}<small v-if="armorSlotUnavailable(slot.value)">Ya ocupado</small></label><template v-if="armorDraft.slots.includes(slot.value)"><label class="modal-field"><span>RD</span><input v-model.number="armorDraft.rdBySlot[slot.value]" type="number" min="0" max="999" required></label><label class="modal-field"><span>Armadura</span><input v-model.number="armorDraft.armorBySlot[slot.value]" type="number" min="0" max="9999" required></label></template></div></section><div class="modal-actions"><button class="button button-primary" type="submit" :disabled="armorSaving || !armorDraft.slots.length">{{ armorSaving ? 'Guardando…' : 'Guardar armadura' }}</button><button class="button button-quiet" type="button" @click="sheetView='inventory'">Cancelar</button><button v-if="selectedArmor" class="button button-danger" type="button" @click="deleteArmor">Borrar</button></div></form></section>
+
+      <section v-else-if="sheetView === 'shield-detail'" class="sheet-content inventory-content"><div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO · ESCUDO DE ENERGÍA</p><h2>{{ selectedShield ? 'Editar escudo de energía' : 'Añadir escudo de energía' }}</h2></div></div><p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p><form class="inventory-form" @submit.prevent="saveShield"><label class="modal-field"><span>Nombre</span><input v-model="shieldDraft.name" required maxlength="255" autofocus></label><label class="modal-field"><span>Descripción</span><textarea v-model="shieldDraft.description" rows="3"></textarea></label><label class="modal-field"><span>PV</span><input v-model.number="shieldDraft.hitPoints" type="number" min="0" required></label><label class="modal-field"><span>Imagen</span><input type="file" accept="image/png,image/jpeg,image/gif,image/webp" @change="onProtectiveImage($event,'shield')"><img v-if="shieldDraft.imageUrl" class="weapon-image-preview" :src="shieldDraft.imageUrl" alt="Vista previa"></label><div class="modal-actions"><button class="button button-primary" type="submit" :disabled="shieldSaving">{{ shieldSaving ? 'Guardando…' : 'Guardar escudo' }}</button><button class="button button-quiet" type="button" @click="sheetView='inventory'">Cancelar</button><button v-if="selectedShield" class="button button-danger" type="button" @click="deleteShield">Borrar</button></div></form></section>
+      <section v-else-if="sheetView === 'physical-shield-detail'" class="sheet-content inventory-content"><div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO · ESCUDO</p><h2>{{ selectedPhysicalShield ? 'Editar escudo' : 'Añadir escudo' }}</h2></div></div><p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p><form class="inventory-form" @submit.prevent="savePhysicalShield"><label class="modal-field"><span>Nombre</span><input v-model="physicalShieldDraft.name" required maxlength="255" autofocus></label><label class="modal-field"><span>Descripción</span><textarea v-model="physicalShieldDraft.description" rows="3"></textarea></label><div class="inventory-form-grid"><label class="modal-field"><span>RD</span><input v-model.number="physicalShieldDraft.rd" type="number" min="0" max="999" required></label><label class="modal-field"><span>Armadura</span><input v-model.number="physicalShieldDraft.armor" type="number" min="0" max="9999" required></label><label class="modal-field"><span>Defensa</span><input v-model.number="physicalShieldDraft.defense" type="number" required></label></div><label class="modal-field"><span>Otros efectos</span><textarea v-model="physicalShieldDraft.otherEffects" rows="3"></textarea></label><label class="modal-field"><span>Imagen</span><input type="file" accept="image/png,image/jpeg,image/gif,image/webp" @change="onProtectiveImage($event,'physicalShield')"><img v-if="physicalShieldDraft.imageUrl" class="weapon-image-preview" :src="physicalShieldDraft.imageUrl" alt="Vista previa"></label><div class="modal-actions"><button class="button button-primary" type="submit" :disabled="shieldSaving">{{ shieldSaving ? 'Guardando…' : 'Guardar escudo' }}</button><button class="button button-quiet" type="button" @click="sheetView='inventory'">Cancelar</button><button v-if="selectedPhysicalShield" class="button button-danger" type="button" @click="deletePhysicalShield">Borrar</button></div></form></section>
+    </div>
+
+
+    <div v-if="showShieldDetailModal && selectedShield" class="modal-backdrop" @click.self="closeShieldDetailModal">
+      <section class="modal-card weapon-detail-modal shield-detail-modal" role="dialog" aria-modal="true" aria-labelledby="shield-detail-modal-title">
+        <header class="modal-header"><div><p class="eyebrow accent">INVENTARIO · ESCUDO DE ENERGÍA</p><h2 id="shield-detail-modal-title">{{ selectedShield.name }}</h2><p class="modal-copy">Escudo de energía activo</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="closeShieldDetailModal">×</button></header>
+        <div class="modal-body weapon-detail-body"><div class="weapon-detail-hero"><div class="weapon-detail-image shield-detail-image"><img v-if="selectedShield.imageUrl" :src="selectedShield.imageUrl" :alt="selectedShield.name"><span v-else>🛡</span></div><dl class="weapon-detail-stats"><div><dt>Protección</dt><dd>{{ selectedShield.hitPoints }} PV</dd></div></dl></div><p v-if="selectedShield.description" class="weapon-detail-rule">{{ selectedShield.description }}</p></div>
+        <footer class="modal-actions"><button class="button button-primary" type="button" @click="editSelectedShield">Modificar</button><button class="button button-quiet" type="button" @click="closeShieldDetailModal">Cerrar</button><button class="button button-danger" type="button" @click="deleteShield">Borrar</button></footer>
+      </section>
+    </div>
+
+    <div v-if="showPhysicalShieldDetailModal && selectedPhysicalShield" class="modal-backdrop" @click.self="closePhysicalShieldDetailModal"><section class="modal-card weapon-detail-modal shield-detail-modal" role="dialog" aria-modal="true" aria-labelledby="physical-shield-detail-modal-title"><header class="modal-header"><div><p class="eyebrow accent">INVENTARIO · ESCUDO</p><h2 id="physical-shield-detail-modal-title">{{ selectedPhysicalShield.name }}</h2><p class="modal-copy">Escudo físico activo</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="closePhysicalShieldDetailModal">×</button></header><div class="modal-body weapon-detail-body"><div class="weapon-detail-hero"><div class="weapon-detail-image shield-detail-image"><img v-if="selectedPhysicalShield.imageUrl" :src="selectedPhysicalShield.imageUrl" :alt="selectedPhysicalShield.name"><span v-else>🛡</span></div><dl class="weapon-detail-stats"><div><dt>RD</dt><dd>{{ selectedPhysicalShield.rd }}</dd></div><div><dt>Armadura</dt><dd>{{ selectedPhysicalShield.armor }}</dd></div><div><dt>Defensa</dt><dd>{{ selectedPhysicalShield.defense }}</dd></div></dl></div><p v-if="selectedPhysicalShield.description" class="weapon-detail-rule">{{ selectedPhysicalShield.description }}</p><p v-if="selectedPhysicalShield.otherEffects" class="weapon-detail-rule"><strong>Otros efectos:</strong> {{ selectedPhysicalShield.otherEffects }}</p></div><footer class="modal-actions"><button class="button button-primary" type="button" @click="editSelectedPhysicalShield">Modificar</button><button class="button button-quiet" type="button" @click="closePhysicalShieldDetailModal">Cerrar</button><button class="button button-danger" type="button" @click="deletePhysicalShield">Borrar</button></footer></section></div>
+
+    <div v-if="showArmorDetailModal && selectedArmor" class="modal-backdrop" @click.self="closeArmorDetailModal">
+      <section class="modal-card weapon-detail-modal armor-detail-modal" role="dialog" aria-modal="true" aria-labelledby="armor-detail-modal-title">
+        <header class="modal-header"><div><p class="eyebrow accent">INVENTARIO · ARMADURA</p><h2 id="armor-detail-modal-title">{{ selectedArmor.name }}</h2><p class="modal-copy">Armadura activa · {{ selectedArmor.slots.map(slot => armorSlots.find(item => item.value === slot)?.label).join(' · ') }}</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="closeArmorDetailModal">×</button></header>
+        <div class="modal-body weapon-detail-body"><div class="weapon-detail-hero"><div class="weapon-detail-image armor-detail-image"><img v-if="selectedArmor.imageUrl" :src="selectedArmor.imageUrl" :alt="selectedArmor.name"><span v-else>🛡</span></div><dl class="weapon-detail-stats"><div v-for="slot in selectedArmor.slots" :key="slot"><dt>{{ armorSlots.find(item => item.value === slot)?.label }}</dt><dd>RD {{ selectedArmor.rdBySlot[slot] }} · Armadura {{ selectedArmor.armorBySlot[slot] }}</dd></div></dl></div><p v-if="selectedArmor.description" class="weapon-detail-rule">{{ selectedArmor.description }}</p></div>
+        <footer class="modal-actions"><button class="button button-primary" type="button" @click="editSelectedArmor">Modificar</button><button class="button button-quiet" type="button" @click="closeArmorDetailModal">Cerrar</button><button class="button button-danger" type="button" @click="deleteArmor">Borrar</button></footer>
+      </section>
+    </div>
+
+    <div v-if="showShootModal && shootWeaponTarget" class="modal-backdrop" @click.self="closeShoot">
+      <section class="modal-card shoot-modal" role="dialog" aria-modal="true" aria-labelledby="shoot-modal-title">
+        <header class="modal-header"><div><p class="eyebrow accent">INVENTARIO · ARMA</p><h2 id="shoot-modal-title">Disparar {{ shootWeaponTarget.name }}</h2><p class="modal-copy">Balas cargadas: {{ shootWeaponTarget.loadedBullets }}/{{ shootWeaponTarget.capacity }}</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="closeShoot">×</button></header>
+        <div class="modal-body"><div class="shoot-options"><button v-for="option in shootOptions(shootWeaponTarget)" :key="option.label" class="button button-primary" type="button" :disabled="weaponShooting" @click="shootWeapon(shootWeaponTarget, option.shots, option.automatic)">{{ option.label }}<small>{{ option.shots }} bala{{ option.shots === 1 ? '' : 's' }}</small></button><p v-if="!shootOptions(shootWeaponTarget).length" class="sheet-muted">No hay balas cargadas.</p></div><p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p></div>
+        <footer class="modal-actions"><button class="button button-quiet" type="button" @click="closeShoot">Cancelar</button></footer>
+      </section>
+    </div>
+    <div v-if="showWeaponDetailModal && selectedWeapon" class="modal-backdrop" @click.self="closeWeaponDetail">
+      <section class="modal-card weapon-detail-modal" role="dialog" aria-modal="true" aria-labelledby="weapon-detail-modal-title">
+        <header class="modal-header"><div><p class="eyebrow accent">INVENTARIO · ARMA</p><h2 id="weapon-detail-modal-title">{{ selectedWeapon.name }}</h2><p class="modal-copy">{{ weaponTypes.find(type => type.value === selectedWeapon?.weaponType)?.label || selectedWeapon.weaponType }} · {{ weaponSizes.find(size => size.value === selectedWeapon?.size)?.label || selectedWeapon.size }}</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="closeWeaponDetail">×</button></header>
+        <div class="modal-body weapon-detail-body">
+            <div class="weapon-detail-hero"><div class="weapon-detail-image"><img v-if="weaponImage(selectedWeapon)" :src="weaponImage(selectedWeapon)" :alt="selectedWeapon.name"><span v-else>⚔</span></div><dl class="weapon-detail-stats"><div><dt>Daño</dt><dd>{{ weaponDamage(selectedWeapon) }}</dd></div><div><dt>Puntería</dt><dd>{{ selectedWeapon.aim ?? '—' }}</dd></div><div><dt>Alcance</dt><dd>{{ selectedWeapon.range }}</dd></div><div><dt>Recarga</dt><dd>{{ selectedWeapon.reload }}</dd></div><div><dt>Cadencia</dt><dd>{{ weaponRate(selectedWeapon.rate) }}</dd></div><div><dt>Capacidad</dt><dd>{{ selectedWeapon.capacity }}</dd></div><div><dt>Balas cargadas</dt><dd>{{ selectedWeapon.loadedBullets }}/{{ selectedWeapon.capacity }}</dd></div><div><dt>Calibre</dt><dd>{{ selectedWeapon.caliber || '—' }}</dd></div><div><dt>Balas disponibles</dt><dd>{{ ammunitionForCaliber(selectedWeapon.caliber) }}</dd></div><div><dt>Fuego automático</dt><dd>{{ selectedWeapon.automaticFire || '—' }}</dd></div></dl></div>
+           <p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p>
+          <p v-if="selectedWeapon.extraRule" class="weapon-detail-rule"><strong>Regla extra:</strong> {{ selectedWeapon.extraRule }}</p>
+          <section class="weapon-slot-actions"><h3>Ubicación</h3><p class="sheet-muted">Solo se muestran movimientos válidos: ambas armas deben poder entrar en el hueco de la otra.</p><div class="weapon-target-grid"><button v-for="target in weaponMoveTargets(selectedWeapon).filter(slot => slot !== selectedWeapon?.slot)" :key="target" class="button button-quiet" type="button" :disabled="weaponMoving" @click="moveWeapon(selectedWeapon, target)"><span>{{ weaponAt(target) ? 'Intercambiar' : 'Mover a hueco vacío' }}</span><small>{{ weaponSlots.find(slot => slot.value === target)?.label }}</small><em v-if="weaponAt(target)">{{ weaponAt(target)?.name }}</em></button></div></section>
+        </div>
+        <footer class="modal-actions"><button class="button button-primary" type="button" @click="editSelectedWeapon">Modificar</button><button class="button button-quiet" type="button" @click="closeWeaponDetail">Cerrar</button><button class="button button-danger" type="button" :disabled="weaponDeleting" @click="deleteWeapon">{{ weaponDeleting ? 'Borrando…' : 'Borrar arma' }}</button></footer>
+      </section>
+    </div>
+
+    <div v-if="showCatalogWeaponModal && selectedCatalogWeapon" class="modal-backdrop" @click.self="showCatalogWeaponModal=false">
+      <section class="modal-card weapon-detail-modal" role="dialog" aria-modal="true" aria-labelledby="catalog-weapon-detail-title">
+        <header class="modal-header"><div><p class="eyebrow accent">AÑADIR ARMA</p><h2 id="catalog-weapon-detail-title">{{ selectedCatalogWeapon.name }}</h2><p class="modal-copy">{{ weaponTypes.find(type => type.value === selectedCatalogWeapon?.weaponType)?.label || selectedCatalogWeapon.weaponType }} · {{ weaponSizes.find(size => size.value === selectedCatalogWeapon?.size)?.label || selectedCatalogWeapon.size }}</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="showCatalogWeaponModal=false">×</button></header>
+         <div class="modal-body weapon-detail-body"><div class="weapon-detail-hero"><div class="weapon-detail-image"><img v-if="weaponCatalogImage(selectedCatalogWeapon)" :src="weaponCatalogImage(selectedCatalogWeapon)" :alt="selectedCatalogWeapon.name"><span v-else>⚔</span></div><dl class="weapon-detail-stats"><div><dt>Daño</dt><dd>{{ weaponDamage(selectedCatalogWeapon) }}</dd></div><div><dt>Puntería</dt><dd>{{ selectedCatalogWeapon.aim ?? '—' }}</dd></div><div><dt>Alcance</dt><dd>{{ selectedCatalogWeapon.range }}</dd></div><div><dt>Recarga</dt><dd>{{ selectedCatalogWeapon.reload }}</dd></div><div><dt>Cadencia</dt><dd>{{ weaponRate(selectedCatalogWeapon.rate) }}</dd></div><div><dt>Capacidad</dt><dd>{{ selectedCatalogWeapon.capacity }}</dd></div><div><dt>Balas cargadas</dt><dd>{{ selectedCatalogWeapon.loadedBullets }}/{{ selectedCatalogWeapon.capacity }}</dd></div><div><dt>Calibre</dt><dd>{{ selectedCatalogWeapon.caliber || '—' }}</dd></div><div><dt>Fuego automático</dt><dd>{{ selectedCatalogWeapon.automaticFire || '—' }}</dd></div></dl></div><p v-if="selectedCatalogWeapon.extraRule" class="weapon-detail-rule"><strong>Regla extra:</strong> {{ selectedCatalogWeapon.extraRule }}</p><p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p></div>
+        <footer class="modal-actions"><button class="button button-primary" type="button" :disabled="catalogLoading" @click="addSelectedCatalogWeapon">{{ catalogLoading ? 'Añadiendo…' : 'Añadir' }}</button><button class="button button-quiet" type="button" @click="showCatalogWeaponModal=false">Cancelar</button></footer>
+      </section>
+    </div>
+
+    <div v-if="showAttributeRoll && attributeRoll" class="modal-backdrop attribute-roll-backdrop" @click.self="closeAttributeRoll">
+      <section class="modal-card attribute-roll-modal" role="dialog" aria-modal="true" aria-labelledby="attribute-roll-title">
+        <header class="modal-header">
+          <div>
+            <p class="eyebrow accent">TIRADA DE ATRIBUTO</p>
+            <h2 id="attribute-roll-title">{{ attributeRoll.name }}</h2>
+            <p class="modal-copy">{{ attributeRoll.score }} · +{{ attributeRoll.plusOne }} · +{{ attributeRoll.plusD6 }}D6</p>
+          </div>
+          <button id="attribute-roll-close" class="modal-close" type="button" aria-label="Cerrar tirada" @click="closeAttributeRoll">×</button>
+        </header>
+        <div class="modal-body attribute-roll-body">
+          <p class="attribute-roll-help">Selecciona 1 D10 y 2 D6. Los dados seleccionados se suman al resultado.</p>
+          <div class="attribute-roll-layout">
+            <section class="attribute-roll-dice-group attribute-roll-d10-group" aria-labelledby="attribute-roll-d10-label">
+              <h3 id="attribute-roll-d10-label">D10</h3>
+              <div class="attribute-roll-dice d10-dice">
+                <button v-for="die in attributeRollD10Dice" :key="die.id" class="roll-die" :class="{ selected: die.selected }" type="button" :aria-pressed="die.selected" :aria-label="`D10: ${die.value}${die.selected ? ', seleccionado' : ', no seleccionado'}`" @click="toggleAttributeRollDie(die.id)">
+                  <img :src="attributeRollDieImage(die)" alt="">
+                  <strong>{{ die.value }}</strong>
+                </button>
+              </div>
+            </section>
+            <section class="attribute-roll-dice-group attribute-roll-d6-group" aria-labelledby="attribute-roll-d6-label">
+              <h3 id="attribute-roll-d6-label">D6 disponibles</h3>
+              <div class="attribute-roll-dice d6-dice">
+                <button v-for="die in attributeRollD6Dice" :key="die.id" class="roll-die" :class="{ selected: die.selected }" type="button" :aria-pressed="die.selected" :aria-label="`D6: ${die.value}${die.selected ? ', seleccionado' : ', no seleccionado'}`" @click="toggleAttributeRollDie(die.id)">
+                  <img :src="attributeRollDieImage(die)" alt="">
+                  <strong>{{ die.value }}</strong>
+                </button>
+              </div>
+            </section>
+            <div class="attribute-roll-result" :class="{ critical: attributeRollIsCritical, incomplete: !attributeRollHasValidSelection }" aria-live="polite">
+              <span>{{ attributeRollIsCritical ? 'Crítico' : 'Resultado' }}</span>
+              <strong v-if="attributeRollHasValidSelection">{{ attributeRollResult }}</strong>
+              <strong v-else>Falta seleccionar {{ attributeRollMissingSelection }}</strong>
+            </div>
+          </div>
+        </div>
+        <footer class="modal-actions">
+          <button class="button button-primary" type="button" @click="rerollAttribute">Volver a tirar</button>
+          <button class="button button-quiet" type="button" @click="closeAttributeRoll">Cerrar</button>
+        </footer>
       </section>
     </div>
 

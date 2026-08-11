@@ -5,6 +5,8 @@ import { api, type CreationConfigurationPayload } from './services/api';
 import CharacterSheet from './CharacterSheet.vue';
 
 type Campaign = { id: string; name: string; createdAt: string };
+type Session = { id: string; email: string; name: string; admin: boolean };
+type CampaignMember = { id: string; email: string; active: boolean; createdAt: string; revokedAt?: string };
 type Character = { id: string; name: string; imageUrl?: string | null; campaignId?: string };
 type CreationMode = 'empty' | 'guided';
 type GuidedStep = 'setup' | 'race' | 'majors' | 'einherjer' | 'awakened' | 'complete';
@@ -38,10 +40,17 @@ const majorAttributes = [
 const loading = ref(true);
 const saving = ref(false);
 const error = ref('');
-const isDirector = ref(localStorage.getItem('dexm.director') === 'true');
+const session = ref<Session | null>(null);
+const authLoading = ref(true);
+const accessDenied = ref(false);
+const memberEmail = ref('');
+const members = ref<CampaignMember[]>([]);
+const membersOpen = ref(false);
 const route = useRoute();
 const router = useRouter();
 const isCharacterSheet = computed(() => Boolean(route.params.id));
+const isDirector = computed(() => session.value?.admin === true);
+const hasCampaignSwitcher = computed(() => isDirector.value || campaigns.value.length !== 1);
 
 const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
 const campaignCountLabel = computed(() => `${campaigns.value.length} ${campaigns.value.length === 1 ? 'campaña' : 'campañas'}`);
@@ -53,14 +62,24 @@ async function loadCampaigns() {
     const campaignId = String(route.query.campaign || '');
     const campaign = campaigns.value.find(item => item.id === campaignId);
     if (campaign) await selectCampaign(campaign);
+    else if (!isDirector.value && campaigns.value.length === 1) await selectCampaign(campaigns.value[0]);
   } catch (e: any) { error.value = e.message; } finally { loading.value = false; }
+}
+async function loadSession() {
+  authLoading.value = true;
+  try { session.value = await api.me() as Session; accessDenied.value = false; }
+  catch (e: any) { session.value = null; accessDenied.value = e?.status === 403; }
+  finally { authLoading.value = false; }
 }
 async function selectCampaign(campaign: Campaign) {
   selectedCampaign.value = campaign;
   try { characters.value = await api.characters(campaign.id); error.value = ''; } catch (e: any) { error.value = e.message; }
+  await loadMembers(campaign);
 }
-function persistDirector() { localStorage.setItem('dexm.director', String(isDirector.value)); }
-function toggleDirector() { isDirector.value = !isDirector.value; persistDirector(); if (!isDirector.value && isCampaignModalOpen.value) closeModals(); }
+async function logout() { await api.logout(); session.value = null; }
+async function loadMembers(campaign: Campaign) { if (!isDirector.value) return; try { members.value = await api.campaignMembers(campaign.id) as CampaignMember[]; } catch (e: any) { error.value = e.message; } }
+async function inviteMember() { if (!selectedCampaign.value || !memberEmail.value.trim()) return; try { await api.inviteCampaignMember(selectedCampaign.value.id, memberEmail.value.trim()); memberEmail.value = ''; await loadMembers(selectedCampaign.value); } catch (e: any) { error.value = e.message; } }
+async function revokeMember(member: CampaignMember) { if (!selectedCampaign.value || !confirm(`¿Revocar el acceso de ${member.email}?`)) return; try { await api.revokeCampaignMember(selectedCampaign.value.id, member.email); await loadMembers(selectedCampaign.value); } catch (e: any) { error.value = e.message; } }
 function resetCharacterCreation() {
   characterName.value = ''; characterImage.value = ''; creationMode.value = 'empty'; guidedStep.value = 'setup';
   guidedCharacterId.value = null; guidedRace.value = ''; guidedEinherjer.value = null; guidedAwakened.value = null; guidedEinherjerOrigin.value = null; guidedStartingAge.value = null; guidedAwakeningAge.value = null; guidedSheetAge.value = null; selectedMajorAttributes.value = [];
@@ -141,7 +160,7 @@ function readImage(event: Event) {
 }
 function clearImage() { characterImage.value = ''; if (imageInput.value) imageInput.value.value = ''; }
 function openCharacter(character: Character) { router.push(`/characters/${character.id}`); }
-onMounted(loadCampaigns);
+onMounted(async () => { await loadSession(); if (session.value) await loadCampaigns(); });
 watch(() => route.query.campaign, (campaignId) => {
   if (!campaignId) return;
   const campaign = campaigns.value.find(item => item.id === String(campaignId));
@@ -150,26 +169,29 @@ watch(() => route.query.campaign, (campaignId) => {
 </script>
 
 <template>
-  <CharacterSheet v-if="isCharacterSheet" />
+  <main v-if="authLoading" class="app-shell"><section class="welcome-state"><h2>Comprobando sesión…</h2></section></main>
+  <main v-else-if="accessDenied" class="app-shell"><section class="welcome-state"><p class="eyebrow accent">ACCESO RESTRINGIDO</p><h2>No tienes una campaña autorizada</h2><p>El administrador debe añadir tu email a una campaña antes de que puedas acceder.</p></section></main>
+  <main v-else-if="!session" class="app-shell"><section class="welcome-state"><div class="welcome-orbit">✦</div><p class="eyebrow accent">ACCESO</p><h2>Entra en tu archivo</h2><p>Usa tu cuenta de Google para acceder a tus campañas autorizadas.</p><a class="button button-primary" href="/oauth2/authorization/google">Continuar con Google</a></section></main>
+  <CharacterSheet v-else-if="isCharacterSheet" />
   <main v-else class="app-shell">
     <header class="topbar">
-      <div class="brand"><img class="brand-logo" src="/logo.png" alt="Deus ex Machina" /></div>
+      <div class="brand"><img class="brand-logo" src="/logo.png" alt="Deus ex Machina" /></div><div class="session-actions"><span class="muted">{{ session.email }}</span><button class="button button-quiet" type="button" @click="logout">Salir</button></div>
     </header>
 
     <p v-if="error" class="error-banner" role="alert">{{ error }}</p>
 
-    <div class="content-grid">
-      <aside class="campaign-rail">
+    <div class="content-grid" :class="{ 'single-campaign-layout': !hasCampaignSwitcher }">
+      <aside v-if="hasCampaignSwitcher" class="campaign-rail">
         <div class="section-heading"><div><p class="eyebrow">TUS MUNDOS</p><h3>Campañas</h3></div><span class="count">{{ campaignCountLabel }}</span></div>
         <div v-if="loading" class="empty-small">Cargando…</div>
         <button v-for="campaign in campaigns" v-else :key="campaign.id" class="campaign-item" :class="{ active: selectedCampaign?.id === campaign.id }" @click="selectCampaign(campaign)"><span class="campaign-dot"></span><span>{{ campaign.name }}</span><span class="arrow">→</span></button>
         <div v-if="!loading && !campaigns.length" class="empty-small">Aún no tienes campañas.</div>
         <button v-if="isDirector" class="new-campaign-link" @click="openCampaignModal">＋ Crear una campaña</button>
-        <button class="director-toggle" :class="{ active: isDirector }" type="button" :aria-pressed="isDirector" aria-label="Activar o desactivar modo Director" @click="toggleDirector"><span class="director-toggle-label">DM</span><span class="director-toggle-knob" aria-hidden="true"></span></button>
       </aside>
 
       <section v-if="selectedCampaign" class="campaign-view">
-        <div class="campaign-heading"><div><p class="eyebrow accent">CAMPAÑA SELECCIONADA</p><h2>{{ selectedCampaign.name }}</h2><p class="muted">{{ characters.length }} {{ characters.length === 1 ? 'personaje' : 'personajes' }} en esta aventura</p></div><div class="campaign-actions"><button v-if="isDirector" class="button button-danger" @click="openDeleteCampaignModal">Borrar campaña</button><button class="button button-primary" @click="openCharacterModal"><span>＋</span> Nuevo personaje</button></div></div>
+        <div class="campaign-heading"><div><p class="eyebrow accent">CAMPAÑA SELECCIONADA</p><h2>{{ selectedCampaign.name }}</h2><p class="muted">{{ characters.length }} {{ characters.length === 1 ? 'personaje' : 'personajes' }} en esta aventura</p></div><div class="campaign-actions"><button v-if="isDirector" class="button button-quiet" @click="membersOpen = !membersOpen">Gestionar accesos</button><button v-if="isDirector" class="button button-danger" @click="openDeleteCampaignModal">Borrar campaña</button><button class="button button-primary" @click="openCharacterModal"><span>＋</span> Nuevo personaje</button></div></div>
+        <section v-if="isDirector && membersOpen" class="sheet-panel campaign-members"><div class="sheet-panel-heading"><h3>Emails autorizados</h3><form @submit.prevent="inviteMember"><input v-model="memberEmail" type="email" placeholder="persona@example.com" required><button class="button button-primary" type="submit">Añadir</button></form></div><p v-if="!members.length" class="sheet-muted">No hay invitaciones.</p><ul v-else><li v-for="member in members" :key="member.id"><span>{{ member.email }}</span><button v-if="member.active" class="button button-quiet" type="button" @click="revokeMember(member)">Revocar</button><span v-else class="muted">Revocado</span></li></ul></section>
         <div v-if="characters.length" class="character-grid"><article v-for="character in characters" :key="character.id" class="character-card" role="link" tabindex="0" @click="openCharacter(character)" @keydown.enter="openCharacter(character)"><div class="portrait"><img v-if="character.imageUrl" :src="character.imageUrl" :alt="`Retrato de ${character.name}`" /><span v-else>{{ initials(character.name) }}</span></div><div class="character-info"><p class="eyebrow">PERSONAJE</p><h3>{{ character.name }}</h3><span class="card-link">Ver ficha →</span></div></article></div>
         <div v-else class="empty-state"><div class="empty-icon">✦</div><h3>La aventura está esperando</h3><p>Añade el primer personaje a <strong>{{ selectedCampaign.name }}</strong>.</p><button class="button button-primary" @click="openCharacterModal">＋ Nuevo personaje</button></div>
       </section>
