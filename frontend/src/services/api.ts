@@ -104,6 +104,7 @@ export type PhysicalShieldCatalogItem = Omit<PhysicalShield, 'id'> & { id: strin
 
 export const api = {
   me: () => request('/api/auth/me'),
+  keepalive: () => request('/api/auth/keepalive', { method: 'POST' }),
   logout: () => request('/api/auth/logout', { method: 'POST' }),
   campaigns: () => request('/api/campaigns'),
   createCampaign: (name: string) => request('/api/campaigns', { method: 'POST', body: JSON.stringify({ name }) }),

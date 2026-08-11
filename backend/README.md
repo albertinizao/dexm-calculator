@@ -16,8 +16,10 @@ profile.
 ## Google login (local)
 
 Create a Google OAuth web client and register
-`http://localhost:8084/login/oauth2/code/google` as an authorized redirect URI.
+`http://localhost:5177/login/oauth2/code/google` as an authorized redirect URI.
 Before starting the backend, set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
 The administrator defaults to `albertinizao@gmail.com`; override it with
-`APP_SECURITY_ADMIN_EMAILS` (comma-separated). Set `APP_SECURITY_FRONTEND_URL`
-to the public frontend URL in production.
+`APP_SECURITY_ADMIN_EMAILS` (comma-separated). The
+`APP_SECURITY_FRONTEND_URL` setting controls the frontend origin used for the
+OAuth callback; the default is `http://localhost:5177/` and production must
+provide the public frontend origin with a trailing slash.

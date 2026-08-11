@@ -215,6 +215,7 @@
 .roll-die{position:relative;display:grid;place-items:center;width:42px;height:42px;padding:0;border:2px solid #111;background:transparent;overflow:hidden;transition:transform .15s ease,border-color .15s ease,filter .15s ease}
 .roll-die:hover,.roll-die:focus-visible{transform:translateY(-2px);outline:2px solid var(--gold);outline-offset:2px}
 .roll-die.selected{border-color:var(--gold);background:transparent;box-shadow:0 0 0 1px rgba(255,216,0,.35)}
+.roll-die.disabled{opacity:.5;cursor:not-allowed;filter:grayscale(.35)}
 .roll-die img{position:absolute;width:100%;height:100%;object-fit:contain;object-position:center;pointer-events:none}
 .roll-die strong{position:relative;z-index:1;color:#fff;font-size:32px;line-height:1;text-shadow:0 1px 3px #000,0 0 2px #000}
 .roll-die:not(.selected) strong{color:#111;text-shadow:0 1px 2px rgba(255,255,255,.9)}
@@ -226,3 +227,36 @@
 .attribute-roll-result.incomplete{border-color:rgba(255,216,0,.45);background:rgba(255,255,255,.04)}
 .attribute-roll-result.incomplete strong{font-size:18px;color:var(--gold-soft);font-weight:700}
 @media(max-width:600px){.roll-die{width:34px;height:34px}.attribute-roll-dice{gap:8px}.roll-die strong{font-size:28px}}
+.ability-card{display:flex;align-items:center;gap:10px}
+.ability-card-main{flex:1;min-width:0;border:0;background:transparent;color:inherit;padding:0;text-align:left;font:inherit;cursor:pointer}
+.ability-card-main:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
+.ability-roll-trigger{display:inline-grid;place-items:center;flex:0 0 28px;width:28px;height:28px;padding:2px;border:0;border-radius:5px;background:transparent;cursor:pointer}
+.ability-roll-trigger:hover,.ability-roll-trigger:focus-visible{background:rgba(255,216,0,.2);outline:2px solid var(--gold);outline-offset:2px}
+.ability-roll-trigger img{display:block;width:24px;height:24px;object-fit:contain}
+.ability-title-row{display:flex;align-items:center;gap:10px}
+.ability-title-row h2{margin:0}
+.attribute-roll-result.success{border-color:#55d98a;background:rgba(85,217,138,.14);color:#a8f5c4}
+.attribute-roll-result.failure{border-color:#ff7070;background:rgba(255,112,112,.12);color:#ffb0b0}
+.attribute-roll-result.fumble{border-color:#ff4d4d;background:rgba(255,77,77,.16);color:#ff9a9a;font-weight:700}
+.attribute-roll-result.fumble strong{color:#ff6565;font-weight:900}
+.attribute-roll-result small{font-size:12px;font-weight:400}
+
+.weapon-aim-roll-modal{width:min(960px,calc(100vw - 32px));max-height:min(90vh,960px);overflow:auto}
+.weapon-aim-roll-body{display:grid;gap:18px}
+.weapon-aim-roll-list{display:grid;gap:14px}
+.weapon-aim-roll-card{display:grid;gap:12px;padding:14px;border:1px solid rgba(255,216,0,.3);background:rgba(255,216,0,.035)}
+.weapon-aim-roll-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:9px;border-bottom:1px solid rgba(255,216,0,.2)}
+.weapon-aim-roll-heading h3{margin:0;color:#fff;font:20px "Adobe Caslon Pro",Georgia,serif;font-variant:small-caps}
+.weapon-aim-roll-heading .button{padding:7px 10px;font-size:10px}
+.weapon-aim-roll-layout{display:grid;grid-template-columns:minmax(70px,13%) minmax(0,37%) minmax(150px,20%) minmax(180px,30%);align-items:stretch;min-width:0}
+.weapon-aim-roll-layout>.attribute-roll-dice-group{min-width:0;padding-right:12px}
+.weapon-aim-roll-layout>.attribute-roll-result{min-width:0;margin-left:12px}
+.weapon-aim-roll-card .attribute-roll-dice-group{display:grid;align-content:start;gap:9px;margin:0;padding-top:0;border:0}
+.weapon-aim-roll-card .attribute-roll-dice-group h4{margin:0;color:#fff;font:16px "Adobe Caslon Pro",Georgia,serif;font-variant:small-caps}
+.weapon-aim-roll-damage-content{display:flex;align-items:center;gap:12px;min-height:42px}
+.weapon-aim-roll-damage-die{flex:0 0 auto}
+.weapon-aim-roll-damage-value{display:flex;align-items:center;gap:7px;min-width:0}
+.weapon-aim-roll-damage-value strong{color:#fff;font-size:30px;line-height:1}
+.weapon-aim-roll-damage-tag{padding:4px 7px;border:1px solid rgba(255,216,0,.5);color:var(--gold-soft);font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+@media(max-width:760px){.weapon-aim-roll-layout{grid-template-columns:minmax(70px,20%) minmax(0,45%) minmax(150px,35%)}.weapon-aim-roll-damage{grid-column:1/-1;padding-right:0}.weapon-aim-roll-damage-content{justify-content:flex-start}.weapon-aim-roll-layout>.attribute-roll-result{grid-column:1/-1;margin-left:0}}
+@media(max-width:600px){.weapon-aim-roll-layout{grid-template-columns:1fr;gap:14px}.weapon-aim-roll-layout>.attribute-roll-dice-group{padding-right:0}.weapon-aim-roll-layout>.attribute-roll-result{grid-column:auto;margin-left:0}.weapon-aim-roll-heading{align-items:flex-start;flex-direction:column}}

@@ -28,8 +28,11 @@ type DerivedStat = { key: string; name: string; formula: string; baseValue: numb
 type Progression = { kind: string; number: number; threshold: number; obtained: boolean };
 type AttributeDetail = { key:string; definitionId?:string | null; name:string; type:string; total:number; ranks:number; maxRanks:number | null; formula:string; calculatedValue:number; plusOne:number; plusD6:number; modifiers:AttributeModifier[]; progressions:Progression[]; deletable:boolean };
 type AttributeRow = { key:string; name:string; value:number; definitionId?:string; deletable?:boolean };
-type AttributeRollDie = { id:string; type:'d10' | 'd6'; value:number; selected:boolean };
-type AttributeRollState = { key:string; name:string; score:number; plusOne:number; plusD6:number; dice:AttributeRollDie[] };
+type AttributeRollDie = { id:string; type:'d10' | 'd6'; value:number; selected:boolean; disabled?:boolean };
+type AttributeRollState = { key:string; name:string; score:number; plusOne:number; plusD6:number; dice:AttributeRollDie[]; abilityName?:string; difficulty?:number|null; testName?:string };
+type WeaponDamage = Pick<Weapon, 'damageVital' | 'damageNormal' | 'damageLight' | 'damageVeryLight'>;
+type WeaponAimRoll = { id:string; dice:AttributeRollDie[]; damageD10:AttributeRollDie };
+type WeaponAimRollState = { weaponName:string; score:number; plusOne:number; plusD6:number; weaponAim:number; damage:WeaponDamage; rolls:WeaponAimRoll[] };
 type Ability = { name:string; description?:string; launchType?:string; cost?:number | string | null; test?:string; alternativesJson?:string; uniqueFlag?:string };
 type PendingUniqueAbility = Ability & { requirements: unknown };
 type LastUpgrade = { available:boolean; current?:{level:number; closedAt:string}; previous?:{level:number; closedAt:string}; scores?:{key:string; type:string; before:number; after:number; increase:number}[]; bonuses?:{key:string; plusOne:number; plusD6:number}[]; modifiers?:{key:string; name:string; before:number|null; after:number|null}[]; abilities?:string[] };
@@ -105,6 +108,8 @@ const weaponSlotLocked = ref(false);
 const weaponSaving = ref(false); const weaponDeleting = ref(false); const weaponMoving = ref(false);
 const weaponReloading = ref(false); const weaponShooting = ref(false);
 const shootWeaponTarget = ref<Weapon | null>(null); const showShootModal = ref(false);
+const weaponAimRoll = ref<WeaponAimRollState | null>(null); const showWeaponAimRollModal = ref(false);
+let weaponAimRollSequence = 0;
 const armors = ref<Armor[]>([]); const shields = ref<Shield[]>([]); const physicalShields = ref<PhysicalShield[]>([]);
 const armorDraft = ref<Omit<Armor, 'id'>>({ name:'', description:'', slots:[], rdBySlot:{HEAD:0,BODY:0,LEGS:0,ARMS:0}, armorBySlot:{HEAD:0,BODY:0,LEGS:0,ARMS:0}, imageUrl:null });
 const shieldDraft = ref<Omit<Shield, 'id'>>({ name:'', description:'', hitPoints:0, imageUrl:null });
@@ -562,25 +567,59 @@ function randomDieValue(sides: number): number {
   return Math.floor(Math.random() * sides) + 1;
 }
 
-function createAttributeRollDice(plusD6: number): AttributeRollDie[] {
-  const d10: AttributeRollDie = { id: 'd10', type: 'd10', value: randomDieValue(10), selected: true };
+function createAttributeRollDice(plusD6: number, idPrefix = ''): AttributeRollDie[] {
+  const id = (suffix: string) => idPrefix ? `${idPrefix}-${suffix}` : suffix;
+  const d10: AttributeRollDie = { id: id('d10'), type: 'd10', value: randomDieValue(10), selected: true };
   const d6Dice = Array.from({ length: 2 + Math.max(0, Math.floor(Number(plusD6) || 0)) }, (_, index) => ({
-    id: `d6-${index + 1}`,
+    id: id(`d6-${index + 1}`),
     type: 'd6' as const,
     value: randomDieValue(6),
     selected: false,
+    disabled: false,
   }));
-  const selectedD6Ids = new Set(d6Dice
+  const nonOneDice = d6Dice.filter(die => die.value !== 1);
+  const dieToDisable = (nonOneDice.length ? nonOneDice : d6Dice)
+    .slice()
+    .sort((left, right) => right.value - left.value || left.id.localeCompare(right.id))[0];
+  if (dieToDisable) dieToDisable.disabled = true;
+  const availableD6 = d6Dice.filter(die => !die.disabled);
+  const selectedD6Ids = availableD6.length >= 2 ? new Set(availableD6
     .slice()
     .sort((left, right) => right.value - left.value || left.id.localeCompare(right.id))
     .slice(0, 2)
-    .map(die => die.id));
+    .map(die => die.id)) : new Set<string>();
   return [d10, ...d6Dice.map(die => ({ ...die, selected: selectedD6Ids.has(die.id) }))];
+}
+
+function createWeaponAimRollDice(plusD6: number, rollId: string): AttributeRollDie[] {
+  return createAttributeRollDice(plusD6, `aim-${rollId}`);
+}
+
+function createWeaponDamageDie(rollId: string): AttributeRollDie {
+  return { id: `damage-${rollId}`, type: 'd10', value: randomDieValue(10), selected: true };
 }
 
 function openAttributeRoll(key: string, fallback: number, major: boolean) {
   const details = attributeRollDetails(key, fallback, major);
   attributeRoll.value = { ...details, dice: createAttributeRollDice(details.plusD6) };
+  showAttributeRoll.value = true;
+  nextTick(() => document.getElementById('attribute-roll-close')?.focus());
+}
+
+function openAbilityRoll(ability: Ability) {
+  const test = abilityActivationDetails(ability);
+  if (!test || test.score === null || test.difficulty === null) return;
+  attributeRoll.value = {
+    key: test.key,
+    name: test.testName,
+    score: test.score,
+    plusOne: test.plusOne ?? 0,
+    plusD6: test.plusD6 ?? 0,
+    difficulty: test.difficulty,
+    testName: test.testName,
+    abilityName: ability.name,
+    dice: createAttributeRollDice(test.plusD6 ?? 0),
+  };
   showAttributeRoll.value = true;
   nextTick(() => document.getElementById('attribute-roll-close')?.focus());
 }
@@ -599,7 +638,7 @@ function toggleAttributeRollDie(id: string) {
   if (!attributeRoll.value) return;
   attributeRoll.value = {
     ...attributeRoll.value,
-    dice: attributeRoll.value.dice.map(die => die.id === id ? { ...die, selected: !die.selected } : die),
+    dice: attributeRoll.value.dice.map(die => die.id === id && !die.disabled ? { ...die, selected: !die.selected } : die),
   };
 }
 
@@ -612,11 +651,14 @@ const selectedAttributeRollD10 = computed(() => attributeRoll.value?.dice.find(d
 const selectedAttributeRollD6 = computed(() => attributeRoll.value?.dice.filter(die => die.type === 'd6' && die.selected).map(die => die.value) ?? []);
 const attributeRollD10Dice = computed(() => attributeRoll.value?.dice.filter(die => die.type === 'd10') ?? []);
 const attributeRollD6Dice = computed(() => attributeRoll.value?.dice.filter(die => die.type === 'd6') ?? []);
-const attributeRollHasValidSelection = computed(() => selectedAttributeRollD10.value !== null && selectedAttributeRollD6.value.length === 2);
+const attributeRollAvailableD6 = computed(() => attributeRollD6Dice.value.filter(die => !die.disabled));
+const attributeRollCanOmitD6 = computed(() => attributeRollAvailableD6.value.length < 2);
+const attributeRollUsesD6 = computed(() => selectedAttributeRollD6.value.length === 2 || attributeRollCanOmitD6.value && selectedAttributeRollD6.value.length === 0);
+const attributeRollHasValidSelection = computed(() => selectedAttributeRollD10.value !== null && attributeRollUsesD6.value);
 const attributeRollMissingSelection = computed(() => {
   const missing: string[] = [];
   if (selectedAttributeRollD10.value === null) missing.push('1 D10');
-  if (selectedAttributeRollD6.value.length < 2) missing.push(`${2 - selectedAttributeRollD6.value.length} D6`);
+  if (!attributeRollCanOmitD6.value && selectedAttributeRollD6.value.length < 2) missing.push(`${2 - selectedAttributeRollD6.value.length} D6`);
   if (selectedAttributeRollD6.value.length > 2) missing.push(`deselecciona ${selectedAttributeRollD6.value.length - 2} D6`);
   return missing.join(' y ');
 });
@@ -625,7 +667,118 @@ const attributeRollResult = computed(() => attributeRollHasValidSelection.value 
   : null);
 const attributeRollIsCritical = computed(() => attributeRollHasValidSelection.value
   && selectedAttributeRollD10.value === 10
+  && selectedAttributeRollD6.value.length === 2
   && selectedAttributeRollD6.value.every(value => value === 6));
+const attributeRollIsFumble = computed(() => attributeRollHasValidSelection.value && (attributeRollResult.value ?? 99) <= 3);
+const abilityRollSuccess = computed(() => Boolean(
+  attributeRoll.value?.abilityName
+  && attributeRollHasValidSelection.value
+  && attributeRoll.value.difficulty !== null
+  && attributeRoll.value.difficulty !== undefined
+  && attributeRollResult.value !== null
+  && attributeRollResult.value >= attributeRoll.value.difficulty,
+));
+
+function openWeaponAimRolls(weapon: Weapon, rollCount: number) {
+  const details = attributeRollDetails('punteria', character.value?.attributeTotals?.punteria ?? attributes.value.punteria ?? 0, false);
+  const weaponAim = Number(weapon.aim) || 0;
+  const rolls = Array.from({ length: Math.max(1, Math.floor(rollCount)) }, () => {
+    const id = `${++weaponAimRollSequence}`;
+    return { id, dice: createWeaponAimRollDice(details.plusD6, id), damageD10: createWeaponDamageDie(id) };
+  });
+  weaponAimRoll.value = {
+    weaponName: weapon.name,
+    score: details.score,
+    plusOne: details.plusOne,
+    plusD6: details.plusD6,
+    weaponAim,
+    damage: {
+      damageVital: weapon.damageVital,
+      damageNormal: weapon.damageNormal,
+      damageLight: weapon.damageLight,
+      damageVeryLight: weapon.damageVeryLight,
+    },
+    rolls,
+  };
+  showWeaponAimRollModal.value = true;
+  nextTick(() => document.getElementById('weapon-aim-roll-close')?.focus());
+}
+
+function closeWeaponAimRolls() {
+  showWeaponAimRollModal.value = false;
+  weaponAimRoll.value = null;
+}
+
+function rerollWeaponAimRoll(rollId: string) {
+  if (!weaponAimRoll.value) return;
+  weaponAimRoll.value = {
+    ...weaponAimRoll.value,
+    rolls: weaponAimRoll.value.rolls.map(roll => roll.id === rollId
+      ? {
+        ...roll,
+        dice: createWeaponAimRollDice(weaponAimRoll.value!.plusD6, roll.id),
+        damageD10: createWeaponDamageDie(roll.id),
+      }
+      : roll),
+  };
+}
+
+function toggleWeaponAimRollDie(rollId: string, dieId: string) {
+  if (!weaponAimRoll.value) return;
+  weaponAimRoll.value = {
+    ...weaponAimRoll.value,
+    rolls: weaponAimRoll.value.rolls.map(roll => roll.id === rollId
+      ? { ...roll, dice: roll.dice.map(die => die.id === dieId && !die.disabled ? { ...die, selected: !die.selected } : die) }
+      : roll),
+  };
+}
+
+function weaponAimRollD10(roll: WeaponAimRoll): number | null {
+  return roll.dice.find(die => die.type === 'd10' && die.selected)?.value ?? null;
+}
+
+function weaponAimRollD6(roll: WeaponAimRoll): number[] {
+  return roll.dice.filter(die => die.type === 'd6' && die.selected).map(die => die.value);
+}
+
+function weaponAimRollIsValid(roll: WeaponAimRoll): boolean {
+  const availableD6 = roll.dice.filter(die => die.type === 'd6' && !die.disabled).length;
+  return weaponAimRollD10(roll) !== null && (weaponAimRollD6(roll).length === 2 || availableD6 < 2 && weaponAimRollD6(roll).length === 0);
+}
+
+function weaponAimRollMissingSelection(roll: WeaponAimRoll): string {
+  const missing: string[] = [];
+  const selectedD6 = weaponAimRollD6(roll);
+  if (weaponAimRollD10(roll) === null) missing.push('1 D10');
+  const availableD6 = roll.dice.filter(die => die.type === 'd6' && !die.disabled).length;
+  if (availableD6 >= 2 && selectedD6.length < 2) missing.push(`${2 - selectedD6.length} D6`);
+  if (selectedD6.length > 2) missing.push(`deselecciona ${selectedD6.length - 2} D6`);
+  return missing.join(' y ');
+}
+
+function weaponAimRollResult(roll: WeaponAimRoll): number | null {
+  if (!weaponAimRoll.value || !weaponAimRollIsValid(roll)) return null;
+  return weaponAimRollD10(roll)! + weaponAimRollD6(roll).reduce((sum, value) => sum + value, 0)
+    + weaponAimRoll.value.plusOne + weaponAimRoll.value.weaponAim;
+}
+
+function weaponAimRollIsCritical(roll: WeaponAimRoll): boolean {
+  return weaponAimRollIsValid(roll) && weaponAimRollD10(roll) === 10 && weaponAimRollD6(roll).length === 2 && weaponAimRollD6(roll).every(value => value === 6);
+}
+
+function weaponAimRollIsFumble(roll: WeaponAimRoll): boolean {
+  const result = weaponAimRollResult(roll);
+  return result !== null && result <= 3;
+}
+
+function weaponAimRollDamage(roll: WeaponAimRoll): { value:number; label:string } {
+  const damageRoll = roll.damageD10.value;
+  if (!weaponAimRoll.value) return { value: 0, label: '' };
+  if (damageRoll === 10) return { value: weaponAimRoll.value.damage.damageVital, label: 'Vital' };
+  if (damageRoll >= 6) return { value: weaponAimRoll.value.damage.damageNormal, label: 'Normal' };
+  if (damageRoll >= 3) return { value: weaponAimRoll.value.damage.damageLight, label: 'Leve' };
+  return { value: weaponAimRoll.value.damage.damageVeryLight, label: 'Muy leve' };
+}
 
 const savedAt = computed(() => character.value?.lastClosedAt ? new Date(character.value.lastClosedAt).toLocaleString('es-ES') : 'Sin guardar');
 
@@ -739,7 +892,7 @@ function closeShoot(){ showShootModal.value=false; shootWeaponTarget.value=null;
 async function shootWeapon(weapon: Weapon, shots: number, automatic=false){
   if(!route.params.id || weaponShooting.value) return;
   weaponShooting.value=true; inventoryError.value='';
-  try { await api.shootWeapon(String(route.params.id), weapon.id, shots, automatic); await loadWeapons(); closeShoot(); }
+  try { await api.shootWeapon(String(route.params.id), weapon.id, shots, automatic); await loadWeapons(); closeShoot(); openWeaponAimRolls(weapon, automatic ? weaponCadence(weapon) : shots); }
   catch(e:any){ inventoryError.value=e?.message||'No se pudo disparar el arma.'; }
   finally { weaponShooting.value=false; }
 }
@@ -1179,8 +1332,8 @@ function abilityTestValue(ability: Ability | null): string | undefined {
   }
 }
 
-const abilityActivationTest = computed(() => {
-  const rawTest = abilityTestValue(selectedAbility.value)?.trim();
+function abilityActivationDetails(ability: Ability | null) {
+  const rawTest = abilityTestValue(ability)?.trim();
   if (!rawTest) return null;
 
   const match = rawTest.match(/^(.+?)\s+(\d+|\*)\+?$/);
@@ -1193,7 +1346,7 @@ const abilityActivationTest = computed(() => {
         : normalizedName.replace(/[ /]/g, '');
   const isKnownAttribute = majorKeys.includes(key) || minorKeys.includes(key) || Boolean(customMinor(key));
   if (!isKnownAttribute) {
-    return { rawTest, testName, difficulty: match?.[2] === '*' ? '*' : match?.[2] ? `${match[2]}+` : null, score: null, plusOne: null, plusD6: null };
+    return { key, rawTest, testName, difficulty: match?.[2] === '*' ? null : match?.[2] ? Number(match[2]) : null, score: null, plusOne: null, plusD6: null };
   }
 
   const custom = customMinor(key);
@@ -1201,12 +1354,24 @@ const abilityActivationTest = computed(() => {
   return {
     rawTest,
     testName,
-    difficulty: match?.[2] === '*' ? '*' : match?.[2] ? `${match[2]}+` : null,
+    key,
+    difficulty: match?.[2] === '*' ? null : match?.[2] ? Number(match[2]) : null,
     score,
     plusOne: custom?.plusOne ?? oneBonus(key, score, majorKeys.includes(key)),
     plusD6: custom?.plusD6 ?? d6Bonus(key, score, majorKeys.includes(key)),
   };
+}
+
+const abilityActivationTest = computed(() => {
+  const details = abilityActivationDetails(selectedAbility.value);
+  if (!details) return null;
+  return { ...details, difficulty: details.difficulty === null ? null : `${details.difficulty}+` };
 });
+
+function canRollAbility(ability: Ability): boolean {
+  const details = abilityActivationDetails(ability);
+  return details?.score !== null && details?.score !== undefined && details?.difficulty !== null && details?.difficulty !== undefined;
+}
 
 async function loadAbilities() {
   abilityCatalogLoading.value = true; abilityCatalogError.value = '';
@@ -1374,9 +1539,9 @@ watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) 
         </section>
       </div>
 
-      <div v-if="selectedAbility" class="modal-backdrop ability-detail-backdrop" @click.self="closeAbilityDetail">
+       <div v-if="selectedAbility" class="modal-backdrop ability-detail-backdrop" @click.self="closeAbilityDetail">
         <section class="modal-card ability-detail-modal" role="dialog" aria-modal="true" aria-labelledby="ability-detail-title" tabindex="-1">
-          <header class="modal-header"><div><p class="eyebrow accent">HABILIDAD OBTENIDA</p><h2 id="ability-detail-title">{{ selectedAbility.name }}</h2></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="closeAbilityDetail">×</button></header>
+          <header class="modal-header"><div><p class="eyebrow accent">HABILIDAD OBTENIDA</p><div class="ability-title-row"><h2 id="ability-detail-title">{{ selectedAbility.name }}</h2><button v-if="canRollAbility(selectedAbility)" class="ability-roll-trigger" type="button" :aria-label="`Tirar D10 para ${selectedAbility.name}`" @click="openAbilityRoll(selectedAbility)"><img src="/diceD10.png" alt="" aria-hidden="true" /></button></div></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="closeAbilityDetail">×</button></header>
           <div class="modal-body ability-detail-body">
             <p class="ability-description">{{ selectedAbility.description || 'Sin descripción disponible.' }}</p>
             <dl class="ability-meta"><div><dt>Lanzamiento</dt><dd>{{ selectedAbility.launchType || '—' }}</dd></div><div><dt>Coste</dt><dd>{{ selectedAbility.cost ?? '—' }}</dd></div><div><dt>Prueba de activación</dt><dd v-if="abilityActivationTest">{{ abilityActivationTest.difficulty ? abilityActivationTest.testName + ' ' + abilityActivationTest.difficulty : abilityActivationTest.rawTest }}<template v-if="abilityActivationTest.score !== null"> (+{{ abilityActivationTest.plusOne }} +{{ abilityActivationTest.plusD6 }}D6)</template></dd><dd v-else>—</dd></div></dl>
@@ -1448,7 +1613,7 @@ watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) 
         <div class="sheet-heading"><div><p class="eyebrow accent">HABILIDADES</p><h2 id="abilities-title">{{ character.name }}</h2><p class="modal-copy">Todas las habilidades obtenidas en la última versión cerrada.</p></div><strong class="ability-count">{{ obtainedAbilities.length }}</strong></div>
         <p v-if="abilityCatalogLoading" class="sheet-state">Cargando habilidades…</p>
         <p v-else-if="abilityCatalogError" class="error-banner" role="alert">{{ abilityCatalogError }}</p>
-        <div v-else-if="obtainedAbilities.length" class="abilities-grid"><button v-for="ability in obtainedAbilities" :key="ability.name" class="ability-card" type="button" @click="openAbilityDetail(ability)">{{ ability.name }}</button></div>
+          <div v-else-if="obtainedAbilities.length" class="abilities-grid"><article v-for="ability in obtainedAbilities" :key="ability.name" class="ability-card"><button class="ability-card-main" type="button" @click="openAbilityDetail(ability)">{{ ability.name }}</button><button v-if="canRollAbility(ability)" class="ability-roll-trigger" type="button" :aria-label="`Tirar D10 para ${ability.name}`" @click="openAbilityRoll(ability)"><img src="/diceD10.png" alt="" aria-hidden="true" /></button></article></div>
         <p v-else class="sheet-state">No hay habilidades obtenidas en una versión cerrada.</p>
       </section>
 
@@ -1488,14 +1653,76 @@ watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) 
       </section>
     </div>
 
-    <div v-if="showShootModal && shootWeaponTarget" class="modal-backdrop" @click.self="closeShoot">
-      <section class="modal-card shoot-modal" role="dialog" aria-modal="true" aria-labelledby="shoot-modal-title">
-        <header class="modal-header"><div><p class="eyebrow accent">INVENTARIO · ARMA</p><h2 id="shoot-modal-title">Disparar {{ shootWeaponTarget.name }}</h2><p class="modal-copy">Balas cargadas: {{ shootWeaponTarget.loadedBullets }}/{{ shootWeaponTarget.capacity }}</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="closeShoot">×</button></header>
-        <div class="modal-body"><div class="shoot-options"><button v-for="option in shootOptions(shootWeaponTarget)" :key="option.label" class="button button-primary" type="button" :disabled="weaponShooting" @click="shootWeapon(shootWeaponTarget, option.shots, option.automatic)">{{ option.label }}<small>{{ option.shots }} bala{{ option.shots === 1 ? '' : 's' }}</small></button><p v-if="!shootOptions(shootWeaponTarget).length" class="sheet-muted">No hay balas cargadas.</p></div><p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p></div>
-        <footer class="modal-actions"><button class="button button-quiet" type="button" @click="closeShoot">Cancelar</button></footer>
+     <div v-if="showShootModal && shootWeaponTarget" class="modal-backdrop" @click.self="closeShoot">
+       <section class="modal-card shoot-modal" role="dialog" aria-modal="true" aria-labelledby="shoot-modal-title">
+         <header class="modal-header"><div><p class="eyebrow accent">INVENTARIO · ARMA</p><h2 id="shoot-modal-title">Disparar {{ shootWeaponTarget.name }}</h2><p class="modal-copy">Balas cargadas: {{ shootWeaponTarget.loadedBullets }}/{{ shootWeaponTarget.capacity }}</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="closeShoot">×</button></header>
+         <div class="modal-body"><div class="shoot-options"><button v-for="option in shootOptions(shootWeaponTarget)" :key="option.label" class="button button-primary" type="button" :disabled="weaponShooting" @click="shootWeapon(shootWeaponTarget, option.shots, option.automatic)">{{ option.label }}<small>{{ option.shots }} bala{{ option.shots === 1 ? '' : 's' }}</small></button><p v-if="!shootOptions(shootWeaponTarget).length" class="sheet-muted">No hay balas cargadas.</p></div><p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p></div>
+         <footer class="modal-actions"><button class="button button-quiet" type="button" @click="closeShoot">Cancelar</button></footer>
+       </section>
+     </div>
+    <div v-if="showWeaponAimRollModal && weaponAimRoll" class="modal-backdrop weapon-aim-roll-backdrop" @click.self="closeWeaponAimRolls">
+      <section class="modal-card weapon-aim-roll-modal" role="dialog" aria-modal="true" aria-labelledby="weapon-aim-roll-title" tabindex="-1" @keydown.esc="closeWeaponAimRolls">
+        <header class="modal-header">
+          <div>
+            <p class="eyebrow accent">TIRADA DE PUNTERÍA</p>
+            <h2 id="weapon-aim-roll-title">{{ weaponAimRoll.weaponName }}</h2>
+            <p class="modal-copy">Puntería {{ weaponAimRoll.score }} · +{{ weaponAimRoll.plusOne }} · +{{ weaponAimRoll.plusD6 }}D6 · arma +{{ weaponAimRoll.weaponAim }}</p>
+          </div>
+          <button id="weapon-aim-roll-close" class="modal-close" type="button" aria-label="Cerrar tiradas de puntería" @click="closeWeaponAimRolls">×</button>
+        </header>
+        <div class="modal-body weapon-aim-roll-body">
+          <p class="attribute-roll-help">Cada disparo se tira por separado. Selecciona 1 D10 y 2 D6; la puntería del arma se suma como bonificación adicional.</p>
+          <div class="weapon-aim-roll-list">
+            <article v-for="(roll, index) in weaponAimRoll.rolls" :key="roll.id" class="weapon-aim-roll-card" :aria-labelledby="`weapon-aim-roll-${roll.id}-title`">
+              <header class="weapon-aim-roll-heading">
+                <h3 :id="`weapon-aim-roll-${roll.id}-title`">Disparo {{ index + 1 }}</h3>
+                <button class="button button-quiet" type="button" :aria-label="`Volver a tirar el disparo ${index + 1}`" @click="rerollWeaponAimRoll(roll.id)">Volver a tirar</button>
+              </header>
+              <div class="weapon-aim-roll-layout">
+                <section class="attribute-roll-dice-group" :aria-labelledby="`weapon-aim-roll-${roll.id}-d10-label`">
+                  <h4 :id="`weapon-aim-roll-${roll.id}-d10-label`">D10</h4>
+                  <div class="attribute-roll-dice">
+                    <button v-for="die in roll.dice.filter(item => item.type === 'd10')" :key="die.id" class="roll-die" :class="{ selected: die.selected }" type="button" :aria-pressed="die.selected" :aria-label="`Disparo ${index + 1}, D10: ${die.value}${die.selected ? ', seleccionado' : ', no seleccionado'}`" @click="toggleWeaponAimRollDie(roll.id, die.id)">
+                      <img :src="attributeRollDieImage(die)" alt="">
+                      <strong>{{ die.value }}</strong>
+                    </button>
+                  </div>
+                </section>
+                <section class="attribute-roll-dice-group" :aria-labelledby="`weapon-aim-roll-${roll.id}-d6-label`">
+                  <h4 :id="`weapon-aim-roll-${roll.id}-d6-label`">D6 disponibles</h4>
+                  <div class="attribute-roll-dice">
+                    <button v-for="die in roll.dice.filter(item => item.type === 'd6')" :key="die.id" class="roll-die" :class="{ selected: die.selected, disabled: die.disabled }" type="button" :disabled="die.disabled" :aria-pressed="die.selected" :aria-label="`Disparo ${index + 1}, D6: ${die.value}${die.disabled ? ', desactivado por sacar 1' : die.selected ? ', seleccionado' : ', no seleccionado'}`" @click="toggleWeaponAimRollDie(roll.id, die.id)">
+                      <img :src="attributeRollDieImage(die)" alt="">
+                      <strong>{{ die.value }}</strong>
+                    </button>
+                  </div>
+                </section>
+                <section class="attribute-roll-dice-group weapon-aim-roll-damage" :aria-labelledby="`weapon-aim-roll-${roll.id}-damage-label`">
+                  <h4 :id="`weapon-aim-roll-${roll.id}-damage-label`">Daño</h4>
+                  <div class="weapon-aim-roll-damage-content">
+                    <div class="roll-die selected weapon-aim-roll-damage-die" role="img" :aria-label="`Disparo ${index + 1}, D10 de daño: ${roll.damageD10.value}, seleccionado y bloqueado`">
+                      <img :src="attributeRollDieImage(roll.damageD10)" alt="">
+                      <strong>{{ roll.damageD10.value }}</strong>
+                    </div>
+                    <div class="weapon-aim-roll-damage-value" aria-live="polite">
+                      <strong>{{ weaponAimRollDamage(roll).value }}</strong>
+                      <span class="weapon-aim-roll-damage-tag">{{ weaponAimRollDamage(roll).label }}</span>
+                    </div>
+                  </div>
+                </section>
+                <div class="attribute-roll-result" :class="{ critical: weaponAimRollIsCritical(roll), fumble: weaponAimRollIsFumble(roll), incomplete: !weaponAimRollIsValid(roll) }" aria-live="polite">
+                  <span>{{ weaponAimRollIsCritical(roll) ? 'Crítico' : weaponAimRollIsFumble(roll) ? 'Pifia' : 'Resultado' }}</span>
+                  <strong v-if="weaponAimRollIsValid(roll)">{{ weaponAimRollResult(roll) }}</strong>
+                  <strong v-else>Falta seleccionar {{ weaponAimRollMissingSelection(roll) }}</strong>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+        <footer class="modal-actions"><button class="button button-quiet" type="button" @click="closeWeaponAimRolls">Cerrar</button></footer>
       </section>
     </div>
-    <div v-if="showWeaponDetailModal && selectedWeapon" class="modal-backdrop" @click.self="closeWeaponDetail">
+     <div v-if="showWeaponDetailModal && selectedWeapon" class="modal-backdrop" @click.self="closeWeaponDetail">
       <section class="modal-card weapon-detail-modal" role="dialog" aria-modal="true" aria-labelledby="weapon-detail-modal-title">
         <header class="modal-header"><div><p class="eyebrow accent">INVENTARIO · ARMA</p><h2 id="weapon-detail-modal-title">{{ selectedWeapon.name }}</h2><p class="modal-copy">{{ weaponTypes.find(type => type.value === selectedWeapon?.weaponType)?.label || selectedWeapon.weaponType }} · {{ weaponSizes.find(size => size.value === selectedWeapon?.size)?.label || selectedWeapon.size }}</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="closeWeaponDetail">×</button></header>
         <div class="modal-body weapon-detail-body">
@@ -1520,14 +1747,14 @@ watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) 
       <section class="modal-card attribute-roll-modal" role="dialog" aria-modal="true" aria-labelledby="attribute-roll-title">
         <header class="modal-header">
           <div>
-            <p class="eyebrow accent">TIRADA DE ATRIBUTO</p>
+            <p class="eyebrow accent">{{ attributeRoll.abilityName ? `TIRADA · ${attributeRoll.abilityName}` : 'TIRADA DE ATRIBUTO' }}</p>
             <h2 id="attribute-roll-title">{{ attributeRoll.name }}</h2>
             <p class="modal-copy">{{ attributeRoll.score }} · +{{ attributeRoll.plusOne }} · +{{ attributeRoll.plusD6 }}D6</p>
           </div>
           <button id="attribute-roll-close" class="modal-close" type="button" aria-label="Cerrar tirada" @click="closeAttributeRoll">×</button>
         </header>
         <div class="modal-body attribute-roll-body">
-          <p class="attribute-roll-help">Selecciona 1 D10 y 2 D6. Los dados seleccionados se suman al resultado.</p>
+          <p class="attribute-roll-help">Se desactiva el D6 más alto cuando aparece un 1. Si no quedan dos D6 utilizables, se calcula sin D6.</p>
           <div class="attribute-roll-layout">
             <section class="attribute-roll-dice-group attribute-roll-d10-group" aria-labelledby="attribute-roll-d10-label">
               <h3 id="attribute-roll-d10-label">D10</h3>
@@ -1541,15 +1768,15 @@ watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) 
             <section class="attribute-roll-dice-group attribute-roll-d6-group" aria-labelledby="attribute-roll-d6-label">
               <h3 id="attribute-roll-d6-label">D6 disponibles</h3>
               <div class="attribute-roll-dice d6-dice">
-                <button v-for="die in attributeRollD6Dice" :key="die.id" class="roll-die" :class="{ selected: die.selected }" type="button" :aria-pressed="die.selected" :aria-label="`D6: ${die.value}${die.selected ? ', seleccionado' : ', no seleccionado'}`" @click="toggleAttributeRollDie(die.id)">
+                <button v-for="die in attributeRollD6Dice" :key="die.id" class="roll-die" :class="{ selected: die.selected, disabled: die.disabled }" type="button" :disabled="die.disabled" :aria-pressed="die.selected" :aria-label="`D6: ${die.value}${die.disabled ? ', desactivado por sacar 1' : die.selected ? ', seleccionado' : ', no seleccionado'}`" @click="toggleAttributeRollDie(die.id)">
                   <img :src="attributeRollDieImage(die)" alt="">
                   <strong>{{ die.value }}</strong>
                 </button>
               </div>
             </section>
-            <div class="attribute-roll-result" :class="{ critical: attributeRollIsCritical, incomplete: !attributeRollHasValidSelection }" aria-live="polite">
-              <span>{{ attributeRollIsCritical ? 'Crítico' : 'Resultado' }}</span>
-              <strong v-if="attributeRollHasValidSelection">{{ attributeRollResult }}</strong>
+          <div class="attribute-roll-result" :class="{ critical: attributeRollIsCritical, fumble: attributeRollIsFumble, success: abilityRollSuccess, failure: attributeRoll.abilityName && attributeRollHasValidSelection && !abilityRollSuccess, incomplete: !attributeRollHasValidSelection }" aria-live="polite">
+               <span>{{ attributeRollIsCritical ? 'Crítico' : attributeRollIsFumble ? 'Pifia' : attributeRoll.abilityName ? (abilityRollSuccess ? 'Activada' : 'Fallo') : 'Resultado' }}</span>
+               <strong v-if="attributeRollHasValidSelection">{{ attributeRollResult }}<small v-if="attributeRoll.abilityName"> · dif {{ attributeRoll.difficulty }}+</small></strong>
               <strong v-else>Falta seleccionar {{ attributeRollMissingSelection }}</strong>
             </div>
           </div>

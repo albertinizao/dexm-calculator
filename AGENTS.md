@@ -29,3 +29,6 @@
 - Use subagents for non-trivial multi-file work when they are available and materially improve execution.
 - Under a direct user order, work directly in the repository without subagents, even when delegation would otherwise be the preferred option.
 - If delegation fails, do not block the requested work solely because a subagent was unavailable; continue directly while preserving the verification requirements above.
+
+## Project Skills
+- `dex-dice` — reusable contract for attribute-roll rules, dice selection, critical results, assets, and modal layout. Read `.agents/skills/dex-dice/SKILL.md` before changing this feature.

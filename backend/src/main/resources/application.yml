@@ -1,5 +1,9 @@
 server:
   port: ${SERVER_PORT:8084}
+  servlet:
+    session:
+      cookie:
+        name: DEXM_SESSION
 spring:
   datasource:
     url: ${DB_URL:jdbc:mariadb://localhost:3306/dexm_personajes}
@@ -17,6 +21,10 @@ spring:
             client-id: ${GOOGLE_CLIENT_ID:367992681997-ssehf8iobicne0n2jdnvq9d85dbgu6ke.apps.googleusercontent.com}
             client-secret: ${GOOGLE_CLIENT_SECRET}
             scope: openid,profile,email
+            redirect-uri: ${app.security.frontend-url}login/oauth2/code/{registrationId}
+        provider:
+          google:
+            authorization-uri: "https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&prompt=consent"
 app:
   security:
     admin-emails: ${APP_SECURITY_ADMIN_EMAILS:albertinizao@gmail.com}

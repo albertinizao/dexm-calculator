@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { api, type CreationConfigurationPayload } from './services/api';
 import CharacterSheet from './CharacterSheet.vue';
@@ -51,6 +51,9 @@ const router = useRouter();
 const isCharacterSheet = computed(() => Boolean(route.params.id));
 const isDirector = computed(() => session.value?.admin === true);
 const hasCampaignSwitcher = computed(() => isDirector.value || campaigns.value.length !== 1);
+const KEEPALIVE_INTERVAL_MS = 5 * 60 * 1000;
+let keepaliveTimer: number | undefined;
+let keepaliveStopped = true;
 
 const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
 const campaignCountLabel = computed(() => `${campaigns.value.length} ${campaigns.value.length === 1 ? 'campaña' : 'campañas'}`);
@@ -71,12 +74,54 @@ async function loadSession() {
   catch (e: any) { session.value = null; accessDenied.value = e?.status === 403; }
   finally { authLoading.value = false; }
 }
+function stopKeepalive() {
+  keepaliveStopped = true;
+  if (keepaliveTimer !== undefined) {
+    window.clearInterval(keepaliveTimer);
+    keepaliveTimer = undefined;
+  }
+}
+function clearApplicationSession(status: number) {
+  stopKeepalive();
+  session.value = null;
+  campaigns.value = [];
+  characters.value = [];
+  selectedCampaign.value = null;
+  members.value = [];
+  membersOpen.value = false;
+  error.value = '';
+  accessDenied.value = status === 403;
+}
+async function keepSessionAlive() {
+  if (!session.value || keepaliveStopped) return;
+  try { await api.keepalive(); }
+  catch (e: any) {
+    if (e?.status === 503) {
+      stopKeepalive();
+      return;
+    }
+    if (e?.status === 401 || e?.status === 403) {
+      try {
+        session.value = await api.me() as Session;
+        accessDenied.value = false;
+      } catch (sessionError: any) {
+        clearApplicationSession(sessionError?.status || e.status);
+      }
+    }
+  }
+}
+function startKeepalive() {
+  stopKeepalive();
+  keepaliveStopped = false;
+  void keepSessionAlive();
+  keepaliveTimer = window.setInterval(() => { void keepSessionAlive(); }, KEEPALIVE_INTERVAL_MS);
+}
 async function selectCampaign(campaign: Campaign) {
   selectedCampaign.value = campaign;
   try { characters.value = await api.characters(campaign.id); error.value = ''; } catch (e: any) { error.value = e.message; }
   await loadMembers(campaign);
 }
-async function logout() { await api.logout(); session.value = null; }
+async function logout() { await api.logout(); stopKeepalive(); session.value = null; }
 async function loadMembers(campaign: Campaign) { if (!isDirector.value) return; try { members.value = await api.campaignMembers(campaign.id) as CampaignMember[]; } catch (e: any) { error.value = e.message; } }
 async function inviteMember() { if (!selectedCampaign.value || !memberEmail.value.trim()) return; try { await api.inviteCampaignMember(selectedCampaign.value.id, memberEmail.value.trim()); memberEmail.value = ''; await loadMembers(selectedCampaign.value); } catch (e: any) { error.value = e.message; } }
 async function revokeMember(member: CampaignMember) { if (!selectedCampaign.value || !confirm(`¿Revocar el acceso de ${member.email}?`)) return; try { await api.revokeCampaignMember(selectedCampaign.value.id, member.email); await loadMembers(selectedCampaign.value); } catch (e: any) { error.value = e.message; } }
@@ -160,7 +205,14 @@ function readImage(event: Event) {
 }
 function clearImage() { characterImage.value = ''; if (imageInput.value) imageInput.value.value = ''; }
 function openCharacter(character: Character) { router.push(`/characters/${character.id}`); }
-onMounted(async () => { await loadSession(); if (session.value) await loadCampaigns(); });
+onMounted(async () => {
+  await loadSession();
+  if (session.value) {
+    startKeepalive();
+    await loadCampaigns();
+  }
+});
+onUnmounted(stopKeepalive);
 watch(() => route.query.campaign, (campaignId) => {
   if (!campaignId) return;
   const campaign = campaigns.value.find(item => item.id === String(campaignId));
