@@ -12,9 +12,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class IapAuthenticationFilter extends OncePerRequestFilter {
     static final String IAP_ASSERTION_HEADER = "X-Goog-IAP-JWT-Assertion";
+    private static final Logger logger = LoggerFactory.getLogger(IapAuthenticationFilter.class);
     private final IapJwtVerifier verifier;
 
     IapAuthenticationFilter(IapJwtVerifier verifier) { this.verifier = verifier; }
@@ -22,7 +25,11 @@ final class IapAuthenticationFilter extends OncePerRequestFilter {
     @Override protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String assertion = request.getHeader(IAP_ASSERTION_HEADER);
-        if (assertion == null || assertion.isBlank()) { reject(response); return; }
+        if (assertion == null || assertion.isBlank()) {
+            logger.warn("Rejected IAP request: missing signed assertion ({} {})", request.getMethod(), request.getRequestURI());
+            reject(response);
+            return;
+        }
         try {
             IapJwtClaims claims = verifier.verify(assertion);
             var principal = new AuthenticatedPrincipal(claims.subject(), claims.email(), claims.name());
@@ -32,7 +39,10 @@ final class IapAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.setContext(context);
             try { filterChain.doFilter(request, response); }
             finally { SecurityContextHolder.clearContext(); }
-        } catch (IapJwtVerificationException exception) { reject(response); }
+        } catch (IapJwtVerificationException exception) {
+            logger.warn("Rejected IAP request: invalid signed assertion ({} {})", request.getMethod(), request.getRequestURI());
+            reject(response);
+        }
     }
 
     private static void reject(HttpServletResponse response) throws IOException {
