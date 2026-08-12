@@ -6,6 +6,8 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { api, type AllocationPayload, type Ammunition, type Armor, type ArmorCatalogItem, type ArmorSlot, type OtherInventoryItem, type PhysicalShield, type PhysicalShieldCatalogItem, type Shield, type ShieldCatalogItem, type Weapon, type WeaponCatalogItem } from './services/api';
 
+const props = defineProps<{ isDirector: boolean }>();
+
 
 
 type Character = {
@@ -142,7 +144,6 @@ const legacyExportCode = ref('');
 const showLegacyExport = ref(false);
 const legacyDraft = ref(false);
 const legacyEvolutionPoints = ref<number | null>(null);
-const isDirector = ref(localStorage.getItem('dexm.director') === 'true');
 const showUniqueReview = ref(false);
 const pendingUniqueAbilities = ref<PendingUniqueAbility[]>([]);
 const uniqueReviewBusy = ref('');
@@ -790,6 +791,30 @@ function weaponAimRollDamage(roll: WeaponAimRoll): { value:number; label:string 
 
 const savedAt = computed(() => character.value?.lastClosedAt ? new Date(character.value.lastClosedAt).toLocaleString('es-ES') : 'Sin guardar');
 
+const characterRouteNames = {
+  sheet: 'character-sheet',
+  abilities: 'character-abilities',
+  inventory: 'character-inventory',
+} as const;
+
+function queryWithEditMode(enabled: boolean) {
+  const query = { ...route.query };
+  if (enabled) query.mode = 'edit';
+  else delete query.mode;
+  return query;
+}
+
+function navigateToSection(section: keyof typeof characterRouteNames) {
+  const name = characterRouteNames[section];
+  if (route.name === name) return;
+  router.push({ name, params: { id: String(route.params.id) }, query: { ...route.query } });
+}
+
+function closeHistory() {
+  if (route.name === 'character-history') navigateToSection('sheet');
+  else showHistory.value = false;
+}
+
 
 
 async function load() {
@@ -798,12 +823,22 @@ async function load() {
 
   try {
 
-    character.value = await api.get(String(route.params.id));
+    const loadedCharacter = await api.get(String(route.params.id));
+    character.value = loadedCharacter;
+    if (route.query.mode === 'edit' && loadedCharacter.closed) {
+      try {
+        character.value = await api.edit(String(route.params.id));
+      } catch (e: any) {
+        closeError.value = e?.message || 'No se pudo abrir la ficha para edición.';
+        await router.replace({ query: queryWithEditMode(false) });
+      }
+    }
     await loadTraining();
     await loadOtherInventory(); await loadWeapons(); await loadProtectiveEquipment(); await loadAmmunition();
     legacyDraft.value = false; legacyEvolutionPoints.value = null;
     editing.value = !character.value?.closed;
     if (editing.value) startModifierDraft();
+    if (editing.value && route.query.mode !== 'edit') await router.replace({ query: queryWithEditMode(true) });
 
     if (character.value?.campaignId) campaign.value = await api.campaign(character.value.campaignId);
 
@@ -912,7 +947,7 @@ async function saveWeapon(){ if(!route.params.id || !weaponDraft.value.name.trim
 async function deleteWeapon(){if(!route.params.id||!selectedWeapon.value||!confirm(`¿Eliminar ${selectedWeapon.value.name}?`))return;weaponDeleting.value=true;try{await api.deleteWeapon(String(route.params.id),selectedWeapon.value.id);await loadWeapons();closeWeaponDetail();}catch(e:any){inventoryError.value=e?.message||'No se pudo eliminar el arma.';}finally{weaponDeleting.value=false;}}
 async function moveWeapon(w:Weapon,slot:string){if(slot===w.slot||!route.params.id)return;if(!weaponMoveTargets(w).includes(slot)){inventoryError.value='El intercambio no es válido: ambas armas deben poder entrar en el hueco de la otra.';return;}weaponMoving.value=true;try{const moved=await api.moveWeapon(String(route.params.id),w.id,slot);if(selectedWeapon.value?.id===w.id){selectedWeapon.value=moved;weaponDraft.value={...moved};}await loadWeapons();}catch(e:any){inventoryError.value=e?.message||'El arma no cabe en ese hueco.';}finally{weaponMoving.value=false;}}
 function emptyInventoryDraft(): Omit<OtherInventoryItem, 'id'> { return { name: '', description: '', location: '', quantity: 1, unitValue: 0 }; }
-function openInventory() { sheetView.value = 'inventory'; loadOtherInventory(); loadAmmunition(); }
+function openInventory() { navigateToSection('inventory'); }
 function emptyAmmunitionDraft(): Omit<Ammunition, 'id'> { return { caliber: ammunitionCalibers.value[0] || '', quantity: 1 }; }
 function openNewAmmunition() { selectedAmmunition.value = null; ammunitionDraft.value = emptyAmmunitionDraft(); sheetView.value = 'ammunition-detail'; }
 function openAmmunition(item: Ammunition) { selectedAmmunition.value = item; ammunitionDraft.value = { caliber: item.caliber, quantity: item.quantity }; sheetView.value = 'ammunition-detail'; }
@@ -997,6 +1032,7 @@ async function startEdit() {
     editing.value = true;
     startModifierDraft();
     closeError.value = '';
+    await router.push({ query: queryWithEditMode(true) });
   } catch (e: any) { closeError.value = e?.message || 'No se pudo abrir la ficha para edición.'; }
 }
 
@@ -1175,6 +1211,7 @@ async function closeDraft() {
     editing.value = false;
     showProfileModal.value = false;
     legacyDraft.value = false; legacyEvolutionPoints.value = null;
+    await router.replace({ query: queryWithEditMode(false) });
   } catch (e: any) { closeError.value = e?.message || 'No se pudo cerrar la ficha.'; }
   finally { closeBusy.value = false; }
 }
@@ -1185,15 +1222,20 @@ async function cancelChanges() {
   try {
     const result = await api.cancelChanges(String(route.params.id)) as { character: Character };
     character.value = result.character; editing.value = false; showProfileModal.value = false; legacyDraft.value = false; legacyEvolutionPoints.value = null; startModifierDraft();
+    await router.replace({ query: queryWithEditMode(false) });
   } catch (e: any) { closeError.value = e?.message || 'No se pudieron cancelar los cambios.'; }
   finally { cancelChangesBusy.value = false; }
 }
 
-async function openHistory() {
+async function loadHistory() {
   historyLoading.value = true; historyError.value = '';
   try { history.value = await api.milestones(String(route.params.id)) as HistoryVersion[]; selectedHistory.value = history.value[0] ?? null; showHistory.value = true; }
   catch (e: any) { historyError.value = e?.message || 'No se pudo cargar el historial.'; }
   finally { historyLoading.value = false; }
+}
+
+function openHistory() {
+  if (route.name !== 'character-history') router.push({ name: 'character-history', params: { id: String(route.params.id) }, query: { ...route.query } });
 }
 
 async function recoverHistory(version: HistoryVersion) {
@@ -1393,6 +1435,7 @@ function closeAbilityDetail() { selectedAbility.value = null; }
 function onEscape(event: KeyboardEvent) {
   if (event.key !== 'Escape') return;
   if (showAttributeRoll.value) closeAttributeRoll();
+  else if (showHistory.value) closeHistory();
   else closeAbilityDetail();
 }
 
@@ -1400,6 +1443,25 @@ onMounted(() => { load(); loadAbilities(); window.addEventListener('keydown', on
 onBeforeUnmount(() => { window.removeEventListener('keydown', onEscape); if (trainingPreviewTimer) clearTimeout(trainingPreviewTimer); });
 
 watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) load(); });
+
+watch(() => route.query.mode, (mode, previousMode) => {
+  if (mode === previousMode || !character.value) return;
+  if (mode === 'edit' && !editing.value) startEdit();
+  else if (mode !== 'edit' && editing.value) router.replace({ query: queryWithEditMode(true) });
+});
+
+watch(() => route.name, async (name) => {
+  if (name === 'character-history') {
+    sheetView.value = 'sheet';
+    await loadHistory();
+    return;
+  }
+
+  showHistory.value = false;
+  if (name === 'character-abilities') sheetView.value = 'abilities';
+  else if (name === 'character-inventory') sheetView.value = 'inventory';
+  else if (name === 'character-sheet') sheetView.value = 'sheet';
+}, { immediate: true });
 
 </script>
 
@@ -1426,7 +1488,7 @@ watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) 
         <dl class="sheet-meta"><dt>Campaña</dt><dd>{{ campaign?.name || 'Sin campaña' }}</dd><dt>Versión</dt><dd>{{ character.closed ? 'Cerrada' : 'Borrador' }}</dd><dt>Último guardado</dt><dd>{{ savedAt }}</dd></dl>
         <p v-if="closeError" class="error-banner" role="alert">{{ closeError }}</p>
 
-        <template v-if="editing"><button class="button button-primary" :disabled="closeBusy || levelBusy || modifierSaveBusy" @click="closeDraft">{{ closeBusy ? 'Guardando…' : 'Guardar' }}</button><button class="button button-quiet" type="button" :disabled="cancelChangesBusy" @click="cancelChanges">{{ cancelChangesBusy ? 'Cancelando…' : 'Cancelar cambios' }}</button><button class="button button-quiet" type="button" @click="showLegacyImport=true; legacyError=''">Cargar legacy</button><button class="button button-quiet" type="button" @click="openCurrentUpgrade">Ver subida actual</button></template><template v-else><button class="button button-quiet" type="button" @click="startEdit">Editar ficha</button><button class="button button-quiet" type="button" @click="exportLegacy">Exportar legacy</button><button class="button button-quiet" type="button" @click="openLastUpgrade">Última subida</button></template><button class="button button-quiet" type="button" @click="openHistory">Historial</button><button class="button button-quiet" type="button" @click="openInventory">Inventario</button><button v-if="isDirector && (character.pendingUniqueAbilities?.length ?? 0)" class="button button-primary unique-review-trigger" type="button" @click="openUniqueReview">Revisar habilidades únicas</button><button class="button button-quiet" type="button" @click="sheetView = sheetView === 'sheet' ? 'abilities' : 'sheet'">{{ sheetView === 'sheet' ? 'Ver habilidades' : 'Ver ficha' }}</button><button class="button button-quiet profile-trigger" type="button" @click="openProfileModal">{{ editing ? 'Editar perfil' : 'Ver perfil' }}</button><button class="button button-quiet" type="button" @click="back">Volver</button><button v-if="isDirector" class="button button-danger" type="button" @click="deleteCharacter">Borrar personaje</button>
+         <template v-if="editing"><button class="button button-primary" :disabled="closeBusy || levelBusy || modifierSaveBusy" @click="closeDraft">{{ closeBusy ? 'Guardando…' : 'Guardar' }}</button><button class="button button-quiet" type="button" :disabled="cancelChangesBusy" @click="cancelChanges">{{ cancelChangesBusy ? 'Cancelando…' : 'Cancelar cambios' }}</button><button class="button button-quiet" type="button" @click="showLegacyImport=true; legacyError=''">Cargar legacy</button><button class="button button-quiet" type="button" @click="openCurrentUpgrade">Ver subida actual</button></template><template v-else><button class="button button-quiet" type="button" @click="startEdit">Editar ficha</button><button class="button button-quiet" type="button" @click="exportLegacy">Exportar legacy</button><button class="button button-quiet" type="button" @click="openLastUpgrade">Última subida</button></template><button class="button button-quiet" type="button" @click="openHistory">Historial</button><button class="button button-quiet" type="button" @click="openInventory">Inventario</button><button v-if="props.isDirector && (character.pendingUniqueAbilities?.length ?? 0)" class="button button-primary unique-review-trigger" type="button" @click="openUniqueReview">Revisar habilidades únicas</button><button class="button button-quiet" type="button" @click="navigateToSection(sheetView === 'sheet' ? 'abilities' : 'sheet')">{{ sheetView === 'sheet' ? 'Ver habilidades' : 'Ver ficha' }}</button><button class="button button-quiet" type="button" @click="openProfileModal">{{ editing ? 'Editar perfil' : 'Ver perfil' }}</button><button class="button button-quiet" type="button" @click="back">Volver</button><button v-if="props.isDirector" class="button button-danger" type="button" @click="deleteCharacter">Borrar personaje</button>
         <p v-if="editing" class="field-hint">Haz clic en un atributo para editar sus modificadores varios.</p><p v-if="modifierError" class="error-banner" role="alert">{{ modifierError }}</p>
 
       </aside>
@@ -1558,7 +1620,7 @@ watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) 
         </section>
       </div>
 
-<div v-if="showHistory" class="modal-backdrop" @click.self="showHistory=false"><section class="modal-card history-modal" role="dialog" aria-modal="true" aria-labelledby="history-title"><header class="modal-header"><div><p class="eyebrow accent">FICHA · HISTORIAL</p><h2 id="history-title">Versiones cerradas</h2><p class="modal-copy">Recorre las versiones guardadas y recupera una como nueva versión actual.</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="showHistory=false">×</button></header><div class="modal-body"><p v-if="historyLoading" class="sheet-state">Cargando historial…</p><p v-else-if="historyError" class="error-banner" role="alert">{{ historyError }}</p><p v-else-if="!history.length" class="sheet-state">Aún no hay versiones cerradas.</p><ol v-else class="history-list"><li v-for="version in history" :key="version.id" class="history-item"><button class="history-select" type="button" @click="selectedHistory=version"><div><strong>Nivel {{ version.level }}</strong><span>{{ new Date(version.createdAt).toLocaleString('es-ES') }}</span><small>{{ version.experience }} PX · {{ Object.keys(version.snapshot?.attributes || {}).length }} atributos</small></div></button><button class="button button-primary" type="button" :disabled="historyRecovering === version.id" @click.stop="recoverHistory(version)">{{ historyRecovering === version.id ? 'Recuperando…' : 'Recuperar' }}</button></li></ol><section v-if="selectedHistory" class="history-detail"><h3>Versión seleccionada</h3><p><strong>{{ selectedHistory.snapshot?.name || character.name }}</strong> · Nivel {{ selectedHistory.level }} · {{ selectedHistory.experience }} PX</p><p class="sheet-muted">Evolución: {{ selectedHistory.snapshot?.evolutionPoints ?? 'no disponible' }} · Genética: {{ selectedHistory.snapshot?.geneticsPoints ?? 'no disponible' }}</p><p class="sheet-muted">Habilidades: {{ (selectedHistory.snapshot?.abilities || []).length }} · Modificadores: {{ Object.values(selectedHistory.snapshot?.modifiers || {}).flat().length }}</p></section></div><footer class="modal-actions"><button class="button button-quiet" type="button" @click="showHistory=false">Cerrar</button></footer></section></div>
+<div v-if="showHistory" class="modal-backdrop" @click.self="closeHistory"><section class="modal-card history-modal" role="dialog" aria-modal="true" aria-labelledby="history-title"><header class="modal-header"><div><p class="eyebrow accent">FICHA · HISTORIAL</p><h2 id="history-title">Versiones cerradas</h2><p class="modal-copy">Recorre las versiones guardadas y recupera una como nueva versión actual.</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="closeHistory">×</button></header><div class="modal-body"><p v-if="historyLoading" class="sheet-state">Cargando historial…</p><p v-else-if="historyError" class="error-banner" role="alert">{{ historyError }}</p><p v-else-if="!history.length" class="sheet-state">Aún no hay versiones cerradas.</p><ol v-else class="history-list"><li v-for="version in history" :key="version.id" class="history-item"><button class="history-select" type="button" @click="selectedHistory=version"><div><strong>Nivel {{ version.level }}</strong><span>{{ new Date(version.createdAt).toLocaleString('es-ES') }}</span><small>{{ version.experience }} PX · {{ Object.keys(version.snapshot?.attributes || {}).length }} atributos</small></div></button><button class="button button-primary" type="button" :disabled="historyRecovering === version.id" @click.stop="recoverHistory(version)">{{ historyRecovering === version.id ? 'Recuperando…' : 'Recuperar' }}</button></li></ol><section v-if="selectedHistory" class="history-detail"><h3>Versión seleccionada</h3><p><strong>{{ selectedHistory.snapshot?.name || character.name }}</strong> · Nivel {{ selectedHistory.level }} · {{ selectedHistory.experience }} PX</p><p class="sheet-muted">Evolución: {{ selectedHistory.snapshot?.evolutionPoints ?? 'no disponible' }} · Genética: {{ selectedHistory.snapshot?.geneticsPoints ?? 'no disponible' }}</p><p class="sheet-muted">Habilidades: {{ (selectedHistory.snapshot?.abilities || []).length }} · Modificadores: {{ Object.values(selectedHistory.snapshot?.modifiers || {}).flat().length }}</p></section></div><footer class="modal-actions"><button class="button button-quiet" type="button" @click="closeHistory">Cerrar</button></footer></section></div>
 
       <div v-if="showLastUpgrade" class="modal-backdrop" @click.self="closeLastUpgrade"><section class="modal-card last-upgrade-modal" role="dialog" aria-modal="true" aria-labelledby="last-upgrade-title"><header class="modal-header"><div><p class="eyebrow accent">PROGRESIÓN</p><h2 id="last-upgrade-title">{{ currentUpgradeMode ? 'Ver subida actual' : 'Última subida' }}</h2><p v-if="lastUpgrade?.available" class="modal-copy">Comparación entre la versión actual y el nivel {{ lastUpgrade.previous?.level }}.</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="closeLastUpgrade">×</button></header><div class="modal-body"><p v-if="lastUpgradeLoading" class="sheet-state">{{ currentUpgradeMode ? 'Comparando subida actual…' : 'Comparando versiones cerradas…' }}</p><p v-else-if="lastUpgradeError" class="error-banner" role="alert">{{ lastUpgradeError }}</p><p v-else-if="!lastUpgrade?.available" class="sheet-state">Aún no existe una versión cerrada anterior para comparar.</p><template v-else><section class="upgrade-section"><h3>Nuevas puntuaciones</h3><ul v-if="lastUpgrade.scores?.length" class="upgrade-list"><li v-for="change in lastUpgrade.scores" :key="`${change.type}-${change.key}`"><span>{{ upgradeScoreLabel(change) }}</span><strong>{{ change.before }} → {{ change.after }} <em>+{{ change.increase }}</em></strong></li></ul><p v-else class="sheet-muted">Sin nuevas puntuaciones.</p></section><section class="upgrade-section"><h3>Modificadores varios</h3><ul v-if="lastUpgrade.modifiers?.length" class="upgrade-list"><li v-for="change in lastUpgrade.modifiers" :key="`${change.key}-${change.name}`"><span>{{ attributeLabels[change.key] || change.key }} · {{ change.name }}</span><strong>{{ change.before ?? '—' }} → {{ change.after ?? '—' }}</strong></li></ul><p v-else class="sheet-muted">Sin cambios en modificadores varios.</p></section><section class="upgrade-section"><h3>Nuevos bonificadores</h3><ul v-if="lastUpgrade.bonuses?.length" class="upgrade-list"><li v-for="bonus in lastUpgrade.bonuses" :key="bonus.key"><span>{{ attributeLabels[bonus.key] || bonus.key }}</span><strong><template v-if="bonus.plusOne">+{{ bonus.plusOne }}</template><template v-if="bonus.plusOne && bonus.plusD6"> · </template><template v-if="bonus.plusD6">+{{ bonus.plusD6 }}D6</template></strong></li></ul><p v-else class="sheet-muted">Sin nuevos +1 ni +D6.</p></section><section class="upgrade-section"><h3>Nuevas habilidades</h3><ul v-if="lastUpgradeAbilities.length" class="upgrade-list"><li v-for="ability in lastUpgradeAbilities" :key="ability.name"><button class="upgrade-ability-link" type="button" @click="openAbilityDetail(ability)">{{ ability.name }}</button></li></ul><p v-else class="sheet-muted">No se han obtenido habilidades nuevas.</p></section></template></div><footer class="modal-actions"><button class="button button-quiet" type="button" @click="closeLastUpgrade">Cerrar</button></footer></section></div>
 

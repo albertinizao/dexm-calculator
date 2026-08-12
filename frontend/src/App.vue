@@ -224,7 +224,7 @@ watch(() => route.query.campaign, (campaignId) => {
   <main v-if="authLoading" class="app-shell"><section class="welcome-state"><h2>Comprobando sesión…</h2></section></main>
   <main v-else-if="accessDenied" class="app-shell"><section class="welcome-state"><p class="eyebrow accent">ACCESO RESTRINGIDO</p><h2>No tienes una campaña autorizada</h2><p>El administrador debe añadir tu email a una campaña antes de que puedas acceder.</p></section></main>
   <main v-else-if="!session" class="app-shell"><section class="welcome-state"><div class="welcome-orbit">✦</div><p class="eyebrow accent">ACCESO</p><h2>Entra en tu archivo</h2><p>Usa tu cuenta de Google para acceder a tus campañas autorizadas.</p><a class="button button-primary" href="/oauth2/authorization/google">Continuar con Google</a></section></main>
-  <CharacterSheet v-else-if="isCharacterSheet" />
+  <CharacterSheet v-else-if="isCharacterSheet" :is-director="isDirector" />
   <main v-else class="app-shell">
     <header class="topbar">
       <div class="brand"><img class="brand-logo" src="/logo.png" alt="Deus ex Machina" /></div><div class="session-actions"><span class="muted">{{ session.email }}</span><button class="button button-quiet" type="button" @click="logout">Salir</button></div>
