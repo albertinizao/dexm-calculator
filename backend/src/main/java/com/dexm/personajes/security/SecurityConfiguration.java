@@ -46,9 +46,12 @@ public class SecurityConfiguration {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http,
                                              OAuth2AuthorizedClientRepository authorizedClientRepository,
-                                             @Value("${app.security.frontend-url:http://localhost:5177/}") String frontendUrl) throws Exception {
+                                             @Value("${app.security.frontend-url:http://192-168-1-201.sslip.io:8084/}") String frontendUrl) throws Exception {
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/oauth2/**", "/login/**").permitAll()
+                .requestMatchers("/", "/index.html", "/assets/**", "/characters/**",
+                        "/*.js", "/*.css", "/*.png", "/*.jpg", "/*.jpeg", "/*.gif", "/*.svg", "/*.ico", "/*.webp",
+                        "/oauth2/**", "/login/**")
+                .permitAll()
                 .anyRequest().authenticated())
             .csrf(csrf -> csrf
                     .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())

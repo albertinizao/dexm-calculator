@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-parent</artifactId><version>4.1.0</version><relativePath/></parent>
   <groupId>com.dexm</groupId><artifactId>personajes</artifactId><version>0.1.0-SNAPSHOT</version>
-  <properties><java.version>25</java.version><maven.compiler.release>25</maven.compiler.release></properties>
+  <properties><java.version>25</java.version><maven.compiler.release>25</maven.compiler.release><frontend.skip>false</frontend.skip><pnpm.executable>pnpm</pnpm.executable></properties>
   <dependencies>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-web</artifactId></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-security</artifactId></dependency>
@@ -18,5 +18,28 @@
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
     <dependency><groupId>org.springframework.security</groupId><artifactId>spring-security-test</artifactId><scope>test</scope></dependency>
   </dependencies>
-  <build><plugins><plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId></plugin></plugins></build>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.5.0</version>
+        <configuration><workingDirectory>../frontend</workingDirectory><skip>${frontend.skip}</skip></configuration>
+        <executions>
+          <execution><id>pnpm-install</id><phase>generate-resources</phase><goals><goal>exec</goal></goals><configuration><executable>${pnpm.executable}</executable><arguments><argument>install</argument><argument>--frozen-lockfile</argument></arguments></configuration></execution>
+          <execution><id>pnpm-build</id><phase>generate-resources</phase><goals><goal>exec</goal></goals><configuration><executable>${pnpm.executable}</executable><arguments><argument>run</argument><argument>build</argument></arguments></configuration></execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId><artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution><id>copy-frontend</id><phase>process-resources</phase><goals><goal>copy-resources</goal></goals><configuration>
+            <outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
+            <resources><resource><directory>../frontend/dist</directory><filtering>false</filtering></resource></resources>
+          </configuration></execution>
+        </executions>
+      </plugin>
+      <plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId></plugin>
+    </plugins>
+  </build>
 </project>

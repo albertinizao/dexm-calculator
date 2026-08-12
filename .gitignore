@@ -2,6 +2,5 @@ backend/target/
 backend/config/
 frontend/node_modules/
 frontend/dist/
-frontend/pnpm-lock.yaml
 backend/src/main/resources/application.yml
 
