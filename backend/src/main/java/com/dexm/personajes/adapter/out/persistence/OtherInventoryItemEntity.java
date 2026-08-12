@@ -1,22 +1,15 @@
 package com.dexm.personajes.adapter.out.persistence;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
 import java.math.BigDecimal;
 
-@Entity
-@Table(name = "other_inventory_items")
 public class OtherInventoryItemEntity {
-    @Id private String id;
-    @Column(name = "character_id", nullable = false) private String characterId;
-    @Column(nullable = false) private String name;
-    @Column(columnDefinition = "text") private String description;
-    @Column private String location;
-    @Column(nullable = false) private int quantity;
-    @Column(name = "unit_value", precision = 19, scale = 4) private BigDecimal unitValue;
+    private String id;
+    private String characterId;
+    private String name;
+    private String description;
+    private String location;
+    private int quantity;
+    private BigDecimal unitValue;
 
     protected OtherInventoryItemEntity() { }
 

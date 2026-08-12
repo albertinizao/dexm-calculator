@@ -37,7 +37,7 @@ RUN chown spring:spring /app/app.jar
 
 ENV JAVA_HOME=/opt/java-runtime
 ENV PATH="/opt/java-runtime/bin:${PATH}"
-ENV SPRING_PROFILES_ACTIVE=prod
+ENV SPRING_PROFILES_ACTIVE=firestore
 EXPOSE 8080
 USER spring
 ENTRYPOINT ["java", "-XX:+UseG1GC", "-XX:InitialRAMPercentage=10.0", "-XX:MaxRAMPercentage=70.0", "-XX:ActiveProcessorCount=2", "-XX:CICompilerCount=2", "-jar", "/app/app.jar"]

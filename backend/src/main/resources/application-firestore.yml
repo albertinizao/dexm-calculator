@@ -1,0 +1,9 @@
+server:
+  port: ${PORT:${SERVER_PORT:8080}}
+
+# FirestoreOptions.getDefaultInstance() uses Application Default Credentials in
+# Cloud Run. For local development the Google client automatically honours
+# FIRESTORE_EMULATOR_HOST; do not configure or commit a service-account key.
+app:
+  firestore:
+    project-id: ${GOOGLE_CLOUD_PROJECT:}

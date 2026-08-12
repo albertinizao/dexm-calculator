@@ -1,10 +1,8 @@
 package com.dexm.personajes.adapter.out.persistence;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.List;
 
-public interface CharacterAttributeModifierRepository extends JpaRepository<CharacterAttributeModifierEntity, String> {
+public interface CharacterAttributeModifierRepository extends FirestoreRepository<CharacterAttributeModifierEntity> {
     List<CharacterAttributeModifierEntity> findByCharacterId(String characterId);
     List<CharacterAttributeModifierEntity> findByCharacterIdAndAttributeKey(String characterId, String attributeKey);
     void deleteByCharacterId(String characterId);

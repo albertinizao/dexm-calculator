@@ -11,8 +11,9 @@ import jakarta.servlet.http.HttpServletRequest;
 public class FrontendController {
     @GetMapping("/characters/**")
     public String characterRoute(HttpServletRequest request) {
+        String path = request.getRequestURI();
         // Never turn a missing asset (for example /characters/foo.js) into HTML.
-        if (request.getRequestURI().substring("/characters/".length()).contains(".")) {
+        if (path.substring("/characters/".length()).contains(".")) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
         return "forward:/index.html";
