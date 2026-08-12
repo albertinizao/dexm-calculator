@@ -577,18 +577,24 @@ function createAttributeRollDice(plusD6: number, idPrefix = ''): AttributeRollDi
     selected: false,
     disabled: false,
   }));
-  const nonOneDice = d6Dice.filter(die => die.value !== 1);
-  const dieToDisable = (nonOneDice.length ? nonOneDice : d6Dice)
+  const numberOfOnes = d6Dice.filter(die => die.value === 1).length;
+  const diceToDisable = d6Dice
     .slice()
-    .sort((left, right) => right.value - left.value || left.id.localeCompare(right.id))[0];
-  if (dieToDisable) dieToDisable.disabled = true;
+    .sort((left, right) => right.value - left.value || left.id.localeCompare(right.id))
+    .slice(0, numberOfOnes);
+  diceToDisable.forEach(die => { die.disabled = true; });
   const availableD6 = d6Dice.filter(die => !die.disabled);
-  const selectedD6Ids = availableD6.length >= 2 ? new Set(availableD6
+  const selectedD6Ids = new Set(availableD6
     .slice()
     .sort((left, right) => right.value - left.value || left.id.localeCompare(right.id))
     .slice(0, 2)
-    .map(die => die.id)) : new Set<string>();
-  return [d10, ...d6Dice.map(die => ({ ...die, selected: selectedD6Ids.has(die.id) }))];
+    .map(die => die.id));
+  const orderedD6Dice = d6Dice
+    .slice()
+    .sort((left, right) => right.value - left.value
+      || Number(Boolean(left.disabled)) - Number(Boolean(right.disabled))
+      || left.id.localeCompare(right.id));
+  return [d10, ...orderedD6Dice.map(die => ({ ...die, selected: selectedD6Ids.has(die.id) }))];
 }
 
 function createWeaponAimRollDice(plusD6: number, rollId: string): AttributeRollDie[] {
@@ -653,12 +659,13 @@ const attributeRollD10Dice = computed(() => attributeRoll.value?.dice.filter(die
 const attributeRollD6Dice = computed(() => attributeRoll.value?.dice.filter(die => die.type === 'd6') ?? []);
 const attributeRollAvailableD6 = computed(() => attributeRollD6Dice.value.filter(die => !die.disabled));
 const attributeRollCanOmitD6 = computed(() => attributeRollAvailableD6.value.length < 2);
-const attributeRollUsesD6 = computed(() => selectedAttributeRollD6.value.length === 2 || attributeRollCanOmitD6.value && selectedAttributeRollD6.value.length === 0);
+const attributeRollRequiredD6 = computed(() => Math.min(2, attributeRollAvailableD6.value.length));
+const attributeRollUsesD6 = computed(() => selectedAttributeRollD6.value.length === attributeRollRequiredD6.value);
 const attributeRollHasValidSelection = computed(() => selectedAttributeRollD10.value !== null && attributeRollUsesD6.value);
 const attributeRollMissingSelection = computed(() => {
   const missing: string[] = [];
   if (selectedAttributeRollD10.value === null) missing.push('1 D10');
-  if (!attributeRollCanOmitD6.value && selectedAttributeRollD6.value.length < 2) missing.push(`${2 - selectedAttributeRollD6.value.length} D6`);
+  if (selectedAttributeRollD6.value.length < attributeRollRequiredD6.value) missing.push(`${attributeRollRequiredD6.value - selectedAttributeRollD6.value.length} D6`);
   if (selectedAttributeRollD6.value.length > 2) missing.push(`deselecciona ${selectedAttributeRollD6.value.length - 2} D6`);
   return missing.join(' y ');
 });
@@ -743,7 +750,7 @@ function weaponAimRollD6(roll: WeaponAimRoll): number[] {
 
 function weaponAimRollIsValid(roll: WeaponAimRoll): boolean {
   const availableD6 = roll.dice.filter(die => die.type === 'd6' && !die.disabled).length;
-  return weaponAimRollD10(roll) !== null && (weaponAimRollD6(roll).length === 2 || availableD6 < 2 && weaponAimRollD6(roll).length === 0);
+  return weaponAimRollD10(roll) !== null && weaponAimRollD6(roll).length === Math.min(2, availableD6);
 }
 
 function weaponAimRollMissingSelection(roll: WeaponAimRoll): string {
@@ -751,7 +758,8 @@ function weaponAimRollMissingSelection(roll: WeaponAimRoll): string {
   const selectedD6 = weaponAimRollD6(roll);
   if (weaponAimRollD10(roll) === null) missing.push('1 D10');
   const availableD6 = roll.dice.filter(die => die.type === 'd6' && !die.disabled).length;
-  if (availableD6 >= 2 && selectedD6.length < 2) missing.push(`${2 - selectedD6.length} D6`);
+  const requiredD6 = Math.min(2, availableD6);
+  if (selectedD6.length < requiredD6) missing.push(`${requiredD6 - selectedD6.length} D6`);
   if (selectedD6.length > 2) missing.push(`deselecciona ${selectedD6.length - 2} D6`);
   return missing.join(' y ');
 }
@@ -1711,7 +1719,6 @@ watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) 
                   </div>
                 </section>
                 <div class="attribute-roll-result" :class="{ critical: weaponAimRollIsCritical(roll), fumble: weaponAimRollIsFumble(roll), incomplete: !weaponAimRollIsValid(roll) }" aria-live="polite">
-                  <span>{{ weaponAimRollIsCritical(roll) ? 'Crítico' : weaponAimRollIsFumble(roll) ? 'Pifia' : 'Resultado' }}</span>
                   <strong v-if="weaponAimRollIsValid(roll)">{{ weaponAimRollResult(roll) }}</strong>
                   <strong v-else>Falta seleccionar {{ weaponAimRollMissingSelection(roll) }}</strong>
                 </div>
@@ -1754,7 +1761,6 @@ watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) 
           <button id="attribute-roll-close" class="modal-close" type="button" aria-label="Cerrar tirada" @click="closeAttributeRoll">×</button>
         </header>
         <div class="modal-body attribute-roll-body">
-          <p class="attribute-roll-help">Se desactiva el D6 más alto cuando aparece un 1. Si no quedan dos D6 utilizables, se calcula sin D6.</p>
           <div class="attribute-roll-layout">
             <section class="attribute-roll-dice-group attribute-roll-d10-group" aria-labelledby="attribute-roll-d10-label">
               <h3 id="attribute-roll-d10-label">D10</h3>
@@ -1775,7 +1781,6 @@ watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) 
               </div>
             </section>
           <div class="attribute-roll-result" :class="{ critical: attributeRollIsCritical, fumble: attributeRollIsFumble, success: abilityRollSuccess, failure: attributeRoll.abilityName && attributeRollHasValidSelection && !abilityRollSuccess, incomplete: !attributeRollHasValidSelection }" aria-live="polite">
-               <span>{{ attributeRollIsCritical ? 'Crítico' : attributeRollIsFumble ? 'Pifia' : attributeRoll.abilityName ? (abilityRollSuccess ? 'Activada' : 'Fallo') : 'Resultado' }}</span>
                <strong v-if="attributeRollHasValidSelection">{{ attributeRollResult }}<small v-if="attributeRoll.abilityName"> · dif {{ attributeRoll.difficulty }}+</small></strong>
               <strong v-else>Falta seleccionar {{ attributeRollMissingSelection }}</strong>
             </div>

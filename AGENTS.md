@@ -13,6 +13,10 @@
 - `calc.html`, `fichaPersonaje_OLD.html`, and `hoja.html` are older/alternative pages. Do not change them unless the task explicitly targets them.
 - `getEBCN.js` and `getElementsByClassName-1.0.1.js` are identical legacy compatibility helpers; leave them intact unless explicitly requested.
 
+## Immutable Files
+- `calc.html`, `calc2.js`, `calc3.js`, `calc4.js`, `CompendioHabilidadesExport.json`, `hashCode.js`, `hoja.html`, `index.html`, and `tiradasHabilidades.js` are **totally immutable**. It is **strictly forbidden** to modify them.
+- `habildiad.html` was requested with that spelling, but the existing file is `habilidad.html`; both names are considered protected, and `habilidad.html` must not be modified.
+
 ## Implementation Conventions
 - Keep this dependency order in `index.html`: `calc2.js`, `calc3.js`, `calc4.js`, `hashCode.js`, compatibility helper.
 - Existing code is plain browser-global JavaScript with inline HTML handlers and Spanish identifiers; preserve this integration style in touched legacy code.
