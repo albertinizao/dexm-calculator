@@ -1,17 +1,5 @@
-spring:
-  datasource:
-    url: jdbc:h2:mem:dexm;MODE=MariaDB;DB_CLOSE_DELAY=-1
-    username: sa
-    password:
-  flyway.enabled: false
-  jpa.hibernate.ddl-auto: create-drop
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: test-client
-            client-secret: test-secret
 app:
-  security:
-    frontend-url: http://192-168-1-201.sslip.io:5177/
+  auth:
+    mode: local
+  firestore:
+    project-id: dexm-test

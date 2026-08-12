@@ -10,8 +10,10 @@ import java.util.*;
 public class SecurityIdentityService {
     private final UserRepository users;
     private final Set<String> adminEmails;
-    public SecurityIdentityService(UserRepository users, org.springframework.core.env.Environment env) {
+    private final AppAuthProperties auth;
+    public SecurityIdentityService(UserRepository users, org.springframework.core.env.Environment env, AppAuthProperties auth) {
         this.users = users;
+        this.auth = auth;
         this.adminEmails = Arrays.stream(Optional.ofNullable(env.getProperty("app.security.admin-emails", "")).orElse("").split(","))
                 .map(AuthIdentity::normalizeEmail).filter(s -> !s.isBlank()).collect(java.util.stream.Collectors.toUnmodifiableSet());
     }
@@ -21,7 +23,8 @@ public class SecurityIdentityService {
         return users.findByGoogleSubject(identity.subject()).map(existing -> { existing.update(identity.email(), identity.name()); return users.save(existing); })
                 .orElseGet(() -> users.save(new UserEntity(UUID.randomUUID().toString(), identity.subject(), identity.email(), identity.name())));
     }
-    public boolean isAdmin(AuthIdentity identity) { return adminEmails.contains(identity.email()); }
+    public boolean isAdmin(AuthIdentity identity) { return auth.mode() == AppAuthMode.LOCAL || adminEmails.contains(identity.email()); }
     public UserEntity requireCurrentUser(Authentication authentication) { return users.findByGoogleSubject(current(authentication).subject()).orElseGet(() -> provision(authentication)); }
     public Set<String> adminEmails() { return adminEmails; }
+    public String authMode() { return auth.mode().name().toLowerCase(java.util.Locale.ROOT); }
 }

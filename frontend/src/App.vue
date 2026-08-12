@@ -5,7 +5,7 @@ import { api, type CreationConfigurationPayload } from './services/api';
 import CharacterSheet from './CharacterSheet.vue';
 
 type Campaign = { id: string; name: string; createdAt: string };
-type Session = { id: string; email: string; name: string; admin: boolean };
+type Session = { id: string; email: string; name: string; admin: boolean; authMode: 'local' | 'iap' };
 type CampaignMember = { id: string; email: string; active: boolean; createdAt: string; revokedAt?: string };
 type Character = { id: string; name: string; imageUrl?: string | null; campaignId?: string };
 type CreationMode = 'empty' | 'guided';
@@ -208,7 +208,6 @@ function openCharacter(character: Character) { router.push(`/characters/${charac
 onMounted(async () => {
   await loadSession();
   if (session.value) {
-    startKeepalive();
     await loadCampaigns();
   }
 });
@@ -223,11 +222,11 @@ watch(() => route.query.campaign, (campaignId) => {
 <template>
   <main v-if="authLoading" class="app-shell"><section class="welcome-state"><h2>Comprobando sesión…</h2></section></main>
   <main v-else-if="accessDenied" class="app-shell"><section class="welcome-state"><p class="eyebrow accent">ACCESO RESTRINGIDO</p><h2>No tienes una campaña autorizada</h2><p>El administrador debe añadir tu email a una campaña antes de que puedas acceder.</p></section></main>
-  <main v-else-if="!session" class="app-shell"><section class="welcome-state"><div class="welcome-orbit">✦</div><p class="eyebrow accent">ACCESO</p><h2>Entra en tu archivo</h2><p>Usa tu cuenta de Google para acceder a tus campañas autorizadas.</p><a class="button button-primary" href="/oauth2/authorization/google">Continuar con Google</a></section></main>
+  <main v-else-if="!session" class="app-shell"><section class="welcome-state"><div class="welcome-orbit">✦</div><p class="eyebrow accent">ACCESO</p><h2>No se ha podido validar tu acceso</h2><p>Accede mediante el entorno autorizado de la aplicación.</p></section></main>
   <CharacterSheet v-else-if="isCharacterSheet" :is-director="isDirector" />
   <main v-else class="app-shell">
     <header class="topbar">
-      <div class="brand"><img class="brand-logo" src="/logo.png" alt="Deus ex Machina" /></div><div class="session-actions"><span class="muted">{{ session.email }}</span><button class="button button-quiet" type="button" @click="logout">Salir</button></div>
+      <div class="brand"><img class="brand-logo" src="/logo.png" alt="Deus ex Machina" /></div><div class="session-actions"><span class="muted">{{ session.email }}</span></div>
     </header>
 
     <p v-if="error" class="error-banner" role="alert">{{ error }}</p>

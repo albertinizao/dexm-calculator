@@ -1,34 +1,3 @@
-server:
-  port: 8080
-  servlet:
-    session:
-      cookie:
-        name: DEXM_SESSION
-
-spring:
-  datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
-  jpa:
-    hibernate.ddl-auto: validate
-    open-in-view: false
-  flyway:
-    enabled: true
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
-            scope: openid,profile,email
-            redirect-uri: ${APP_SECURITY_FRONTEND_URL}login/oauth2/code/{registrationId}
-        provider:
-          google:
-            authorization-uri: "https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&prompt=consent"
-
 app:
   security:
     admin-emails: ${APP_SECURITY_ADMIN_EMAILS:}
-    frontend-url: ${APP_SECURITY_FRONTEND_URL}

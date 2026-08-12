@@ -1,35 +1,20 @@
 package com.dexm.personajes.adapter.out.persistence;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-
 import java.math.BigDecimal;
 
-@Entity
-@Table(name = "character_attribute_modifiers", uniqueConstraints = @UniqueConstraint(columnNames = {"character_id", "attribute_key", "name"}))
 public class CharacterAttributeModifierEntity {
-    @Id
     private String id;
 
-    @Column(name = "character_id", nullable = false)
     private String characterId;
 
-    @Column(name = "attribute_key", nullable = false)
     private String attributeKey;
 
-    @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "score", nullable = false)
     private int score;
 
-    @Column(name = "exact_score", nullable = false, precision = 12, scale = 8)
     private BigDecimal exactScore = BigDecimal.ZERO;
 
-    @Column(name = "source", nullable = false, length = 120)
     private String source = "MANUAL";
 
     protected CharacterAttributeModifierEntity() {

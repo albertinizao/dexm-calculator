@@ -1,29 +1,26 @@
 package com.dexm.personajes.adapter.out.persistence;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
 
-@Entity
-@Table(name = "weapon_catalog")
 public class WeaponCatalogEntity {
-    @Id private String id;
-    @Column(nullable = false) private String name;
-    @Column(name = "weapon_type", nullable = false) private String weaponType;
-    @Column(nullable = false, length = 16) private String size;
-    @Column(name = "weapon_range", nullable = false, precision = 12, scale = 3) private BigDecimal range;
-    @Column(nullable = false, precision = 12, scale = 3) private BigDecimal reload;
-    @Column(nullable = false, length = 32) private String rate;
-    @Column(name = "damage_vital", nullable = false, precision = 12, scale = 3) private BigDecimal damageVital;
-    @Column(name = "damage_normal", nullable = false, precision = 12, scale = 3) private BigDecimal damageNormal;
-    @Column(name = "damage_light", nullable = false, precision = 12, scale = 3) private BigDecimal damageLight;
-    @Column(name = "damage_very_light", nullable = false, precision = 12, scale = 3) private BigDecimal damageVeryLight;
-    @Column(precision = 12, scale = 3) private BigDecimal aim;
-    @Column(name = "automatic_fire") private String automaticFire;
-    @Column(nullable = false, precision = 12, scale = 3) private BigDecimal capacity;
-    @Column(nullable = false) private String caliber;
-    @Column(name = "extra_rule", columnDefinition = "text") private String extraRule;
-    @Column(name = "image_url", columnDefinition = "longtext") private String imageUrl;
-    @Column(nullable = false) private boolean official;
+    private String id;
+    private String name;
+    private String weaponType;
+    private String size;
+    private BigDecimal range;
+    private BigDecimal reload;
+    private String rate;
+    private BigDecimal damageVital;
+    private BigDecimal damageNormal;
+    private BigDecimal damageLight;
+    private BigDecimal damageVeryLight;
+    private BigDecimal aim;
+    private String automaticFire;
+    private BigDecimal capacity;
+    private String caliber;
+    private String extraRule;
+    private String imageUrl;
+    private boolean official;
 
     protected WeaponCatalogEntity() { }
     public WeaponCatalogEntity(String id, String name, String weaponType, String size, BigDecimal range, BigDecimal reload, String rate,

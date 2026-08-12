@@ -1,32 +1,29 @@
 package com.dexm.personajes.adapter.out.persistence;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
 
-@Entity
-@Table(name = "weapon_inventory", uniqueConstraints = @UniqueConstraint(name = "uk_weapon_character_slot", columnNames = {"character_id", "slot"}))
 public class WeaponEntity {
-    @Id private String id;
-    @Column(name = "character_id", nullable = false) private String characterId;
-    @Column(nullable = false, length = 32) private String slot;
-    @Column(nullable = false) private String name;
-    @Column(name = "weapon_type", nullable = false) private String weaponType;
-    @Column(nullable = false, length = 16) private String size;
-    @Column(name = "weapon_range", nullable = false, precision = 12, scale = 3) private BigDecimal range;
-    @Column(nullable = false, precision = 12, scale = 3) private BigDecimal reload;
-    @Column(nullable = false, length = 32) private String rate;
-    @Column(name = "damage_vital", nullable = false, precision = 12, scale = 3) private BigDecimal damageVital;
-    @Column(name = "damage_normal", nullable = false, precision = 12, scale = 3) private BigDecimal damageNormal;
-    @Column(name = "damage_light", nullable = false, precision = 12, scale = 3) private BigDecimal damageLight;
-    @Column(name = "damage_very_light", nullable = false, precision = 12, scale = 3) private BigDecimal damageVeryLight;
-    @Column(precision = 12, scale = 3) private BigDecimal aim;
-    @Column(name = "automatic_fire") private String automaticFire;
-    @Column(nullable = false, precision = 12, scale = 3) private BigDecimal capacity;
-    @Column(name = "loaded_bullets", nullable = false, precision = 12, scale = 3) private BigDecimal loadedBullets;
-    @Column(nullable = false) private String caliber;
-    @Column(name = "extra_rule", columnDefinition = "text") private String extraRule;
-    @Column(name = "catalog_weapon_id") private String catalogWeaponId;
-    @Column(name = "image_url", columnDefinition = "longtext") private String imageUrl;
+    private String id;
+    private String characterId;
+    private String slot;
+    private String name;
+    private String weaponType;
+    private String size;
+    private BigDecimal range;
+    private BigDecimal reload;
+    private String rate;
+    private BigDecimal damageVital;
+    private BigDecimal damageNormal;
+    private BigDecimal damageLight;
+    private BigDecimal damageVeryLight;
+    private BigDecimal aim;
+    private String automaticFire;
+    private BigDecimal capacity;
+    private BigDecimal loadedBullets;
+    private String caliber;
+    private String extraRule;
+    private String catalogWeaponId;
+    private String imageUrl;
 
     protected WeaponEntity() { }
     public WeaponEntity(String id, String characterId, String slot, String name, String weaponType, String size,

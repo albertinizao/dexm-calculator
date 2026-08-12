@@ -1,1 +1,1 @@
-package com.dexm.personajes.adapter.out.persistence; import org.springframework.data.jpa.repository.JpaRepository; public interface ArmorCatalogRepository extends JpaRepository<ArmorCatalogEntity,String>{}
+package com.dexm.personajes.adapter.out.persistence; public interface ArmorCatalogRepository extends FirestoreRepository<ArmorCatalogEntity>{}

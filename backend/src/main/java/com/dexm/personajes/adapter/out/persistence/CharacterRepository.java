@@ -1,1 +1,1 @@
-package com.dexm.personajes.adapter.out.persistence; import org.springframework.data.jpa.repository.JpaRepository; import java.util.*; public interface CharacterRepository extends JpaRepository<CharacterEntity,String>{List<CharacterEntity> findByCampaignIdOrderByNameAsc(String campaignId);}
+package com.dexm.personajes.adapter.out.persistence; import java.util.*; public interface CharacterRepository extends FirestoreRepository<CharacterEntity>{List<CharacterEntity> findByCampaignIdOrderByNameAsc(String campaignId);}
