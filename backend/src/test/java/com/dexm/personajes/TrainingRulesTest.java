@@ -16,11 +16,11 @@ class TrainingRulesTest {
         var a=new TrainingRules.Activity("OCCUPATION",20,26,0,"deporte",null,null,true);
         assertThat(TrainingRules.humanEquivalent(a,false,null,null)).isEqualTo(4d);
     }
-    @Test void courseSlotsStartAtTen(){ assertThat(TrainingRules.courseSlots(21)).isEqualTo(2); }
+    @Test void courseSlotsIncludePartialPeriods(){ assertThat(TrainingRules.courseSlots(10,21)).isEqualTo(3); }
+    @Test void courseSlotsUseTheCharacterStartingAge(){ assertThat(TrainingRules.courseSlots(13,23)).isEqualTo(3); }
     @Test void coincidenceHalvesEachPreviousSelection(){ assertThat(TrainingRules.coincidence(BigDecimal.valueOf(4),2)).isEqualByComparingTo("1.00000000"); }
     @Test void roundsCoincidenceOnlyAfterAddingAllActivityValues(){
         assertThat(TrainingRules.roundTotal(java.util.List.of(new BigDecimal("0.75"), new BigDecimal("0.75")))).isEqualTo(2);
     }
     @Test void invalidHumanProfileCannotHaveAwakening(){ assertThatThrownBy(() -> TrainingRules.validateProfile(0,10,20,false,null)).isInstanceOf(IllegalArgumentException.class); }
 }
-

@@ -13,8 +13,8 @@ public final class TrainingRules {
  }
  /** Legacy helper for characters whose minimum course age is the standard 10. */
  public static int courseSlots(int sheetAge){return courseSlots(10,sheetAge);}
- /** Courses are based on the elapsed profile span, not on activity dates. */
- public static int courseSlots(int startingAge,int sheetAge){return Math.max(0,(sheetAge-startingAge)/4);}
+ /** Courses are granted every four years, including a partial final period. */
+ public static int courseSlots(int startingAge,int sheetAge){int span=sheetAge-startingAge;return span<=0?0:(span+3)/4;}
  public static Bonus bonus(String type,double humanYears){String t=type.toUpperCase(Locale.ROOT);if("COURSE".equals(t))return b(2,0,0);int y=(int)Math.floor(humanYears+1e-9);if("FORMATION".equals(t))return y>=8?b(6,4,2):y>=6?b(5,3,2):y>=4?b(4,2,1):y>=2?b(3,1,0):y>=1?b(2,0,0):b(0,0,0);if("PROFESSION".equals(t))return y>=20?b(6,4,3):y>=15?b(5,3,2):y>=10?b(4,2,1):y>=5?b(3,1,0):y>=1?b(1,0,0):b(0,0,0);return y>=15?b(4,3,2):y>=10?b(3,2,2):y>=5?b(3,1,1):y>=3?b(2,1,0):y>=1?b(1,0,0):b(0,0,0);}
  private static Bonus b(int a,int b,int c){return new Bonus(BigDecimal.valueOf(a),BigDecimal.valueOf(b),BigDecimal.valueOf(c));}
  public static double humanEquivalent(Activity a,boolean einherjer,String origin,Integer awakening){if("COURSE".equalsIgnoreCase(a.type()))return 0;double total=0;for(int age=a.startAge();age<a.endAge();age++){double speed=!einherjer||awakening==null||age<awakening?1:("converted".equals(origin)?2:3);total+=speed;}return a.concurrent()&&"OCCUPATION".equalsIgnoreCase(a.type())?total/1.5:total;}
