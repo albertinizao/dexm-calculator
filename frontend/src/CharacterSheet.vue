@@ -23,6 +23,7 @@ type Character = {
 };
 
 type Campaign = { id: string; name: string };
+type CampaignMember = { id: string; email: string; active: boolean; createdAt: string; revokedAt?: string };
 type MinorAttribute = { id:string; key:string; name:string; value:number; ranks:number; total:number; max:number; maxFormula?:string; bonusSource?:string; plusOne:number; plusD6:number; type:string };
 type AllocationBudget = { evolutionAvailable:number; evolutionSpent:number; evolutionRemaining:number; geneticsAvailable:number; geneticsSpent:number; geneticsRemaining:number; nextEvolutionReward?:number; nextGeneticsReward?:number; minorEvolutionCost?:number };
 type AllocationDraft = { level:number; experience:number; evolutionAvailable:number; geneticsAvailable:number; minorEvolutionCost:number; attributes:Record<string,number>; genetics:Record<string,number>; minorAttributes:Record<string,number>; baseAttributes:Record<string,number>; baseGenetics:Record<string,number>; baseMinorAttributes:Record<string,number> };
@@ -53,9 +54,10 @@ const character = ref<Character | null>(null);
 const editing = ref(false);
 const canEdit = computed(() => props.isDirector || character.value?.canEdit === true);
 const editorEmails = ref<string[]>([]);
-const editorEmail = ref('');
+const campaignMembers = ref<CampaignMember[]>([]);
 const editorBusy = ref(false);
 const editorError = ref('');
+const campaignEditorCandidates = computed(() => [...new Set(campaignMembers.value.filter(member => member.active).map(member => member.email))]);
 
 const campaign = ref<Campaign | null>(null);
 
@@ -862,7 +864,13 @@ async function load() {
     if (editing.value) startModifierDraft();
     if (editing.value && route.query.mode !== 'edit') await router.replace({ query: queryWithEditMode(true) });
 
-    if (character.value?.campaignId) campaign.value = await api.campaign(character.value.campaignId);
+    if (character.value?.campaignId) {
+      campaign.value = await api.campaign(character.value.campaignId);
+      if (props.isDirector) {
+        try { campaignMembers.value = await api.campaignMembers(character.value.campaignId) as CampaignMember[]; }
+        catch (e: any) { editorError.value = e?.message || 'No se pudieron cargar los miembros de la campaña.'; }
+      }
+    }
 
   } catch (e: any) { error.value = e?.message || 'No se pudo cargar el personaje.'; }
 
@@ -1069,20 +1077,19 @@ async function startEdit() {
   } catch (e: any) { closeError.value = e?.message || 'No se pudo abrir la ficha para edición.'; }
 }
 
-async function addEditor() {
-  if (!props.isDirector || !editorEmail.value.trim() || !character.value) return;
+async function toggleEditor(email: string) {
+  if (!props.isDirector || !character.value || editorBusy.value) return;
   editorBusy.value = true; editorError.value = '';
-  try { editorEmails.value = await api.addCharacterEditor(character.value.id, editorEmail.value.trim()); editorEmail.value = ''; }
-  catch (e: any) { editorError.value = e?.message || 'No se pudo añadir el editor.'; }
+  try {
+    editorEmails.value = editorEmails.value.some(item => item.toLowerCase() === email.toLowerCase())
+      ? await api.removeCharacterEditor(character.value.id, email)
+      : await api.addCharacterEditor(character.value.id, email);
+  } catch (e: any) { editorError.value = e?.message || 'No se pudo actualizar el permiso de edición.'; }
   finally { editorBusy.value = false; }
 }
 
-async function removeEditor(email: string) {
-  if (!props.isDirector || !character.value || !confirm(`¿Quitar el acceso de ${email}?`)) return;
-  editorBusy.value = true; editorError.value = '';
-  try { editorEmails.value = await api.removeCharacterEditor(character.value.id, email); }
-  catch (e: any) { editorError.value = e?.message || 'No se pudo retirar el editor.'; }
-  finally { editorBusy.value = false; }
+function hasEditorAccess(email: string) {
+  return editorEmails.value.some(item => item.toLowerCase() === email.toLowerCase());
 }
 
 async function openAttributeDetail(key: string) {
@@ -1548,10 +1555,9 @@ watch(() => route.name, async (name) => {
         <section class="modal-card creation-modal" role="dialog" aria-modal="true" aria-labelledby="editors-modal-title">
           <header class="modal-header"><div><p class="eyebrow accent">ACCESO DEL PERSONAJE</p><h2 id="editors-modal-title">Emails con edición</h2><p class="modal-copy">Solo los miembros de la campaña añadidos aquí podrán modificar esta ficha.</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="showEditorsModal=false">×</button></header>
           <div class="modal-body">
-            <form class="modal-actions" @submit.prevent="addEditor"><input v-model="editorEmail" type="email" placeholder="persona@example.com" required><button class="button button-primary" type="submit" :disabled="editorBusy">Añadir</button></form>
             <p v-if="editorError" class="error-banner" role="alert">{{ editorError }}</p>
-            <ul v-if="editorEmails.length" class="campaign-members"><li v-for="email in editorEmails" :key="email"><span>{{ email }}</span><button class="button button-quiet" type="button" @click="removeEditor(email)">Quitar</button></li></ul>
-            <p v-else class="field-hint">Sin editores asignados: solo administración puede editar.</p>
+            <ul v-if="campaignEditorCandidates.length" class="campaign-members"><li v-for="email in campaignEditorCandidates" :key="email"><span>{{ email }}</span><button class="button" :class="hasEditorAccess(email) ? 'button-quiet' : 'button-primary'" type="button" :disabled="editorBusy" @click="toggleEditor(email)">{{ hasEditorAccess(email) ? 'Quitar' : 'Añadir' }}</button></li></ul>
+            <p v-else class="field-hint">No hay miembros activos en la campaña a los que asignar edición.</p>
           </div>
         </section>
       </div>
@@ -1564,7 +1570,7 @@ watch(() => route.name, async (name) => {
             <section class="modal-section-panel"><h3 class="modal-section-title">Datos del personaje</h3><div class="profile-form-grid"><label class="modal-field"><span>Edad inicial</span><input v-model.number="character.startingAge" type="number" min="0" :max="character.sheetAge ?? undefined" required /></label><label class="modal-field"><span>Edad actual</span><input v-model.number="character.sheetAge" type="number" :min="(character.startingAge ?? 0) + 1" required /></label><label class="modal-field"><span>Origen</span><select v-model="character.einherjerOrigin" required><option :value="null" disabled>Selecciona un origen</option><option value="converted">Convertido</option><option value="born_human">Nacido de humanos</option><option value="born_einherjer">Nacido de Einherjer</option></select></label></div></section>
             <section class="modal-section-panel"><h3 class="modal-section-title">Despertar</h3><div class="profile-form-grid"><div class="profile-awakening-field"><span class="field-label">¿Ha despertado?</span><div class="guided-answer-grid"><button class="answer-card" type="button" :class="{ selected: character.awakened === false }" @click="setAwakened(false)">No</button><button class="answer-card" type="button" :class="{ selected: character.awakened === true }" @click="setAwakened(true)">Sí</button></div></div><label v-if="character.awakened" class="modal-field"><span>Edad de despertar / conversión</span><input v-model.number="character.awakeningAge" type="number" :min="character.startingAge ?? 0" :max="character.sheetAge ?? undefined" required /></label></div></section>
           </div>
-          <footer class="modal-actions"><button class="button button-primary" type="button" @click="showProfileModal=false">{{ editing ? 'Aplicar cambios' : 'Cerrar' }}</button></footer>
+          <footer class="modal-actions"><button class="button button-primary" type="button" @click="editing ? closeDraft() : showProfileModal=false" :disabled="editing && closeBusy">{{ editing ? (closeBusy ? 'Guardando…' : 'Guardar perfil') : 'Cerrar' }}</button></footer>
         </section>
       </div>
       <div v-if="showMinorModal" class="modal-backdrop" @click.self="showMinorModal=false">
