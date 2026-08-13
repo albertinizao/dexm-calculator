@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class WeaponCatalogSeedService {
@@ -24,11 +26,16 @@ public class WeaponCatalogSeedService {
     }
 
     public void seedIfEmpty() {
-        if (!catalog.findAll().isEmpty()) return;
-
         try (var input = new ClassPathResource(RESOURCE).getInputStream()) {
             var seeds = mapper.readValue(input, new TypeReference<List<WeaponSeed>>() { });
-            catalog.saveAll(seeds.stream().map(WeaponSeed::toEntity).toList());
+            Set<String> existingIds = catalog.findAll().stream()
+                    .map(WeaponCatalogEntity::getId)
+                    .collect(Collectors.toSet());
+            var missing = seeds.stream()
+                    .filter(seed -> !existingIds.contains(seed.id()))
+                    .map(WeaponSeed::toEntity)
+                    .toList();
+            if (!missing.isEmpty()) catalog.saveAll(missing);
         } catch (IOException exception) {
             throw new IllegalStateException("No se pudo cargar el catálogo oficial de armas", exception);
         }

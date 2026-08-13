@@ -23,6 +23,8 @@ const characterName = ref('');
 const characterImage = ref('');
 const imageInput = ref<HTMLInputElement | null>(null);
 const campaignArchiveInput = ref<HTMLInputElement | null>(null);
+const showCampaignTransferModal = ref(false);
+const campaignTransferAction = ref<'import' | 'export'>('export');
 const creationMode = ref<CreationMode>('empty');
 const guidedStep = ref<GuidedStep>('setup');
 const guidedCharacterId = ref<string | null>(null);
@@ -130,6 +132,25 @@ async function logout() { await api.logout(); stopKeepalive(); session.value = n
 async function loadMembers(campaign: Campaign) { if (!isDirector.value) return; try { members.value = await api.campaignMembers(campaign.id) as CampaignMember[]; } catch (e: any) { error.value = e.message; } }
 async function inviteMember() { if (!selectedCampaign.value || !memberEmail.value.trim()) return; try { await api.inviteCampaignMember(selectedCampaign.value.id, memberEmail.value.trim()); memberEmail.value = ''; await loadMembers(selectedCampaign.value); } catch (e: any) { error.value = e.message; } }
 async function revokeMember(member: CampaignMember) { if (!selectedCampaign.value || !confirm(`¿Revocar el acceso de ${member.email}?`)) return; try { await api.revokeCampaignMember(selectedCampaign.value.id, member.email); await loadMembers(selectedCampaign.value); } catch (e: any) { error.value = e.message; } }
+function openCampaignTransferModal() { if (!isDirector.value || !selectedCampaign.value) return; campaignTransferAction.value = 'export'; showCampaignTransferModal.value = true; }
+function downloadCampaignArchive(archive: unknown) { const name = selectedCampaign.value?.name || 'campaña'; const url = URL.createObjectURL(new Blob([JSON.stringify(archive, null, 2)], { type: 'application/json' })); const link = document.createElement('a'); link.href = url; link.download = `${name}.dexm.json`; link.click(); URL.revokeObjectURL(url); }
+function chooseCampaignArchiveFile() { if (isDirector.value) campaignArchiveInput.value?.click(); }
+async function executeCampaignTransfer() {
+  if (!isDirector.value || !selectedCampaign.value) return;
+  if (campaignTransferAction.value === 'export') { try { downloadCampaignArchive(await api.exportCampaignArchive(selectedCampaign.value.id)); showCampaignTransferModal.value = false; } catch (e: any) { error.value = e?.message || 'No se pudo exportar la campaña.'; } return; }
+  showCampaignTransferModal.value = false; chooseCampaignArchiveFile();
+}
+async function importCampaignArchive(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0];
+  if (!file || !selectedCampaign.value || !isDirector.value) return;
+  try {
+    if (!confirm('Se reemplazarán los datos de juego de esta campaña y se actualizarán o crearán sus personajes. Los permisos, miembros e imágenes se conservarán. ¿Continuar?')) return;
+    await api.importCampaignArchive(selectedCampaign.value.id, JSON.parse(await file.text()));
+    await loadCampaigns();
+    const refreshed = campaigns.value.find(item => item.id === selectedCampaign.value?.id);
+    if (refreshed) await selectCampaign(refreshed);
+  } catch (e: any) { error.value = e?.message || 'No se pudo importar la campaña.'; } finally { if (campaignArchiveInput.value) campaignArchiveInput.value.value = ''; }
+}
 function resetCharacterCreation() {
   characterName.value = ''; characterImage.value = ''; characterImageError.value = ''; creationMode.value = 'empty'; guidedStep.value = 'setup';
   guidedCharacterId.value = null; guidedRace.value = ''; guidedEinherjer.value = null; guidedAwakened.value = null; guidedEinherjerOrigin.value = null; guidedStartingAge.value = null; guidedAwakeningAge.value = null; guidedSheetAge.value = null; selectedMajorAttributes.value = [];
@@ -263,7 +284,7 @@ watch(() => route.query.campaign, (campaignId) => {
       </aside>
 
       <section v-if="selectedCampaign" class="campaign-view">
-        <div class="campaign-heading"><div><p class="eyebrow accent">CAMPAÑA SELECCIONADA</p><h2>{{ selectedCampaign.name }}</h2><p class="muted">{{ characters.length }} {{ characters.length === 1 ? 'personaje' : 'personajes' }} en esta aventura</p></div><div class="campaign-actions"><button v-if="isDirector" class="button button-quiet" @click="membersOpen = !membersOpen">Gestionar accesos</button><button v-if="isDirector" class="button button-danger" @click="openDeleteCampaignModal">Borrar campaña</button><button class="button button-primary" @click="openCharacterModal"><span>＋</span> Nuevo personaje</button></div></div>
+        <div class="campaign-heading"><div><p class="eyebrow accent">CAMPAÑA SELECCIONADA</p><h2>{{ selectedCampaign.name }}</h2><p class="muted">{{ characters.length }} {{ characters.length === 1 ? 'personaje' : 'personajes' }} en esta aventura</p></div><div class="campaign-actions"><button v-if="isDirector" class="button button-quiet" @click="membersOpen = !membersOpen">Gestionar accesos</button><button v-if="isDirector" class="button button-quiet" @click="openCampaignTransferModal">Exportar / importar</button><button v-if="isDirector" class="button button-danger" @click="openDeleteCampaignModal">Borrar campaña</button><button class="button button-primary" @click="openCharacterModal"><span>＋</span> Nuevo personaje</button></div></div>
         <section v-if="isDirector && membersOpen" class="sheet-panel campaign-members"><div class="sheet-panel-heading"><h3>Emails autorizados</h3><form @submit.prevent="inviteMember"><input v-model="memberEmail" type="email" placeholder="persona@example.com" required><button class="button button-primary" type="submit">Añadir</button></form></div><p v-if="!members.length" class="sheet-muted">No hay invitaciones.</p><ul v-else><li v-for="member in members" :key="member.id"><span>{{ member.email }}</span><button v-if="member.active" class="button button-quiet" type="button" @click="revokeMember(member)">Revocar</button><span v-else class="muted">Revocado</span></li></ul></section>
         <div v-if="characters.length" class="character-grid"><article v-for="character in characters" :key="character.id" class="character-card" role="link" tabindex="0" @click="openCharacter(character)" @keydown.enter="openCharacter(character)"><div class="portrait"><img v-if="character.imageUrl" :src="character.imageUrl" :alt="`Retrato de ${character.name}`" /><span v-else>{{ initials(character.name) }}</span></div><div class="character-info"><p class="eyebrow">PERSONAJE</p><h3>{{ character.name }}</h3><span class="field-hint">{{ character.canEdit ? 'Puedes editar' : 'Solo lectura' }}</span><span class="card-link">Ver ficha →</span></div></article></div>
         <div v-else class="empty-state"><div class="empty-icon">✦</div><h3>La aventura está esperando</h3><p>Añade el primer personaje a <strong>{{ selectedCampaign.name }}</strong>.</p><button class="button button-primary" @click="openCharacterModal">＋ Nuevo personaje</button></div>
@@ -313,6 +334,10 @@ watch(() => route.query.campaign, (campaignId) => {
         </template>
       </section>
     </div>
+
+    <input ref="campaignArchiveInput" class="sr-only" type="file" accept="application/json,.dexm.json" @change="importCampaignArchive">
+
+    <div v-if="showCampaignTransferModal" class="modal-backdrop" @click.self="showCampaignTransferModal = false"><section class="modal-card transfer-modal" role="dialog" aria-modal="true" aria-labelledby="campaign-transfer-title"><header class="modal-header"><div><p class="eyebrow accent">COPIA DE SEGURIDAD</p><h2 id="campaign-transfer-title">Exportar / importar</h2><p class="modal-copy">Gestiona una copia completa de la campaña, incluidos sus datos de juego y personajes.</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="showCampaignTransferModal = false">×</button></header><div class="modal-body transfer-body"><div class="transfer-choice-group" role="group" aria-label="Operación"><button type="button" class="transfer-choice" :class="{ selected: campaignTransferAction === 'import' }" @click="campaignTransferAction = 'import'">Importar</button><button type="button" class="transfer-choice" :class="{ selected: campaignTransferAction === 'export' }" @click="campaignTransferAction = 'export'">Exportar</button></div><p class="modal-copy">El archivo JSON no incluye imágenes, miembros, editores ni permisos.</p></div><footer class="modal-actions"><button class="button button-quiet" type="button" @click="showCampaignTransferModal = false">Cancelar</button><button class="button button-primary" type="button" @click="executeCampaignTransfer">{{ campaignTransferAction === 'import' ? 'Seleccionar fichero' : 'Descargar fichero' }}</button></footer></section></div>
 
     <div v-if="isDeleteCampaignModalOpen" class="modal-backdrop" @click.self="closeDeleteCampaignModal"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="delete-campaign-title"><button class="modal-close" aria-label="Cerrar" @click="closeDeleteCampaignModal">×</button><p class="eyebrow accent">CONFIRMAR BORRADO</p><h2 id="delete-campaign-title">¿Borrar campaña?</h2><p class="modal-copy">Se eliminará <strong>{{ selectedCampaign?.name }}</strong> y todos sus personajes. Esta acción no se puede deshacer.</p><div class="modal-actions"><button class="button button-quiet" type="button" @click="closeDeleteCampaignModal">Cancelar</button><button class="button button-danger" type="button" :disabled="saving" @click="deleteCampaign">{{ saving ? 'Borrando…' : 'Borrar definitivamente' }}</button></div></section></div>
   </main>

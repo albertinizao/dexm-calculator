@@ -84,7 +84,7 @@ export type Weapon = {
   id: string; slot: string; name: string; weaponType: string; size: string;
   range: number; reload: number; rate: string; damageVital: number; damageNormal: number;
   damageLight: number; damageVeryLight: number; aim?: number | null; automaticFire?: string | null;
-  capacity: number; loadedBullets: number; caliber: string; extraRule?: string | null; catalogWeaponId?: string | null; imageUrl?: string | null;
+  capacity: number; loadedBullets: number; caliber?: string | null; extraRule?: string | null; catalogWeaponId?: string | null; imageUrl?: string | null;
 };
 export type WeaponCatalogItem = Omit<Weapon, 'slot'> & { official: boolean };
 

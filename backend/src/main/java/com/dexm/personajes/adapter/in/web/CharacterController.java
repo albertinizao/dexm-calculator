@@ -93,13 +93,13 @@ public class CharacterController {
                                 @NotNull @DecimalMin("0.0") BigDecimal damageVeryLight, BigDecimal aim,
                                 String automaticFire, @NotNull @DecimalMin("0.0") BigDecimal capacity,
                                 @Digits(integer = 12, fraction = 0) @DecimalMin("0.0") BigDecimal loadedBullets,
-                                @NotBlank String caliber,
+                                String caliber,
                                 String extraRule) {}
     public record WeaponCatalogCreateRequest(@NotBlank String name, @NotBlank String weaponType, @NotBlank String size,
                                 @NotNull @DecimalMin("0.0") BigDecimal range, @NotNull @DecimalMin("0.0") BigDecimal reload,
                                 @NotBlank String rate, @NotNull @DecimalMin("0.0") BigDecimal damageVital, @NotNull @DecimalMin("0.0") BigDecimal damageNormal,
                                 @NotNull @DecimalMin("0.0") BigDecimal damageLight, @NotNull @DecimalMin("0.0") BigDecimal damageVeryLight,
-                                BigDecimal aim, String automaticFire, @NotNull @DecimalMin("0.0") BigDecimal capacity, @NotBlank String caliber,
+                                BigDecimal aim, String automaticFire, @NotNull @DecimalMin("0.0") BigDecimal capacity, String caliber,
                                 String extraRule, String imageUrl) {}
     public record WeaponCatalogCopyRequest(@NotBlank String slot) {}
     public record ArmorRequest(@NotBlank String name, String description, @NotNull Map<String, Map<String, Integer>> slots, String imageUrl) {}
