@@ -236,6 +236,41 @@ class CharacterServiceAllocationTest {
     }
 
     @Test
+    void savesPortraitOnTheSameEntityUsedByAllocation() throws Exception {
+        var reloaded = new CharacterEntity("c1", "campaign", "Astrid", null, 250, attributesJson(), geneticsJson());
+        when(characters.findById("c1")).thenReturn(Optional.of(character), Optional.of(reloaded));
+        var portrait = "data:image/jpeg;base64,AA==";
+
+        service.save("c1", "Astrid", 1, 250, attributes, genetics, Map.of(), true, true, 2,
+                null, null, null, null, null, null, true, portrait);
+
+        var saved = ArgumentCaptor.forClass(CharacterEntity.class);
+        verify(characters, atLeastOnce()).save(saved.capture());
+        assertThat(saved.getAllValues()).anyMatch(candidate -> candidate == character
+                && portrait.equals(candidate.getImageUrl()));
+    }
+
+    @Test
+    void omittedPortraitKeepsExistingImage() {
+        var existing = "https://example.com/portrait.jpg";
+        character.setImageUrl(existing);
+
+        service.save("c1", "Astrid", 1, 250, attributes, genetics, Map.of(), true, true, 2);
+
+        assertThat(character.getImageUrl()).isEqualTo(existing);
+    }
+
+    @Test
+    void explicitNullPortraitRemovesExistingImage() {
+        character.setImageUrl("https://example.com/portrait.jpg");
+
+        service.save("c1", "Astrid", 1, 250, attributes, genetics, Map.of(), true, true, 2,
+                null, null, null, null, null, null, true, null);
+
+        assertThat(character.getImageUrl()).isNull();
+    }
+
+    @Test
     void limitsOneGeneticToTwoNewRanksPerLevel() {
         var requested = new LinkedHashMap<>(genetics);
         requested.put("heroe", 3);

@@ -7,6 +7,7 @@ import com.dexm.personajes.application.ProtectiveEquipmentService;
 import com.dexm.personajes.application.AmmunitionInventoryService;
 import com.dexm.personajes.domain.CharacterCreationRules;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import tools.jackson.databind.JsonNode;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -69,7 +70,8 @@ public class CharacterController {
             String einherjerOrigin,
             Integer startingAge,
             Integer awakeningAge,
-            Integer sheetAge) {}
+            Integer sheetAge,
+            JsonNode imageUrl) {}
 
     public record LegacyRequest(@NotBlank String code) {}
     public record EditorRequest(@NotBlank @Email String email) {}
@@ -290,7 +292,9 @@ public class CharacterController {
         return service.save(id, request.name(), request.level(), request.experience(), values(request.attributes()),
                 values(request.genetics()), values(request.minorAttributes()),
                 Boolean.TRUE.equals(request.visible()), Boolean.TRUE.equals(request.finalStep()), request.evolutionPoints(),
-                request.einherjer(), request.awakened(), request.einherjerOrigin(), request.startingAge(), request.awakeningAge(), request.sheetAge());
+                request.einherjer(), request.awakened(), request.einherjerOrigin(), request.startingAge(), request.awakeningAge(), request.sheetAge(),
+                request.imageUrl() != null,
+                request.imageUrl() == null || request.imageUrl().isNull() ? null : request.imageUrl().asText());
     }
 
     @PostMapping("/{id}/legacy/import")

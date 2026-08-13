@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,6 +26,8 @@ import com.dexm.personajes.security.AuthorizationService;
 public class CharacterService {
     private static final String FLOW_SINGLE = "single";
     private static final String FLOW_SEQUENTIAL_ALL = "sequential-all";
+    private static final int MAX_IMAGE_DATA_URL_LENGTH = 150 * 1024;
+    private static final int MAX_EXTERNAL_IMAGE_URL_LENGTH = 2048;
     private static final List<String> LEGACY_GENETICS = List.of("heroe", "norna", "alfar", "valkiria", "dvergr", "risa");
     private static final Set<String> MAJOR_KEYS = Set.of("fisico", "agilidad", "percepcion", "mente", "estudio", "carisma");
     private static final Map<String, String> PREDEFINED_MINOR_FORMULAS = Map.ofEntries(
@@ -129,7 +132,7 @@ public class CharacterService {
         try {
             var attrs = CharacterRules.zeroValues(CharacterRules.ATTRIBUTES);
             var gen = CharacterRules.zeroValues(CharacterRules.GENETICS);
-            var c = new CharacterEntity(UUID.randomUUID().toString(), campaignId, name, imageUrl, 0,
+            var c = new CharacterEntity(UUID.randomUUID().toString(), campaignId, name, validateImageUrl(imageUrl), 0,
                     json.writeValueAsString(attrs), json.writeValueAsString(gen));
             assignCurrentEditor(c);
             c.setClosed(true);
@@ -280,6 +283,17 @@ public class CharacterService {
                                      Integer sheetAge) {
         return persistAllocation(id, name, level, xp, attrs, gen, minor, visible, finalStep, "save", legacyEvolutionPoints,
                 einherjer, awakened, origin, startingAge, awakeningAge, sheetAge);
+    }
+
+    @Transactional
+    public Map<String, Object> save(String id, String name, Integer level, int xp, Map<String, Integer> attrs,
+                                     Map<String, Integer> gen, Map<String, Integer> minor, boolean visible,
+                                     boolean finalStep, Integer legacyEvolutionPoints, Boolean einherjer,
+                                     Boolean awakened, String origin, Integer startingAge, Integer awakeningAge,
+                                     Integer sheetAge, boolean imageProvided, String imageUrl) {
+        return persistAllocation(id, name, level, xp, attrs, gen, minor, visible, finalStep, "save",
+                legacyEvolutionPoints, einherjer, awakened, origin, startingAge, awakeningAge, sheetAge,
+                imageProvided, imageUrl);
     }
 
     /** Parses the static HTML backup format without changing the character. */
@@ -452,7 +466,7 @@ public class CharacterService {
     private void ensureTrainingAvailable(String id) { if (trainingActivities==null) throw new IllegalStateException("Training is unavailable in this context"); var c=get(id); if(c.getStartingAge()==null||c.getSheetAge()==null||!"guided".equals(c.getCreationMode())) throw new IllegalStateException("Training is only available for guided characters"); if(c.isClosed()) throw new IllegalStateException("La ficha está cerrada; ábrela para modificar la trayectoria"); }
     private void validateTrainingRequest(String id, CharacterController.TrainingActivityRequest r, String ignoredId) {
         var c=get(id); var type=r.type().toUpperCase(Locale.ROOT); if(!Set.of("FORMATION","PROFESSION","OCCUPATION","COURSE").contains(type)) throw new IllegalArgumentException("Tipo de actividad no válido");
-        if(!"COURSE".equals(type) && (r.endAge()<=r.startAge()||r.startAge()<c.getStartingAge()||r.endAge()>c.getSheetAge())) throw new IllegalArgumentException("El intervalo queda fuera de la vida de la ficha");
+        if(!"COURSE".equals(type) && (r.endAge()<=r.startAge()||r.startAge()<c.getStartingAge()||r.endAge()>c.getSheetAge()+1)) throw new IllegalArgumentException("El intervalo queda fuera de la vida de la ficha");
         var attrs=java.util.stream.Stream.of(r.primaryAttribute(),r.secondaryAttribute(),r.tertiaryAttribute()).filter(Objects::nonNull).filter(s->!s.isBlank()).toList(); if(attrs.size()!=new HashSet<>(attrs).size()) throw new IllegalArgumentException("Los atributos de una actividad deben ser distintos");
         var allowedMinorAttributes = trainingMinorAttributeKeys(c);
         if (attrs.stream().anyMatch(attribute -> !allowedMinorAttributes.contains(attribute))) throw new IllegalArgumentException("El atributo no es un atributo menor de la ficha");
@@ -688,8 +702,22 @@ public class CharacterService {
                                                    String flow, Integer legacyEvolutionPoints, Boolean requestedEinherjer,
                                                    Boolean requestedAwakened, String requestedOrigin, Integer requestedStartingAge,
                                                    Integer requestedAwakeningAge, Integer requestedSheetAge) {
+        return persistAllocation(id, requestedName, requestedLevel, requestedXp, requestedAttributes, requestedGenetics,
+                requestedCustomMinors, visible, finalStep, flow, legacyEvolutionPoints, requestedEinherjer,
+                requestedAwakened, requestedOrigin, requestedStartingAge, requestedAwakeningAge, requestedSheetAge,
+                false, null);
+    }
+
+    private Map<String, Object> persistAllocation(String id, String requestedName, Integer requestedLevel, int requestedXp,
+                                                   Map<String, Integer> requestedAttributes, Map<String, Integer> requestedGenetics,
+                                                   Map<String, Integer> requestedCustomMinors, boolean visible, boolean finalStep,
+                                                   String flow, Integer legacyEvolutionPoints, Boolean requestedEinherjer,
+                                                   Boolean requestedAwakened, String requestedOrigin, Integer requestedStartingAge,
+                                                   Integer requestedAwakeningAge, Integer requestedSheetAge,
+                                                   boolean imageProvided, String imageUrl) {
         try {
             var character = get(id);
+            if (imageProvided) character.setImageUrl(validateImageUrl(imageUrl));
             updateProfile(character, requestedEinherjer, requestedAwakened, requestedOrigin, requestedStartingAge,
                     requestedAwakeningAge, requestedSheetAge);
             var abilitiesBeforeChange = currentActiveAbilities(character);
@@ -971,7 +999,7 @@ public class CharacterService {
         if (startingAge != null && sheetAge != null) {
             if (origin != null) TrainingRules.validateProfile(startingAge, awakeningAge, sheetAge, true, origin);
             if (trainingActivities != null && trainingActivities.findByCharacterIdOrderByStartAgeAscPriorityAsc(character.getId()).stream()
-                    .anyMatch(activity -> activity.getEndAge() > sheetAge)) {
+                    .anyMatch(activity -> activity.getEndAge() > sheetAge + 1)) {
                 throw new IllegalArgumentException("La edad actual no puede ser inferior al final de una trayectoria existente");
             }
         }
@@ -1443,6 +1471,28 @@ public class CharacterService {
     }
     private Map<String, Integer> snapshotRanks(JsonNode snapshot, String field) { var result = new LinkedHashMap<String, Integer>(); snapshot.path(field).fields().forEachRemaining(entry -> result.put(entry.getKey(), entry.getValue().asInt())); return result; }
     private void appendScoreChanges(List<Map<String, Object>> changes, String type, Map<String, Integer> current, Map<String, Integer> previous) { var keys = new LinkedHashSet<String>(); keys.addAll(current.keySet()); keys.addAll(previous.keySet()); for (var key : keys) { int before = previous.getOrDefault(key, 0), after = current.getOrDefault(key, 0), increase = after - before; if (increase > 0) changes.add(Map.of("key", key, "type", type, "before", before, "after", after, "increase", increase)); } }
+
+    private static String validateImageUrl(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) return null;
+        if (imageUrl.startsWith("data:")) {
+            if (imageUrl.length() > MAX_IMAGE_DATA_URL_LENGTH)
+                throw new IllegalArgumentException("El retrato supera el límite seguro de 150 KB");
+            if (!imageUrl.matches("data:image/(jpeg|webp);base64,[A-Za-z0-9+/=]+"))
+                throw new IllegalArgumentException("El retrato debe ser un JPEG o WebP procesado");
+        } else {
+            if (imageUrl.length() > MAX_EXTERNAL_IMAGE_URL_LENGTH)
+                throw new IllegalArgumentException("La URL del retrato supera los 2048 caracteres");
+            final var uri = tryParseUri(imageUrl);
+            if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null)
+                throw new IllegalArgumentException("La URL externa del retrato debe usar HTTPS");
+        }
+        return imageUrl;
+    }
+
+    private static URI tryParseUri(String imageUrl) {
+        try { return URI.create(imageUrl); }
+        catch (IllegalArgumentException e) { throw new IllegalArgumentException("La URL externa del retrato no es válida"); }
+    }
 
     private static Map<String, Integer> parse(String value) {
         try { return new ObjectMapper().readValue(value, Map.class); }

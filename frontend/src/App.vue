@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { api, type CharacterSummary, type CreationConfigurationPayload } from './services/api';
+import { processPortraitFile } from './services/image';
 import CharacterSheet from './CharacterSheet.vue';
 
 type Campaign = { id: string; name: string; createdAt: string };
@@ -40,6 +41,9 @@ const majorAttributes = [
 const loading = ref(true);
 const saving = ref(false);
 const error = ref('');
+const characterImageError = ref('');
+const characterImageProcessing = ref(false);
+let characterImageProcessingToken = 0;
 const session = ref<Session | null>(null);
 const authLoading = ref(true);
 const accessDenied = ref(false);
@@ -126,13 +130,17 @@ async function loadMembers(campaign: Campaign) { if (!isDirector.value) return; 
 async function inviteMember() { if (!selectedCampaign.value || !memberEmail.value.trim()) return; try { await api.inviteCampaignMember(selectedCampaign.value.id, memberEmail.value.trim()); memberEmail.value = ''; await loadMembers(selectedCampaign.value); } catch (e: any) { error.value = e.message; } }
 async function revokeMember(member: CampaignMember) { if (!selectedCampaign.value || !confirm(`¿Revocar el acceso de ${member.email}?`)) return; try { await api.revokeCampaignMember(selectedCampaign.value.id, member.email); await loadMembers(selectedCampaign.value); } catch (e: any) { error.value = e.message; } }
 function resetCharacterCreation() {
-  characterName.value = ''; characterImage.value = ''; creationMode.value = 'empty'; guidedStep.value = 'setup';
+  characterName.value = ''; characterImage.value = ''; characterImageError.value = ''; creationMode.value = 'empty'; guidedStep.value = 'setup';
   guidedCharacterId.value = null; guidedRace.value = ''; guidedEinherjer.value = null; guidedAwakened.value = null; guidedEinherjerOrigin.value = null; guidedStartingAge.value = null; guidedAwakeningAge.value = null; guidedSheetAge.value = null; selectedMajorAttributes.value = [];
   if (imageInput.value) imageInput.value.value = '';
 }
 function openCampaignModal() { campaignName.value = ''; isCampaignModalOpen.value = true; }
 function openCharacterModal() { resetCharacterCreation(); isCharacterModalOpen.value = true; }
-function closeModals() { isCampaignModalOpen.value = false; isCharacterModalOpen.value = false; }
+function closeModals() {
+  if (characterImageProcessing.value) return;
+  isCampaignModalOpen.value = false;
+  isCharacterModalOpen.value = false;
+}
 function openDeleteCampaignModal() { isDeleteCampaignModalOpen.value = true; }
 function closeDeleteCampaignModal() { isDeleteCampaignModalOpen.value = false; }
 async function createCampaign() {
@@ -141,7 +149,7 @@ async function createCampaign() {
   try { const campaign = await api.createCampaign(campaignName.value.trim()); await loadCampaigns(); await selectCampaign(campaign); closeModals(); } catch (e: any) { error.value = e.message; } finally { saving.value = false; }
 }
 async function createCharacter() {
-  if (!selectedCampaign.value || !characterName.value.trim()) return;
+  if (!selectedCampaign.value || !characterName.value.trim() || characterImageProcessing.value) return;
   saving.value = true;
   try {
     const created = await api.createCharacter(selectedCampaign.value.id, { name: characterName.value.trim(), imageUrl: characterImage.value || null }) as Character;
@@ -201,12 +209,22 @@ async function deleteCampaign() {
     await loadCampaigns();
   } catch (e: any) { error.value = e.message; } finally { saving.value = false; }
 }
-function readImage(event: Event) {
+async function readImage(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0];
   if (!file) return;
-  const reader = new FileReader(); reader.onload = () => { characterImage.value = String(reader.result); }; reader.readAsDataURL(file);
+  const token = ++characterImageProcessingToken;
+  characterImageProcessing.value = true;
+  characterImageError.value = '';
+  try {
+    const processed = await processPortraitFile(file);
+    if (token === characterImageProcessingToken) characterImage.value = processed;
+  } catch (e: any) {
+    if (token === characterImageProcessingToken) characterImageError.value = e?.message || 'No se pudo procesar la imagen.';
+  } finally {
+    if (token === characterImageProcessingToken) characterImageProcessing.value = false;
+  }
 }
-function clearImage() { characterImage.value = ''; if (imageInput.value) imageInput.value.value = ''; }
+function clearImage() { characterImage.value = ''; characterImageError.value = ''; if (imageInput.value) imageInput.value.value = ''; }
 function openCharacter(character: Character) { router.push(`/characters/${character.id}`); }
 onMounted(async () => {
   await loadSession();
@@ -254,7 +272,7 @@ watch(() => route.query.campaign, (campaignId) => {
 
     <div v-if="isCampaignModalOpen || isCharacterModalOpen" class="modal-backdrop" @click.self="closeModals">
       <section class="modal creation-modal" role="dialog" aria-modal="true" :aria-labelledby="isCampaignModalOpen ? 'campaign-modal-title' : 'character-modal-title'">
-        <button class="modal-close" aria-label="Cerrar" @click="closeModals">×</button>
+        <button class="modal-close" aria-label="Cerrar" :disabled="characterImageProcessing" @click="closeModals">×</button>
         <template v-if="isCampaignModalOpen">
           <p class="eyebrow accent">NUEVO MUNDO</p><h2 id="campaign-modal-title">Crea una campaña</h2><p class="modal-copy">Un nombre basta para abrir un nuevo capítulo.</p>
           <form @submit.prevent="createCampaign"><label>Nombre<input v-model="campaignName" autofocus placeholder="Ej. Las cenizas de Midgard" maxlength="160" /></label><button class="button button-primary modal-submit" :disabled="saving || !campaignName.trim()">{{ saving ? 'Guardando…' : 'Crear campaña' }}</button></form>
@@ -265,21 +283,23 @@ watch(() => route.query.campaign, (campaignId) => {
           <p class="modal-copy">{{ guidedStep === 'setup' ? 'Elige cómo quieres comenzar. El modo guiado guardará cada respuesta al avanzar.' : 'Puedes cerrar esta ventana cuando quieras: el estado alcanzado ya está guardado.' }}</p>
 
           <form v-if="guidedStep === 'setup'" @submit.prevent="createCharacter">
-            <label>Nombre<input v-model="characterName" autofocus placeholder="Ej. Astrid la Errante" maxlength="160" /></label>
-            <label>Imagen <span class="label-hint">URL o archivo local</span><input v-model="characterImage" placeholder="https://…" /></label>
-            <label class="file-input">Subir retrato<input ref="imageInput" type="file" accept="image/*" @change="readImage" /></label>
-            <div v-if="characterImage" class="image-preview"><img :src="characterImage" alt="Vista previa del retrato" /><button type="button" @click="clearImage">Quitar imagen</button></div>
+            <label>Nombre<input v-model="characterName" autofocus placeholder="Ej. Astrid la Errante" maxlength="160" :disabled="characterImageProcessing" /></label>
+             <label>Imagen <span class="label-hint">URL o archivo local</span><input v-model="characterImage" placeholder="https://…" :disabled="characterImageProcessing" /></label>
+             <label class="file-input">Subir retrato<input ref="imageInput" type="file" accept="image/jpeg,image/png,image/webp" :disabled="characterImageProcessing" @change="readImage" /></label>
+             <p v-if="characterImageProcessing" class="field-hint" role="status">Procesando retrato…</p>
+             <p v-if="characterImageError" class="error-banner" role="alert">{{ characterImageError }}</p>
+             <div v-if="characterImage" class="image-preview"><img :src="characterImage" alt="Vista previa del retrato" /><button type="button" :disabled="characterImageProcessing" @click="clearImage">Quitar imagen</button></div>
             <fieldset class="creation-mode-field"><legend>Modo de creación</legend><div class="creation-mode-grid">
-              <label class="creation-mode-option" :class="{ selected: creationMode === 'empty' }"><input v-model="creationMode" type="radio" value="empty" /><strong>Vacío</strong><span>Empieza con todos los valores a cero.</span></label>
-              <label class="creation-mode-option" :class="{ selected: creationMode === 'guided' }"><input v-model="creationMode" type="radio" value="guided" /><strong>Guiado</strong><span>Configura raza, atributos y Einherjer con ayuda.</span></label>
+              <label class="creation-mode-option" :class="{ selected: creationMode === 'empty' }"><input v-model="creationMode" type="radio" value="empty" :disabled="characterImageProcessing" /><strong>Vacío</strong><span>Empieza con todos los valores a cero.</span></label>
+              <label class="creation-mode-option" :class="{ selected: creationMode === 'guided' }"><input v-model="creationMode" type="radio" value="guided" :disabled="characterImageProcessing" /><strong>Guiado</strong><span>Configura raza, atributos y Einherjer con ayuda.</span></label>
             </div></fieldset>
             <fieldset v-if="creationMode === 'empty'" class="creation-mode-field"><legend>Datos Einherjer</legend>
-              <label>Origen<select v-model="guidedEinherjerOrigin" required><option :value="null" disabled>Selecciona un origen</option><option value="converted">Convertido</option><option value="born_human">Nacido de humanos</option><option value="born_einherjer">Nacido de Einherjer</option></select></label>
-              <label>Edad actual<input v-model.number="guidedSheetAge" type="number" min="0" required /></label>
-              <p>¿Ha despertado?</p><div class="guided-answer-grid"><button class="answer-card" type="button" :class="{ selected: guidedAwakened === false }" @click="guidedAwakened = false">No</button><button class="answer-card" type="button" :class="{ selected: guidedAwakened === true }" @click="guidedAwakened = true">Sí</button></div>
-              <label v-if="guidedAwakened">Edad de despertar / conversión<input v-model.number="guidedAwakeningAge" type="number" min="0" :max="guidedSheetAge ?? undefined" required /></label>
+              <label>Origen<select v-model="guidedEinherjerOrigin" required :disabled="characterImageProcessing"><option :value="null" disabled>Selecciona un origen</option><option value="converted">Convertido</option><option value="born_human">Nacido de humanos</option><option value="born_einherjer">Nacido de Einherjer</option></select></label>
+              <label>Edad actual<input v-model.number="guidedSheetAge" type="number" min="0" required :disabled="characterImageProcessing" /></label>
+              <p>¿Ha despertado?</p><div class="guided-answer-grid"><button class="answer-card" type="button" :class="{ selected: guidedAwakened === false }" :disabled="characterImageProcessing" @click="guidedAwakened = false">No</button><button class="answer-card" type="button" :class="{ selected: guidedAwakened === true }" :disabled="characterImageProcessing" @click="guidedAwakened = true">Sí</button></div>
+              <label v-if="guidedAwakened">Edad de despertar / conversión<input v-model.number="guidedAwakeningAge" type="number" min="0" :max="guidedSheetAge ?? undefined" required :disabled="characterImageProcessing" /></label>
             </fieldset>
-            <button class="button button-primary modal-submit" :disabled="saving || !characterName.trim()">{{ saving ? 'Guardando…' : (creationMode === 'guided' ? 'Comenzar guía' : 'Crear personaje') }}</button>
+            <button class="button button-primary modal-submit" :disabled="saving || characterImageProcessing || !characterName.trim()">{{ characterImageProcessing ? 'Procesando retrato…' : (saving ? 'Guardando…' : (creationMode === 'guided' ? 'Comenzar guía' : 'Crear personaje')) }}</button>
           </form>
 
           <div v-else class="guided-flow">

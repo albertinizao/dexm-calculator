@@ -16,6 +16,10 @@ class TrainingRulesTest {
         var a=new TrainingRules.Activity("OCCUPATION",20,26,0,"deporte",null,null,true);
         assertThat(TrainingRules.humanEquivalent(a,false,null,null)).isEqualTo(4d);
     }
+    @Test void currentAgeSentinelIncludesTheCurrentYear(){
+        var a=new TrainingRules.Activity("FORMATION",20,24,0,"medicina",null,null,false);
+        assertThat(TrainingRules.humanEquivalent(a,false,null,null)).isEqualTo(4d);
+    }
     @Test void courseSlotsIncludePartialPeriods(){ assertThat(TrainingRules.courseSlots(10,21)).isEqualTo(3); }
     @Test void courseSlotsUseTheCharacterStartingAge(){ assertThat(TrainingRules.courseSlots(13,23)).isEqualTo(3); }
     @Test void coincidenceHalvesEachPreviousSelection(){ assertThat(TrainingRules.coincidence(BigDecimal.valueOf(4),2)).isEqualByComparingTo("1.00000000"); }
