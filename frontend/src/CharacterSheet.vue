@@ -342,7 +342,16 @@ const trainingAttributeOptions = computed(() => minorAttributes.value.map(([key]
 const trainingAgeOptions = computed(() => Array.from({ length: Math.max(0, trainingData.value.sheetAge - trainingData.value.startingAge), }, (_, index) => trainingData.value.startingAge + index));
 const trainingBlockingActivities = computed(() => trainingData.value.activities.filter(activity => activity.id !== trainingEditingId.value && activity.type !== 'COURSE' && !(activity.type === 'OCCUPATION' && activity.concurrent)));
 function trainingIntervalAllowed(startAge:number, endAge:number) { return trainingDraft.value.type === 'COURSE' || (trainingDraft.value.type === 'OCCUPATION' && Boolean(trainingDraft.value.concurrent)) || !trainingBlockingActivities.value.some(activity => startAge < activity.endAge && activity.startAge < endAge); }
-const trainingEndAgeOptions = computed(() => Array.from({ length: Math.max(0, trainingData.value.sheetAge - trainingData.value.startingAge + 1) }, (_, index) => trainingData.value.startingAge + index).filter(age => age > Number(trainingDraft.value.startAge ?? trainingData.value.startingAge) && trainingIntervalAllowed(Number(trainingDraft.value.startAge ?? trainingData.value.startingAge), age)));
+const trainingEndAgeOptions = computed(() => {
+  const startAge = Number(trainingDraft.value.startAge ?? trainingData.value.startingAge);
+  const maximumFormationDuration = character.value?.einherjer ? 4 : 8;
+  const maximumEndAge = trainingDraft.value.type === 'FORMATION'
+    ? Math.min(trainingData.value.sheetAge, startAge + maximumFormationDuration)
+    : trainingData.value.sheetAge;
+
+  return Array.from({ length: Math.max(0, maximumEndAge - trainingData.value.startingAge + 1) }, (_, index) => trainingData.value.startingAge + index)
+    .filter(age => age > startAge && trainingIntervalAllowed(startAge, age));
+});
 const trainingStartAgeOptions = computed(() => trainingAgeOptions.value.filter(startAge => Array.from({ length: Math.max(0, trainingData.value.sheetAge - startAge + 1) }, (_, index) => startAge + index + 1).some(endAge => trainingIntervalAllowed(startAge, endAge))));
 const trainingDisplayActivities = computed(() => [...trainingData.value.activities].sort((a, b) => Number(a.type === 'COURSE') - Number(b.type === 'COURSE') || a.startAge - b.startAge || a.priority - b.priority));
 const trainingCoreActivities = computed(() => trainingDisplayActivities.value.filter(activity => activity.type !== 'COURSE'));
@@ -1010,7 +1019,18 @@ function trainingPayload() { const course=trainingDraft.value.type==='COURSE'; r
 async function refreshTrainingPreview() { if (!route.params.id || !trainingDraft.value.name || !trainingDraft.value.type || trainingDraft.value.startAge == null || trainingDraft.value.endAge == null || Number(trainingDraft.value.endAge) <= Number(trainingDraft.value.startAge)) { trainingPreview.value=null; return; } try { trainingPreview.value=await api.previewTraining(String(route.params.id), {activity:trainingPayload(), replacingActivityId:trainingEditingId.value}) as TrainingPreview; } catch { trainingPreview.value=null; } }
 watch([trainingDraft, trainingEditingId], () => { if (trainingPreviewTimer) clearTimeout(trainingPreviewTimer); trainingPreviewTimer=setTimeout(refreshTrainingPreview, 200); }, {deep:true});
 watch(() => trainingDraft.value.startAge, () => { const options=trainingEndAgeOptions.value; if (options.length && !options.includes(Number(trainingDraft.value.endAge))) trainingDraft.value.endAge=options[0]; });
-watch(() => trainingDraft.value.type, type => { if (type === 'COURSE') { trainingDraft.value.startAge=trainingData.value.startingAge; trainingDraft.value.endAge=trainingData.value.sheetAge; trainingDraft.value.secondaryAttribute=''; trainingDraft.value.tertiaryAttribute=''; } });
+watch(() => trainingDraft.value.type, type => {
+  if (type === 'COURSE') {
+    trainingDraft.value.startAge = trainingData.value.startingAge;
+    trainingDraft.value.endAge = trainingData.value.sheetAge;
+    trainingDraft.value.secondaryAttribute = '';
+    trainingDraft.value.tertiaryAttribute = '';
+    return;
+  }
+
+  const options = trainingEndAgeOptions.value;
+  if (options.length && !options.includes(Number(trainingDraft.value.endAge))) trainingDraft.value.endAge = options[0];
+});
 function trainingDefaultInterval(){const activities=trainingData.value.activities.filter(a=>a.type!=='COURSE'&&!(a.type==='OCCUPATION'&&a.concurrent));for(let start=trainingData.value.startingAge;start<trainingData.value.sheetAge;start++){for(let end=start+1;end<=trainingData.value.sheetAge;end++){if(!activities.some(a=>start<a.endAge&&a.startAge<end))return{startAge:start,endAge:end};}}return{startAge:trainingData.value.startingAge,endAge:Math.min(trainingData.value.startingAge+1,trainingData.value.sheetAge)};}
 function resetTrainingDraft(){trainingEditingId.value=null;trainingPreview.value=null;trainingDraft.value={type:'FORMATION',name:'',...trainingDefaultInterval(),priority:0,concurrent:false,primaryAttribute:'',secondaryAttribute:'',tertiaryAttribute:''};}
 function openTraining() { resetTrainingDraft(); showTrainingForm.value=true; showTrainingModal.value=true; }

@@ -52,6 +52,8 @@ public class FirestoreRepositoryFactory {
             String name = method.getName(); args = args == null ? new Object[0] : args;
             if (name.equals("toString")) return "FirestoreRepository(" + collection + ")";
             if (name.equals("save")) return save(args[0]);
+            if (name.equals("saveAndFlush")) return save(args[0]);
+            if (name.equals("flush")) return null;
             if (name.equals("saveAll")) { List<Object> saved = new ArrayList<>(); for (Object item : (Iterable<?>) args[0]) saved.add(save(item)); return saved; }
             if (name.equals("findById")) return find(String.valueOf(args[0]));
             if (name.equals("existsById")) return find(String.valueOf(args[0])).isPresent();
