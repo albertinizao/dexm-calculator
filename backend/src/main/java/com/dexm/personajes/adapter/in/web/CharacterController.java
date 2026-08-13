@@ -1,6 +1,7 @@
 package com.dexm.personajes.adapter.in.web;
 
 import com.dexm.personajes.application.CharacterService;
+import com.dexm.personajes.application.ArchiveService;
 import com.dexm.personajes.application.OtherInventoryService;
 import com.dexm.personajes.application.WeaponInventoryService;
 import com.dexm.personajes.application.ProtectiveEquipmentService;
@@ -29,10 +30,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @RequestMapping("/api/characters")
 public class CharacterController {
     private final CharacterService service;
+    private final ArchiveService archives;
     private final OtherInventoryService otherInventory;
     private final WeaponInventoryService weaponInventory; private final ProtectiveEquipmentService protective; private final AmmunitionInventoryService ammunition; private final AuthorizationService authorization;
 
-    public CharacterController(CharacterService service, OtherInventoryService otherInventory, WeaponInventoryService weaponInventory, ProtectiveEquipmentService protective, AmmunitionInventoryService ammunition, AuthorizationService authorization) { this.service = service; this.otherInventory = otherInventory; this.weaponInventory = weaponInventory; this.protective = protective; this.ammunition = ammunition; this.authorization = authorization; }
+    public CharacterController(CharacterService service, ArchiveService archives, OtherInventoryService otherInventory, WeaponInventoryService weaponInventory, ProtectiveEquipmentService protective, AmmunitionInventoryService ammunition, AuthorizationService authorization) { this.service = service; this.archives = archives; this.otherInventory = otherInventory; this.weaponInventory = weaponInventory; this.protective = protective; this.ammunition = ammunition; this.authorization = authorization; }
 
     public record CreateRequest(@NotBlank String name) {}
 
@@ -296,6 +298,13 @@ public class CharacterController {
                 request.imageUrl() != null,
                 request.imageUrl() == null || request.imageUrl().isNull() ? null : request.imageUrl().asText());
     }
+
+    @GetMapping("/{id}/archive")
+    public Object exportArchive(@PathVariable String id) { return archives.exportCharacter(id); }
+
+    @PostMapping("/{id}/archive/import")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void importArchive(@PathVariable String id, @RequestBody String payload) { archives.importCharacter(id, payload); }
 
     @PostMapping("/{id}/legacy/import")
     public Object importLegacy(@PathVariable String id, @Valid @RequestBody LegacyRequest request) {

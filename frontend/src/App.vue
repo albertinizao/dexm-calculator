@@ -22,6 +22,7 @@ const campaignName = ref('');
 const characterName = ref('');
 const characterImage = ref('');
 const imageInput = ref<HTMLInputElement | null>(null);
+const campaignArchiveInput = ref<HTMLInputElement | null>(null);
 const creationMode = ref<CreationMode>('empty');
 const guidedStep = ref<GuidedStep>('setup');
 const guidedCharacterId = ref<string | null>(null);
