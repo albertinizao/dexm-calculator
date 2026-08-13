@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /** Maps the existing repository method vocabulary to Firestore documents. */
 @Component
@@ -92,7 +94,21 @@ public class FirestoreRepositoryFactory {
                 String property = decap(part.replace("True", "").replace("IsNull", "")); Object wanted = trueValue ? Boolean.TRUE : nullValue ? null : values[valueIndex++];
                 results.removeIf(item -> { try { return !java.util.Objects.equals(field(type, property).get(item), wanted); } catch (Exception exception) { throw new IllegalStateException(exception); } });
             }
-            if (order != null) { boolean ascending = order.endsWith("Asc"); String property = decap(order.replace("Asc", "").replace("Desc", "")); Comparator<Object> c = Comparator.comparing(item -> (Comparable) value(item, property), Comparator.nullsLast(Comparator.naturalOrder())); results.sort(ascending ? c : c.reversed()); }
+            if (order != null) {
+                Comparator<Object> comparator = null;
+                Matcher matcher = Pattern.compile("([A-Z][a-zA-Z0-9]*?)(Asc|Desc)(?=[A-Z]|$)").matcher(order);
+                int parsedUntil = 0;
+                while (matcher.find()) {
+                    if (matcher.start() != parsedUntil) throw new IllegalArgumentException("Invalid Firestore order expression " + order);
+                    String property = decap(matcher.group(1));
+                    Comparator<Object> criterion = Comparator.comparing(item -> (Comparable) value(item, property), Comparator.nullsLast(Comparator.naturalOrder()));
+                    if (matcher.group(2).equals("Desc")) criterion = criterion.reversed();
+                    comparator = comparator == null ? criterion : comparator.thenComparing(criterion);
+                    parsedUntil = matcher.end();
+                }
+                if (parsedUntil != order.length()) throw new IllegalArgumentException("Invalid Firestore order expression " + order);
+                results.sort(comparator);
+            }
             return results;
         }
         private Object value(Object item, String property) { try { return field(type, property).get(item); } catch (Exception exception) { throw new IllegalStateException(exception); } }
