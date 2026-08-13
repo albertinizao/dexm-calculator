@@ -18,6 +18,7 @@ type Character = {
 
   updatedAt?: string; createdAt?: string; closed?: boolean; lastClosedAt?: string; minorAttributes?: MinorAttribute[];
   abilities?: string[]; pendingUniqueAbilities?: string[];
+  editorEmails?: string[]; canEdit?: boolean;
 
 };
 
@@ -50,6 +51,11 @@ const router = useRouter();
 
 const character = ref<Character | null>(null);
 const editing = ref(false);
+const canEdit = computed(() => props.isDirector || character.value?.canEdit === true);
+const editorEmails = ref<string[]>([]);
+const editorEmail = ref('');
+const editorBusy = ref(false);
+const editorError = ref('');
 
 const campaign = ref<Campaign | null>(null);
 
@@ -516,6 +522,7 @@ function customMinor(key:string){ return character.value?.minorAttributes?.find(
 function originLabel(origin?: string | null) { return ({ converted: 'Convertido', born_human: 'Nacido de humanos', born_einherjer: 'Nacido de Einherjer' } as Record<string, string>)[origin ?? ''] || 'No indicado'; }
 function setAwakened(value: boolean) { if (!character.value) return; character.value.awakened = value; if (!value) character.value.awakeningAge = null; }
 function openProfileModal() { showProfileModal.value = true; }
+function openEditorsModal() { editorError.value = ''; showEditorsModal.value = true; }
 
 const bonusSourceOptions = computed(() => {
   const keys = [...minorKeys.filter(key => key !== 'astronavegar'), ...(character.value?.minorAttributes ?? []).map(attribute => attribute.key)];
@@ -825,18 +832,24 @@ async function load() {
 
     const loadedCharacter = await api.get(String(route.params.id));
     character.value = loadedCharacter;
-    if (route.query.mode === 'edit' && loadedCharacter.closed) {
+    if (props.isDirector) {
+      try { editorEmails.value = await api.characterEditors(String(route.params.id)); }
+      catch (e: any) { editorError.value = e?.message || 'No se pudieron cargar los editores.'; }
+    }
+    if (route.query.mode === 'edit' && loadedCharacter.closed && (loadedCharacter.canEdit || props.isDirector)) {
       try {
         character.value = await api.edit(String(route.params.id));
       } catch (e: any) {
         closeError.value = e?.message || 'No se pudo abrir la ficha para edición.';
         await router.replace({ query: queryWithEditMode(false) });
       }
+    } else if (route.query.mode === 'edit' && !loadedCharacter.canEdit && !props.isDirector) {
+      await router.replace({ query: queryWithEditMode(false) });
     }
     await loadTraining();
     await loadOtherInventory(); await loadWeapons(); await loadProtectiveEquipment(); await loadAmmunition();
     legacyDraft.value = false; legacyEvolutionPoints.value = null;
-    editing.value = !character.value?.closed;
+    editing.value = !character.value?.closed && canEdit.value;
     if (editing.value) startModifierDraft();
     if (editing.value && route.query.mode !== 'edit') await router.replace({ query: queryWithEditMode(true) });
 
@@ -1011,7 +1024,7 @@ function trainingGroup(a:TrainingActivity){return trainingData.value.activities.
 function canMoveTraining(a:TrainingActivity, direction:number){const group=trainingGroup(a);const index=group.findIndex(item=>item.id===a.id);return index>=0 && index+direction>=0 && index+direction<group.length;}
 async function moveTraining(a:TrainingActivity, direction:number){if(!route.params.id||!canMoveTraining(a,direction))return;const group=trainingGroup(a);const index=group.findIndex(item=>item.id===a.id);const reordered=[...group];const [moved]=reordered.splice(index,1);reordered.splice(index+direction,0,moved);trainingReordering.value=a.id;trainingError.value='';try{await api.reorderTraining(String(route.params.id),reordered.map(item=>item.id));await loadTraining();character.value=await api.get(String(route.params.id));}catch(e:any){trainingError.value=e?.message||'No se pudo reordenar';}finally{trainingReordering.value=null;}}
 
-const showProfileModal=ref(false); const showMinorModal=ref(false); const minorKind=ref('GALDR'); const customName=ref(''); const customFormula=ref(''); const customSource=ref('informatica'); const minorBusy=ref(false); const minorError=ref('');
+const showProfileModal=ref(false); const showEditorsModal=ref(false); const showMinorModal=ref(false); const minorKind=ref('GALDR'); const customName=ref(''); const customFormula=ref(''); const customSource=ref('informatica'); const minorBusy=ref(false); const minorError=ref('');
 
 function insertToken(t:string){ customFormula.value += t; }
 
@@ -1025,7 +1038,7 @@ function startModifierDraft() {
 }
 
 async function startEdit() {
-  if (!character.value || editing.value) return;
+  if (!character.value || editing.value || !canEdit.value) return;
   try {
     character.value = await api.edit(String(route.params.id));
     legacyDraft.value = false; legacyEvolutionPoints.value = null;
@@ -1034,6 +1047,22 @@ async function startEdit() {
     closeError.value = '';
     await router.push({ query: queryWithEditMode(true) });
   } catch (e: any) { closeError.value = e?.message || 'No se pudo abrir la ficha para edición.'; }
+}
+
+async function addEditor() {
+  if (!props.isDirector || !editorEmail.value.trim() || !character.value) return;
+  editorBusy.value = true; editorError.value = '';
+  try { editorEmails.value = await api.addCharacterEditor(character.value.id, editorEmail.value.trim()); editorEmail.value = ''; }
+  catch (e: any) { editorError.value = e?.message || 'No se pudo añadir el editor.'; }
+  finally { editorBusy.value = false; }
+}
+
+async function removeEditor(email: string) {
+  if (!props.isDirector || !character.value || !confirm(`¿Quitar el acceso de ${email}?`)) return;
+  editorBusy.value = true; editorError.value = '';
+  try { editorEmails.value = await api.removeCharacterEditor(character.value.id, email); }
+  catch (e: any) { editorError.value = e?.message || 'No se pudo retirar el editor.'; }
+  finally { editorBusy.value = false; }
 }
 
 async function openAttributeDetail(key: string) {
@@ -1486,13 +1515,26 @@ watch(() => route.name, async (name) => {
         <p class="eyebrow accent">PERSONAJE</p><h1>{{ character.name }}</h1>
 
         <dl class="sheet-meta"><dt>Campaña</dt><dd>{{ campaign?.name || 'Sin campaña' }}</dd><dt>Versión</dt><dd>{{ character.closed ? 'Cerrada' : 'Borrador' }}</dd><dt>Último guardado</dt><dd>{{ savedAt }}</dd></dl>
+        <button v-if="props.isDirector" class="button button-quiet" type="button" @click="openEditorsModal">Emails con edición</button>
         <p v-if="closeError" class="error-banner" role="alert">{{ closeError }}</p>
 
-         <template v-if="editing"><button class="button button-primary" :disabled="closeBusy || levelBusy || modifierSaveBusy" @click="closeDraft">{{ closeBusy ? 'Guardando…' : 'Guardar' }}</button><button class="button button-quiet" type="button" :disabled="cancelChangesBusy" @click="cancelChanges">{{ cancelChangesBusy ? 'Cancelando…' : 'Cancelar cambios' }}</button><button class="button button-quiet" type="button" @click="showLegacyImport=true; legacyError=''">Cargar legacy</button><button class="button button-quiet" type="button" @click="openCurrentUpgrade">Ver subida actual</button></template><template v-else><button class="button button-quiet" type="button" @click="startEdit">Editar ficha</button><button class="button button-quiet" type="button" @click="exportLegacy">Exportar legacy</button><button class="button button-quiet" type="button" @click="openLastUpgrade">Última subida</button></template><button class="button button-quiet" type="button" @click="openHistory">Historial</button><button class="button button-quiet" type="button" @click="openInventory">Inventario</button><button v-if="props.isDirector && (character.pendingUniqueAbilities?.length ?? 0)" class="button button-primary unique-review-trigger" type="button" @click="openUniqueReview">Revisar habilidades únicas</button><button class="button button-quiet" type="button" @click="navigateToSection(sheetView === 'sheet' ? 'abilities' : 'sheet')">{{ sheetView === 'sheet' ? 'Ver habilidades' : 'Ver ficha' }}</button><button class="button button-quiet" type="button" @click="openProfileModal">{{ editing ? 'Editar perfil' : 'Ver perfil' }}</button><button class="button button-quiet" type="button" @click="back">Volver</button><button v-if="props.isDirector" class="button button-danger" type="button" @click="deleteCharacter">Borrar personaje</button>
+         <template v-if="editing"><button class="button button-primary" :disabled="closeBusy || levelBusy || modifierSaveBusy" @click="closeDraft">{{ closeBusy ? 'Guardando…' : 'Guardar' }}</button><button class="button button-quiet" type="button" :disabled="cancelChangesBusy" @click="cancelChanges">{{ cancelChangesBusy ? 'Cancelando…' : 'Cancelar cambios' }}</button><button class="button button-quiet" type="button" @click="showLegacyImport=true; legacyError=''">Cargar legacy</button><button class="button button-quiet" type="button" @click="openCurrentUpgrade">Ver subida actual</button></template><template v-else><button v-if="canEdit" class="button button-quiet" type="button" @click="startEdit">Editar ficha</button><button class="button button-quiet" type="button" @click="exportLegacy">Exportar legacy</button><button class="button button-quiet" type="button" @click="openLastUpgrade">Última subida</button></template><button class="button button-quiet" type="button" @click="openHistory">Historial</button><button class="button button-quiet" type="button" @click="openInventory">Inventario</button><button v-if="props.isDirector && (character.pendingUniqueAbilities?.length ?? 0)" class="button button-primary unique-review-trigger" type="button" @click="openUniqueReview">Revisar habilidades únicas</button><button class="button button-quiet" type="button" @click="navigateToSection(sheetView === 'sheet' ? 'abilities' : 'sheet')">{{ sheetView === 'sheet' ? 'Ver habilidades' : 'Ver ficha' }}</button><button class="button button-quiet" type="button" @click="openProfileModal">{{ editing ? 'Editar perfil' : 'Ver perfil' }}</button><button class="button button-quiet" type="button" @click="back">Volver</button><button v-if="props.isDirector" class="button button-danger" type="button" @click="deleteCharacter">Borrar personaje</button>
         <p v-if="editing" class="field-hint">Haz clic en un atributo para editar sus modificadores varios.</p><p v-if="modifierError" class="error-banner" role="alert">{{ modifierError }}</p>
 
       </aside>
 
+
+      <div v-if="showEditorsModal" class="modal-backdrop" @click.self="showEditorsModal=false">
+        <section class="modal-card creation-modal" role="dialog" aria-modal="true" aria-labelledby="editors-modal-title">
+          <header class="modal-header"><div><p class="eyebrow accent">ACCESO DEL PERSONAJE</p><h2 id="editors-modal-title">Emails con edición</h2><p class="modal-copy">Solo los miembros de la campaña añadidos aquí podrán modificar esta ficha.</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="showEditorsModal=false">×</button></header>
+          <div class="modal-body">
+            <form class="modal-actions" @submit.prevent="addEditor"><input v-model="editorEmail" type="email" placeholder="persona@example.com" required><button class="button button-primary" type="submit" :disabled="editorBusy">Añadir</button></form>
+            <p v-if="editorError" class="error-banner" role="alert">{{ editorError }}</p>
+            <ul v-if="editorEmails.length" class="campaign-members"><li v-for="email in editorEmails" :key="email"><span>{{ email }}</span><button class="button button-quiet" type="button" @click="removeEditor(email)">Quitar</button></li></ul>
+            <p v-else class="field-hint">Sin editores asignados: solo administración puede editar.</p>
+          </div>
+        </section>
+      </div>
 
       <div v-if="showProfileModal" class="modal-backdrop" @click.self="showProfileModal=false">
         <section class="modal-card profile-modal" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title">

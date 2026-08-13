@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.dexm.personajes.security.SecurityIdentityService;
+import com.dexm.personajes.security.AuthorizationService;
 
 @Service
 public class CharacterService {
@@ -49,6 +50,7 @@ public class CharacterService {
     private final CharacterAttributeModifierRepository modifiers;
     private final TrainingActivityRepository trainingActivities;
     @Autowired private SecurityIdentityService identities;
+    @Autowired private AuthorizationService authorization;
 
     public CharacterService(CharacterRepository characters, MilestoneRepository milestones, AbilityRepository abilities,
                              ObjectMapper json, MinorAttributeService minorAttributes,
@@ -114,6 +116,7 @@ public class CharacterService {
             var attrs = CharacterRules.zeroValues(CharacterRules.ATTRIBUTES);
             var gen = CharacterRules.zeroValues(CharacterRules.GENETICS);
             var c = new CharacterEntity(UUID.randomUUID().toString(), name, 0, json.writeValueAsString(attrs), json.writeValueAsString(gen));
+            assignCurrentEditor(c);
             c.setClosed(true);
             return characters.save(c);
         } catch (Exception e) {
@@ -128,7 +131,7 @@ public class CharacterService {
             var gen = CharacterRules.zeroValues(CharacterRules.GENETICS);
             var c = new CharacterEntity(UUID.randomUUID().toString(), campaignId, name, imageUrl, 0,
                     json.writeValueAsString(attrs), json.writeValueAsString(gen));
-            if (identities != null) c.setOwnerUserId(identities.requireCurrentUser(SecurityContextHolder.getContext().getAuthentication()).getId());
+            assignCurrentEditor(c);
             c.setClosed(true);
             return characters.save(c);
         } catch (Exception e) {
@@ -138,6 +141,41 @@ public class CharacterService {
 
     public CharacterEntity get(String id) {
         return characters.findById(id).orElseThrow(() -> new NoSuchElementException("Character not found"));
+    }
+
+    @Transactional
+    public List<String> editors(String id) { return new ArrayList<>(get(id).getEditorEmails()); }
+
+    @Transactional
+    public List<String> addEditor(String id, String email) {
+        var normalized = com.dexm.personajes.security.AuthIdentity.normalizeEmail(email);
+        if (normalized.isBlank() || !normalized.contains("@")) throw new IllegalArgumentException("Valid email is required");
+        var character = get(id);
+        character.addEditorEmail(normalized);
+        characters.save(character);
+        return editors(id);
+    }
+
+    @Transactional
+    public List<String> removeEditor(String id, String email) {
+        var character = get(id);
+        character.removeEditorEmail(email);
+        characters.save(character);
+        return editors(id);
+    }
+
+    private void assignCurrentEditor(CharacterEntity character) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (identities == null || authentication == null || !authentication.isAuthenticated()) return;
+        var identity = identities.current(authentication);
+        character.addEditorEmail(identity.email());
+        character.setOwnerUserId(identities.requireCurrentUser(authentication).getId());
+    }
+
+    private boolean canEditCurrent(CharacterEntity character) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authorization != null && authentication != null && authentication.isAuthenticated()
+                && authorization.canEditCharacter(authentication, character);
     }
 
     @Transactional
@@ -178,6 +216,10 @@ public class CharacterService {
             result.put("sheetAge", c.getSheetAge());
             result.put("selectedMajorAttributes", parseList(c.getSelectedMajorAttributesJson()));
             result.put("creationWizardState", c.getCreationWizardState());
+            result.put("canEdit", canEditCurrent(c));
+            var authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.isAuthenticated() && authorization != null && authorization.isAdmin(authentication))
+                result.put("editorEmails", c.getEditorEmails());
             result.put("training", training(id));
             result.put("experience", c.getExperience());
             result.put("level", c.getLevel());

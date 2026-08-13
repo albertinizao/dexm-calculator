@@ -15,7 +15,7 @@ import com.dexm.personajes.adapter.out.persistence.*;
  * file or GOOGLE_APPLICATION_CREDENTIALS value is configured by this project.
  */
 @Configuration
-@Profile({"firestore", "test"})
+@Profile({"firestore", "local-firestore", "test"})
 public class FirestoreConfiguration {
     @Bean(destroyMethod = "close")
     Firestore firestore(@Value("${app.firestore.project-id:}") String projectId) {

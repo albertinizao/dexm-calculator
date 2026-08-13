@@ -22,7 +22,7 @@ import java.util.Optional;
 
 /** Maps the existing repository method vocabulary to Firestore documents. */
 @Component
-@Profile({"firestore", "test"})
+@Profile({"firestore", "local-firestore", "test"})
 public class FirestoreRepositoryFactory {
     private final Firestore firestore;
     private final ObjectMapper mapper;

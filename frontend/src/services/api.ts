@@ -40,6 +40,16 @@ export type CreationConfigurationPayload = {
   wizardState: 'empty' | 'started' | 'race' | 'majors' | 'einherjer' | 'complete';
 };
 
+export type CharacterSummary = {
+  id: string;
+  name: string;
+  imageUrl?: string | null;
+  campaignId?: string | null;
+  closed?: boolean;
+  editorEmails?: string[];
+  canEdit: boolean;
+};
+
 export type OtherInventoryItem = {
   id: string;
   name: string;
@@ -116,8 +126,11 @@ export const api = {
   minorAttributes: (id: string) => request('/api/campaigns/' + id + '/minor-attributes'),
   createMinorAttribute: (id: string, body: unknown) => request('/api/campaigns/' + id + '/minor-attributes', { method: 'POST', body: JSON.stringify(body) }),
   deleteMinorAttribute: (characterId: string, definitionId: string) => request('/api/characters/' + characterId + '/minor-attributes/' + definitionId, { method: 'DELETE' }),
-  characters: (campaignId: string) => request('/api/campaigns/' + campaignId + '/characters'),
-  createCharacter: (campaignId: string, body: unknown) => request('/api/campaigns/' + campaignId + '/characters', { method: 'POST', body: JSON.stringify(body) }),
+characters: (campaignId: string) => request('/api/campaigns/' + campaignId + '/characters') as Promise<CharacterSummary[]>,
+createCharacter: (campaignId: string, body: unknown) => request('/api/campaigns/' + campaignId + '/characters', { method: 'POST', body: JSON.stringify(body) }) as Promise<CharacterSummary>,
+characterEditors: (id: string) => request('/api/characters/' + encodeURIComponent(id) + '/editors') as Promise<string[]>,
+addCharacterEditor: (id: string, email: string) => request('/api/characters/' + encodeURIComponent(id) + '/editors', { method: 'POST', body: JSON.stringify({ email }) }) as Promise<string[]>,
+removeCharacterEditor: (id: string, email: string) => request('/api/characters/' + encodeURIComponent(id) + '/editors/' + encodeURIComponent(email), { method: 'DELETE' }) as Promise<string[]>,
   configureCreation: (id: string, body: CreationConfigurationPayload) => request('/api/characters/' + id + '/creation', { method: 'POST', body: JSON.stringify(body) }),
   training: (id: string) => request('/api/characters/' + id + '/training'),
   otherInventory: (id: string) => request('/api/characters/' + id + '/inventory/others') as Promise<OtherInventoryItem[]>,

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { api, type CreationConfigurationPayload } from './services/api';
+import { api, type CharacterSummary, type CreationConfigurationPayload } from './services/api';
 import CharacterSheet from './CharacterSheet.vue';
 
 type Campaign = { id: string; name: string; createdAt: string };
 type Session = { id: string; email: string; name: string; admin: boolean; authMode: 'local' | 'iap' };
 type CampaignMember = { id: string; email: string; active: boolean; createdAt: string; revokedAt?: string };
-type Character = { id: string; name: string; imageUrl?: string | null; campaignId?: string };
+type Character = CharacterSummary;
 type CreationMode = 'empty' | 'guided';
 type GuidedStep = 'setup' | 'race' | 'majors' | 'einherjer' | 'awakened' | 'complete';
 
@@ -243,7 +243,7 @@ watch(() => route.query.campaign, (campaignId) => {
       <section v-if="selectedCampaign" class="campaign-view">
         <div class="campaign-heading"><div><p class="eyebrow accent">CAMPAÑA SELECCIONADA</p><h2>{{ selectedCampaign.name }}</h2><p class="muted">{{ characters.length }} {{ characters.length === 1 ? 'personaje' : 'personajes' }} en esta aventura</p></div><div class="campaign-actions"><button v-if="isDirector" class="button button-quiet" @click="membersOpen = !membersOpen">Gestionar accesos</button><button v-if="isDirector" class="button button-danger" @click="openDeleteCampaignModal">Borrar campaña</button><button class="button button-primary" @click="openCharacterModal"><span>＋</span> Nuevo personaje</button></div></div>
         <section v-if="isDirector && membersOpen" class="sheet-panel campaign-members"><div class="sheet-panel-heading"><h3>Emails autorizados</h3><form @submit.prevent="inviteMember"><input v-model="memberEmail" type="email" placeholder="persona@example.com" required><button class="button button-primary" type="submit">Añadir</button></form></div><p v-if="!members.length" class="sheet-muted">No hay invitaciones.</p><ul v-else><li v-for="member in members" :key="member.id"><span>{{ member.email }}</span><button v-if="member.active" class="button button-quiet" type="button" @click="revokeMember(member)">Revocar</button><span v-else class="muted">Revocado</span></li></ul></section>
-        <div v-if="characters.length" class="character-grid"><article v-for="character in characters" :key="character.id" class="character-card" role="link" tabindex="0" @click="openCharacter(character)" @keydown.enter="openCharacter(character)"><div class="portrait"><img v-if="character.imageUrl" :src="character.imageUrl" :alt="`Retrato de ${character.name}`" /><span v-else>{{ initials(character.name) }}</span></div><div class="character-info"><p class="eyebrow">PERSONAJE</p><h3>{{ character.name }}</h3><span class="card-link">Ver ficha →</span></div></article></div>
+        <div v-if="characters.length" class="character-grid"><article v-for="character in characters" :key="character.id" class="character-card" role="link" tabindex="0" @click="openCharacter(character)" @keydown.enter="openCharacter(character)"><div class="portrait"><img v-if="character.imageUrl" :src="character.imageUrl" :alt="`Retrato de ${character.name}`" /><span v-else>{{ initials(character.name) }}</span></div><div class="character-info"><p class="eyebrow">PERSONAJE</p><h3>{{ character.name }}</h3><span class="field-hint">{{ character.canEdit ? 'Puedes editar' : 'Solo lectura' }}</span><span class="card-link">Ver ficha →</span></div></article></div>
         <div v-else class="empty-state"><div class="empty-icon">✦</div><h3>La aventura está esperando</h3><p>Añade el primer personaje a <strong>{{ selectedCampaign.name }}</strong>.</p><button class="button button-primary" @click="openCharacterModal">＋ Nuevo personaje</button></div>
       </section>
       <section v-else class="welcome-state"><div class="welcome-orbit">✦</div><p class="eyebrow accent">PRIMER PASO</p><h2>Selecciona una campaña</h2><p>Elige un mundo del archivo o crea uno nuevo para comenzar.</p><button v-if="isDirector" class="button button-primary" @click="openCampaignModal">＋ Nueva campaña</button></section>
@@ -289,6 +289,7 @@ watch(() => route.query.campaign, (campaignId) => {
         </template>
       </section>
     </div>
+
     <div v-if="isDeleteCampaignModalOpen" class="modal-backdrop" @click.self="closeDeleteCampaignModal"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="delete-campaign-title"><button class="modal-close" aria-label="Cerrar" @click="closeDeleteCampaignModal">×</button><p class="eyebrow accent">CONFIRMAR BORRADO</p><h2 id="delete-campaign-title">¿Borrar campaña?</h2><p class="modal-copy">Se eliminará <strong>{{ selectedCampaign?.name }}</strong> y todos sus personajes. Esta acción no se puede deshacer.</p><div class="modal-actions"><button class="button button-quiet" type="button" @click="closeDeleteCampaignModal">Cancelar</button><button class="button button-danger" type="button" :disabled="saving" @click="deleteCampaign">{{ saving ? 'Borrando…' : 'Borrar definitivamente' }}</button></div></section></div>
   </main>
 </template>

@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Email;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -71,6 +72,7 @@ public class CharacterController {
             Integer sheetAge) {}
 
     public record LegacyRequest(@NotBlank String code) {}
+    public record EditorRequest(@NotBlank @Email String email) {}
 
     public record ModifierRequest(@NotBlank String name, @NotNull Integer value) {}
 
@@ -320,6 +322,25 @@ public class CharacterController {
 
     @GetMapping("/{id}/current-upgrade")
     public Object currentUpgrade(@PathVariable String id) { return service.currentUpgrade(id); }
+
+    @GetMapping("/{id}/editors")
+    public List<String> editors(@PathVariable String id) {
+        authorization.requireAdmin(SecurityContextHolder.getContext().getAuthentication());
+        return service.editors(id);
+    }
+
+    @PostMapping("/{id}/editors")
+    public List<String> addEditor(@PathVariable String id, @Valid @RequestBody EditorRequest request) {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        authorization.requireCharacterEditorEmail(auth, id, request.email());
+        return service.addEditor(id, request.email());
+    }
+
+    @DeleteMapping("/{id}/editors/{email}")
+    public List<String> removeEditor(@PathVariable String id, @PathVariable String email) {
+        authorization.requireAdmin(SecurityContextHolder.getContext().getAuthentication());
+        return service.removeEditor(id, email);
+    }
 
     private static Map<String, Integer> values(Map<String, Integer> values) { return values == null ? Map.of() : values; }
 }

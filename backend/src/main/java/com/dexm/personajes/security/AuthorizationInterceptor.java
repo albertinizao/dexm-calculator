@@ -17,7 +17,7 @@ public class AuthorizationInterceptor implements WebMvcConfigurer {
                 authorization.requireApplicationAccess(SecurityContextHolder.getContext().getAuthentication());
             if(path.startsWith("/api/characters/")){
                 String remainder=path.substring("/api/characters/".length()); String id=remainder.split("/",2)[0];
-                if(!id.isBlank()) authorization.requireCharacter(SecurityContextHolder.getContext().getAuthentication(),id);
+                if(!id.isBlank()) authorization.requireCharacter(SecurityContextHolder.getContext().getAuthentication(),id, !"GET".equalsIgnoreCase(request.getMethod()));
             }
             return true;
         }

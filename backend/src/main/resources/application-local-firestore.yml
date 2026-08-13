@@ -1,0 +1,11 @@
+# application-local-firestore.yml
+spring:
+  config:
+    activate:
+      on-profile: local-firestore
+
+app:
+  auth:
+    mode: local
+  firestore:
+    project-id: dexm-local
