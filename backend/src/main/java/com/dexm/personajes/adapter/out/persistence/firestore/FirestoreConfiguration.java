@@ -42,7 +42,6 @@ public class FirestoreConfiguration {
     @Bean MilestoneRepository milestoneRepository(FirestoreRepositoryFactory f){ return f.create(MilestoneRepository.class, MilestoneEntity.class, "milestones"); }
     @Bean MinorAttributeDefinitionRepository minorDefinitionRepository(FirestoreRepositoryFactory f){ return f.create(MinorAttributeDefinitionRepository.class, MinorAttributeDefinitionEntity.class, "minorAttributeDefinitions"); }
     @Bean OtherInventoryItemRepository otherInventoryRepository(FirestoreRepositoryFactory f){ return f.create(OtherInventoryItemRepository.class, OtherInventoryItemEntity.class, "otherInventoryItems"); }
-    @Bean PhysicalShieldCatalogRepository physicalShieldCatalogRepository(FirestoreRepositoryFactory f){ return f.create(PhysicalShieldCatalogRepository.class, PhysicalShieldCatalogEntity.class, "physicalShieldCatalog"); }
     @Bean PhysicalShieldRepository physicalShieldRepository(FirestoreRepositoryFactory f){ return f.create(PhysicalShieldRepository.class, PhysicalShieldEntity.class, "physicalShields"); }
     @Bean ShieldCatalogRepository shieldCatalogRepository(FirestoreRepositoryFactory f){ return f.create(ShieldCatalogRepository.class, ShieldCatalogEntity.class, "shieldCatalog"); }
     @Bean ShieldRepository shieldRepository(FirestoreRepositoryFactory f){ return f.create(ShieldRepository.class, ShieldEntity.class, "shields"); }

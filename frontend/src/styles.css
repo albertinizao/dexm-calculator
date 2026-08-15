@@ -58,6 +58,15 @@
 
 .sheet-panel-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}.sheet-panel-heading h3{flex:1;margin-bottom:0}.sheet-panel-heading .button{font-size:10px;padding:7px 10px}.sheet-heading>.button{align-self:flex-start;flex:0 0 auto}
 
+.sheet-tabs{grid-column:2;display:flex;gap:4px;overflow-x:auto;padding:0 0 8px;border-bottom:1px solid var(--line);scrollbar-width:thin}.sheet-tab{flex:1 0 150px;border:1px solid rgba(255,216,0,.35);border-bottom:2px solid transparent;padding:12px 18px;background:rgba(0,0,0,.58);color:var(--muted);text-align:center;text-transform:uppercase;font-variant:small-caps;font-weight:bold;white-space:nowrap;transition:background .18s,color .18s,border-color .18s}.sheet-tab:hover,.sheet-tab:focus-visible{background:rgba(255,216,0,.14);border-color:var(--gold);color:#fff;outline:2px solid var(--gold);outline-offset:2px}.sheet-tab.active{background:rgba(255,216,0,.18);border-color:var(--gold);border-bottom-color:var(--gold);color:#fff;box-shadow:0 2px 0 var(--gold)}.sheet-content{grid-column:2}
+
+@media(max-width:800px){.sheet-tabs{grid-column:1;order:2}.sheet-content{grid-column:1}}
+
+.sheet-main{grid-column:2;min-width:0}.sheet-sidebar{grid-row:auto}
+@media(max-width:800px){.sheet-main{grid-column:1}.sheet-tabs{order:0}.sheet-content{order:1}}
+
+.sheet-layout{column-gap:28px;row-gap:0}
+
 .inventory-content{min-height:420px}.inventory-list{display:grid;gap:10px}.inventory-item{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;padding:15px 17px;border:1px solid rgba(255,216,0,.35);background:rgba(255,216,0,.045);color:#fff;text-align:left;cursor:pointer}.inventory-item:hover,.inventory-item:focus-visible{border-color:var(--gold);background:rgba(255,216,0,.14);outline:2px solid var(--gold);outline-offset:2px}.inventory-item span{display:grid;gap:4px}.inventory-item small{color:var(--muted);font-size:11px}.inventory-item>strong{color:var(--gold);white-space:nowrap}.inventory-form{display:grid;gap:16px;max-width:760px}.inventory-form textarea{width:100%;resize:vertical;background:var(--silver);border:1px solid #777;color:#000;padding:10px 11px;font:inherit}.inventory-form textarea:focus{border-color:var(--gold);outline:0;box-shadow:0 0 0 2px rgba(255,216,0,.28)}.inventory-form-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px}@media(max-width:650px){.inventory-form-grid{grid-template-columns:1fr}}
 
 .legacy-modal{width:min(780px,100%)}.legacy-textarea{width:100%;resize:vertical;background:var(--silver);border:1px solid #777;color:#000;padding:10px;font:12px ui-monospace,SFMono-Regular,Consolas,monospace;line-height:1.45}.legacy-textarea:focus{border-color:var(--gold);outline:0;box-shadow:0 0 0 2px rgba(255,216,0,.28)}
@@ -128,6 +137,7 @@
 .weapon-catalog-card:hover{transform:translateY(-3px)}
 .weapon-catalog-card .weapon-portrait{height:170px;background:#e7edf2}
 .weapon-catalog-card .weapon-portrait img{object-fit:contain}
+.protective-catalog-grid .protective-portrait{background:linear-gradient(135deg,#e7edf2,#c8d1d8)}.protective-catalog-grid .protective-portrait img{object-fit:contain}.protective-catalog-grid .weapon-catalog-type{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .weapon-catalog-card .weapon-catalog-info{margin-top:-76px;min-height:76px;padding:14px 15px;background:rgba(0,0,0,.64)}
 .weapon-catalog-card .weapon-catalog-info h3{margin:7px 0 4px;font:20px "Adobe Caslon Pro",Georgia,serif;font-variant:small-caps;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .weapon-catalog-card .weapon-catalog-type{display:block;color:var(--gold-soft);font-size:11px;text-transform:uppercase;letter-spacing:.06em}

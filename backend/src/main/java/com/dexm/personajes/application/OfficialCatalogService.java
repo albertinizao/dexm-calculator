@@ -18,6 +18,8 @@ public class OfficialCatalogService {
     private final List<AbilityEntity> abilities;
     private final List<WeaponCatalogEntity> weapons;
     private final Map<String, JsonNode> grenades;
+    private final Map<String, JsonNode> armors;
+    private final Map<String, JsonNode> physicalShields;
 
     public OfficialCatalogService(ObjectMapper mapper) {
         this.mapper = mapper;
@@ -27,6 +29,8 @@ public class OfficialCatalogService {
             this.weapons = loadWeapons(objects.path("weapons"));
             this.grenades = new LinkedHashMap<>();
             objects.path("grenades").forEach(node -> grenades.put(node.path("id").asText(), node));
+            this.armors = indexById(objects.path("armors"));
+            this.physicalShields = indexById(objects.path("physicalShields"));
         } catch (IOException e) {
             throw new IllegalStateException("Unable to load official static catalogs", e);
         }
@@ -38,6 +42,16 @@ public class OfficialCatalogService {
     public Optional<WeaponCatalogEntity> weapon(String id) { return weapons.stream().filter(w -> w.getId().equals(id)).findFirst(); }
     public Optional<JsonNode> grenade(String id) { return Optional.ofNullable(grenades.get(id)); }
     public List<JsonNode> grenades() { return List.copyOf(grenades.values()); }
+    public List<JsonNode> armors() { return List.copyOf(armors.values()); }
+    public Optional<JsonNode> armor(String id) { return Optional.ofNullable(armors.get(id)); }
+    public List<JsonNode> physicalShields() { return List.copyOf(physicalShields.values()); }
+    public Optional<JsonNode> physicalShield(String id) { return Optional.ofNullable(physicalShields.get(id)); }
+
+    private Map<String, JsonNode> indexById(JsonNode root) {
+        Map<String, JsonNode> result = new LinkedHashMap<>();
+        root.forEach(node -> result.put(node.path("id").asText(), node));
+        return result;
+    }
 
     private List<AbilityEntity> loadAbilities() throws IOException {
         JsonNode root = mapper.readTree(new ClassPathResource("catalog/abilities.v1.json").getInputStream());

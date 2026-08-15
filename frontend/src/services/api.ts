@@ -101,6 +101,12 @@ export type Armor = {
   id: string;
   name: string;
   description?: string | null;
+  specialEffect?: string | null;
+  defensePenalty: number;
+  meleeDefensePenalty: number;
+  rangedDefensePenalty: number;
+  movementPenalty: number;
+  zone?: string | null;
   slots: ArmorSlot[];
   rdBySlot: Record<ArmorSlot, number>;
   armorBySlot: Record<ArmorSlot, number>;
@@ -117,7 +123,7 @@ export type Shield = {
   imageUrl?: string | null;
 };
 export type ShieldCatalogItem = Omit<Shield, 'id'> & { id: string; official: boolean };
-export type PhysicalShield = { id: string; name: string; description?: string | null; rd: number; armor: number; defense: number; otherEffects?: string | null; imageUrl?: string | null; };
+export type PhysicalShield = { id: string; name: string; description?: string | null; rd: number; armor: number; defense: number; movement: number; size?: string | null; otherEffects?: string | null; imageUrl?: string | null; };
 export type PhysicalShieldCatalogItem = Omit<PhysicalShield, 'id'> & { id: string; official: boolean };
 
 export const api = {
@@ -179,7 +185,6 @@ removeCharacterEditor: (id: string, email: string) => request('/api/characters/'
   updateArmor: (id: string, armorId: string, body: unknown) => request('/api/characters/' + id + '/inventory/armors/' + encodeURIComponent(armorId), { method: 'PUT', body: JSON.stringify(body) }) as Promise<Armor>,
   deleteArmor: (id: string, armorId: string) => request('/api/characters/' + id + '/inventory/armors/' + encodeURIComponent(armorId), { method: 'DELETE' }),
   armorCatalog: () => request('/api/armor-catalog') as Promise<ArmorCatalogItem[]>,
-  createCatalogArmor: (body: Omit<ArmorCatalogItem, 'id' | 'official'>) => request('/api/armor-catalog', { method: 'POST', body: JSON.stringify(body) }) as Promise<ArmorCatalogItem>,
   addCatalogArmorToCharacter: (catalogId: string, characterId: string) => request('/api/armor-catalog/' + encodeURIComponent(catalogId) + '/characters/' + encodeURIComponent(characterId), { method: 'POST' }) as Promise<Armor>,
   shields: (id: string) => request('/api/characters/' + id + '/inventory/shields') as Promise<Shield[]>,
   createShieldInventory: (id: string, body: Omit<Shield, 'id'>) => request('/api/characters/' + id + '/inventory/shields', { method: 'POST', body: JSON.stringify(body) }) as Promise<Shield>,
@@ -193,7 +198,6 @@ removeCharacterEditor: (id: string, email: string) => request('/api/characters/'
   updatePhysicalShield: (id: string, shieldId: string, body: Omit<PhysicalShield, 'id'>) => request('/api/characters/' + id + '/inventory/physical-shields/' + encodeURIComponent(shieldId), { method: 'PUT', body: JSON.stringify(body) }) as Promise<PhysicalShield>,
   deletePhysicalShield: (id: string, shieldId: string) => request('/api/characters/' + id + '/inventory/physical-shields/' + encodeURIComponent(shieldId), { method: 'DELETE' }),
   physicalShieldCatalog: () => request('/api/physical-shield-catalog') as Promise<PhysicalShieldCatalogItem[]>,
-  createCatalogPhysicalShield: (body: Omit<PhysicalShieldCatalogItem, 'id' | 'official'>) => request('/api/physical-shield-catalog', { method: 'POST', body: JSON.stringify(body) }) as Promise<PhysicalShieldCatalogItem>,
   addCatalogPhysicalShieldToCharacter: (catalogId: string, characterId: string) => request('/api/physical-shield-catalog/' + encodeURIComponent(catalogId) + '/characters/' + encodeURIComponent(characterId), { method: 'POST' }) as Promise<PhysicalShield>,
   reorderTraining: (id: string, activityIds: string[]) => request('/api/characters/' + id + '/training/reorder', { method: 'POST', body: JSON.stringify({ activityIds }) }),
   addTraining: (id: string, body: unknown) => request('/api/characters/' + id + '/training', { method: 'POST', body: JSON.stringify(body) }),

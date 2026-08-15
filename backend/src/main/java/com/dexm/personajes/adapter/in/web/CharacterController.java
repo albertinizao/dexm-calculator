@@ -101,9 +101,10 @@ public class CharacterController {
                                 BigDecimal aim, String automaticFire, @NotNull @DecimalMin("0.0") BigDecimal capacity, String caliber,
                                 String extraRule, String imageUrl) {}
     public record WeaponCatalogCopyRequest(@NotBlank String slot) {}
-    public record ArmorRequest(@NotBlank String name, String description, @NotNull Map<String, Map<String, Integer>> slots, String imageUrl) {}
+    public record ArmorRequest(@NotBlank String name, String description, @NotNull Map<String, Map<String, Integer>> slots, String imageUrl, String specialEffect, String zone,
+                               BigDecimal defensePenalty, BigDecimal meleeDefensePenalty, BigDecimal rangedDefensePenalty, BigDecimal movementPenalty) {}
     public record ShieldRequest(@NotBlank String name, String description, @NotNull @Min(0) Integer hitPoints, String imageUrl) {}
-    public record PhysicalShieldRequest(@NotBlank String name, String description, @NotNull @Min(0) Integer rd, @NotNull @Min(0) Integer armor, @NotNull Integer defense, String otherEffects, String imageUrl) {}
+    public record PhysicalShieldRequest(@NotBlank String name, String description, @NotNull @Min(0) Integer rd, @NotNull @Min(0) Integer armor, @NotNull Integer defense, @NotNull Integer movement, String otherEffects, String imageUrl, String size) {}
     public record AmmunitionRequest(String caliber, @NotNull @Min(1) Integer quantity, String type, String grenadeCatalogId) {
         public AmmunitionRequest(String caliber, Integer quantity) { this(caliber, quantity, "CALIBER", null); }
     }

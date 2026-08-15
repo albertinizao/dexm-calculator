@@ -18,6 +18,7 @@
 - `habildiad.html` was requested with that spelling, but the existing file is `habilidad.html`; both names are considered protected, and `habilidad.html` must not be modified.
 
 ## Implementation Conventions
+- Static catalogs must **always** be defined and versioned in JSON files, never persisted in the database. The database is reserved for character-owned inventory copies and runtime state.
 - Keep this dependency order in `index.html`: `calc2.js`, `calc3.js`, `calc4.js`, `hashCode.js`, compatibility helper.
 - Existing code is plain browser-global JavaScript with inline HTML handlers and Spanish identifiers; preserve this integration style in touched legacy code.
 - Calculation code derives related element IDs by suffix (`Actual`, `New`, `Extra`, `Total`, `Max`). Add or rename a field only with its complete ID family and the required CSS classes/handlers.
