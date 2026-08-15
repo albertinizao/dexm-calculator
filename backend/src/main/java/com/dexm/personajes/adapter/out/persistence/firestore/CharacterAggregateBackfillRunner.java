@@ -18,8 +18,7 @@ public class CharacterAggregateBackfillRunner implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments arguments) throws Exception {
         if (!enabled) return;
-        var result = backfill.run();
-        System.out.printf("Character aggregate backfill completed: %s%n", result);
+        backfill.run();
     }
 }
 

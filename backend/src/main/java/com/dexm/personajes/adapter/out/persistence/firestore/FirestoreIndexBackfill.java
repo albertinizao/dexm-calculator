@@ -4,8 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.SetOptions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.event.EventListener;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -18,7 +16,6 @@ import java.util.Map;
 @Component
 @ConditionalOnProperty(name = "app.firestore.backfill.enabled", havingValue = "true")
 public class FirestoreIndexBackfill {
-    private static final Logger log = LoggerFactory.getLogger(FirestoreIndexBackfill.class);
     private final Firestore firestore;
     private final ObjectMapper mapper;
 
@@ -45,6 +42,5 @@ public class FirestoreIndexBackfill {
                 updated[0]++;
             }
         }
-        log.info("Firestore index backfill completed; documentsUpdated={}", updated[0]);
     }
 }

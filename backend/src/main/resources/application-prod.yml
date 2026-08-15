@@ -1,3 +1,7 @@
 app:
   security:
     admin-emails: ${APP_SECURITY_ADMIN_EMAILS:}
+
+logging:
+  level:
+    root: ERROR

@@ -7,8 +7,6 @@ import com.google.cloud.firestore.Query;
 import com.dexm.personajes.adapter.out.persistence.*;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.RequestAttributes;
 
@@ -30,7 +28,6 @@ import java.util.regex.Pattern;
 @Component
 @Profile({"firestore", "local-firestore", "test"})
 public class FirestoreRepositoryFactory {
-    private static final Logger log = LoggerFactory.getLogger(FirestoreRepositoryFactory.class);
     private final Firestore firestore;
     private final ObjectMapper mapper;
 
@@ -203,7 +200,6 @@ public class FirestoreRepositoryFactory {
             var cache = requestCache();
             var cached = cache.get(cacheKey);
             if (cached != null) return cached.orElse(null) instanceof CharacterEntity c ? c : null;
-            log.info("[FIRESTORE_READ] collection=characters operation=embeddedAggregate documentId={} expectedReads=1", characterId);
             var document = firestore.collection("characters").document(characterId).get().get();
             if (!document.exists()) { cache.put(cacheKey, Optional.empty()); return null; }
             var character = mapper.readValue(document.getString("json"), CharacterEntity.class);
@@ -333,7 +329,6 @@ public class FirestoreRepositoryFactory {
         private Object consumeOneGrenade(String entityId, String characterId) throws Exception {
             var reference = firestore.collection(collection).document(entityId);
             return firestore.runTransaction(transaction -> {
-                log.info("[FIRESTORE_READ] collection={} operation=consumeOneGrenade documentId={} transaction=true", collection, entityId);
                 var document = transaction.get(reference).get();
                 if (!document.exists()) return null;
                 var entity = mapper.readValue(document.getString("json"), type);
@@ -350,7 +345,6 @@ public class FirestoreRepositoryFactory {
         }
         private boolean isHandGrenade(com.google.cloud.firestore.Transaction transaction, String grenadeCatalogId) throws Exception {
             if (grenadeCatalogId == null || "null".equals(grenadeCatalogId)) return false;
-            log.info("[FIRESTORE_READ] collection=grenadeCatalog operation=consumeOneGrenade.catalog documentId={} transaction=true", grenadeCatalogId);
             var catalogDocument = transaction.get(firestore.collection("grenadeCatalog").document(grenadeCatalogId)).get();
             if (!catalogDocument.exists()) return false;
             var catalogJson = mapper.readValue(catalogDocument.getString("json"), Map.class);
@@ -360,16 +354,13 @@ public class FirestoreRepositoryFactory {
             Map<String, Optional<Object>> cache = requestCache();
             String cacheKey = collection + ":" + entityId;
             if (cache.containsKey(cacheKey)) return cache.get(cacheKey);
-            log.info("[FIRESTORE_READ] collection={} operation={} documentId={} expectedReads=1", collection, operation, entityId);
             Optional<Object> result = decode(firestore.collection(collection).document(entityId).get().get());
             cache.put(cacheKey, result);
             return result;
         }
         private List<Object> all(String operation) throws Exception {
-            log.info("[FIRESTORE_READ] collection={} operation={} mode=FULL_COLLECTION_SCAN", collection, operation);
             List<Object> items = new ArrayList<>();
             var documents = firestore.collection(collection).get().get().getDocuments();
-            log.info("[FIRESTORE_READ] collection={} operation={} documentsRead={}", collection, operation, documents.size());
             for (DocumentSnapshot doc : documents) decode(doc).ifPresent(items::add);
             return items;
         }
@@ -397,10 +388,8 @@ public class FirestoreRepositoryFactory {
                 if (parsedUntil != order.length()) throw new IllegalArgumentException("Invalid Firestore order expression " + order);
             }
             if (limitOne) query = query.limit(1);
-            log.info("[FIRESTORE_READ] collection={} operation=findBy{} mode=QUERY expression={}", collection, expression, expression);
             List<Object> results = new ArrayList<>();
             for (DocumentSnapshot document : query.get().get().getDocuments()) decode(document).ifPresent(results::add);
-            log.info("[FIRESTORE_READ] collection={} operation=findBy{} documentsRead={}", collection, expression, results.size());
             return results;
         }
         private boolean isFirestoreScalar(Object value) { return value instanceof String || value instanceof Number || value instanceof Boolean || value instanceof java.util.Date; }
