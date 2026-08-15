@@ -1,16 +1,16 @@
+import { ApiError, safePath, logClientError, apiErrorFromResponse } from './errors';
+
 const csrfToken = () => document.cookie.split('; ').find(value => value.startsWith('XSRF-TOKEN='))?.split('=').slice(1).join('=');
 const request = async (path: string, options: RequestInit = {}) => {
   const headers: Record<string, string> = { 'Content-Type': 'application/json', ...(options.headers as Record<string,string> || {}) };
+  const requestId = crypto.randomUUID(); headers['X-Request-Id'] = requestId;
   const token = csrfToken(); if (token && options.method && options.method !== 'GET') headers['X-XSRF-TOKEN'] = decodeURIComponent(token);
-  const response = await fetch(path, { credentials: 'same-origin', headers, ...options });
+  let response: Response;
+  try { response = await fetch(path, { ...options, credentials: 'same-origin', headers }); }
+  catch (cause) { const error = new ApiError('No se ha podido conectar con el servidor.', { method: options.method || 'GET', path: safePath(path), requestId }); logClientError(cause, { source: 'api', method: error.method, path: error.path, requestId }); throw error; }
   if (!response.ok) {
-    const body = await response.json().catch(() => ({}));
-    const detail = body.error || body.message || body.detail || response.statusText;
-    const message = response.status === 409
-      ? `Conflicto: ${detail || 'la operación no es compatible con el estado actual.'}`
-      : detail;
-    const error = new Error(message) as Error & { status?: number };
-    error.status = response.status;
+    const error = await apiErrorFromResponse(response, requestId, options.method || 'GET', path);
+    logClientError(error, { source: 'api', status: error.status, code: error.code, requestId: error.requestId, method: error.method, path: error.path });
     throw error;
   }
   if (!path.endsWith('/keepalive')) window.dispatchEvent(new CustomEvent('dexm-api-activity'));
@@ -218,8 +218,11 @@ removeCharacterEditor: (id: string, email: string) => request('/api/characters/'
   save: (id: string, body: unknown) => request('/api/characters/' + id, { method: 'PUT', body: JSON.stringify(body) }),
   importLegacy: (id: string, code: string) => request('/api/characters/' + id + '/legacy/import', { method: 'POST', body: JSON.stringify({ code }) }),
   exportLegacy: async (id: string) => {
-    const response = await fetch('/api/characters/' + id + '/legacy/export');
-    if (!response.ok) throw new Error((await response.text()) || response.statusText);
+    const requestId = crypto.randomUUID();
+    let response: Response;
+    try { response = await fetch('/api/characters/' + id + '/legacy/export', { headers: { 'X-Request-Id': requestId }, credentials: 'same-origin' }); }
+    catch (cause) { const error = new ApiError('No se ha podido conectar con el servidor.', { method: 'GET', path: safePath('/api/characters/' + id + '/legacy/export'), requestId }); logClientError(cause, { source: 'api', method: 'GET', path: error.path, requestId }); throw error; }
+    if (!response.ok) { const error = await apiErrorFromResponse(response, requestId, 'GET', '/api/characters/' + id + '/legacy/export'); logClientError(error, { source: 'api', status: error.status, code: error.code, requestId: error.requestId, method: error.method, path: error.path }); throw error; }
     return response.text();
   },
   milestones: (id: string) => request('/api/characters/' + id + '/milestones'),

@@ -2,6 +2,7 @@ import {createApp} from 'vue';
 import {createRouter, createWebHistory} from 'vue-router';
 import App from './App.vue';
 import './styles.css';
+import { logClientError } from './services/errors';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -16,4 +17,9 @@ const router = createRouter({
   ],
 });
 
-createApp(App).use(router).mount('#app');
+const app = createApp(App);
+app.config.errorHandler = (error, instance, info) => logClientError(error, { source: 'vue', info, component: instance?.$options?.name });
+router.onError((error, to, from) => logClientError(error, { source: 'router', to: to.fullPath.split('?')[0], from: from.fullPath.split('?')[0] }));
+window.addEventListener('error', event => logClientError(event.error || new Error(event.message), { source: 'window', path: window.location.pathname }));
+window.addEventListener('unhandledrejection', event => logClientError(event.reason, { source: 'unhandledrejection', path: window.location.pathname }));
+app.use(router).mount('#app');
