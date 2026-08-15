@@ -58,20 +58,33 @@ public class MinorAttributeService {
 
     public List<Map<String, Object>> view(String characterId) {
         var character = chars.findById(characterId).orElseThrow();
-        var attrs = parse(character.getAttributesJson());
-        var genetics = parse(character.getGeneticsJson());
-        var values = values(characterId);
-        var modifierTotals = modifiers.findByCharacterId(characterId).stream().collect(java.util.stream.Collectors.groupingBy(
+        return view(character, parse(character.getAttributesJson()), parse(character.getGeneticsJson()),
+                modifiers.findByCharacterId(characterId));
+    }
+
+    public List<Map<String, Object>> view(CharacterEntity character, Map<String, Integer> attrs,
+                                          Map<String, Integer> genetics,
+                                          List<CharacterAttributeModifierEntity> modifierRows) {
+        var valueRows = vals.findByCharacterId(character.getId());
+        if (valueRows.isEmpty()) return List.of();
+        var definitions = defs.findByCampaignIdOrderByNameAsc(character.getCampaignId()).stream()
+                .filter(definition -> definition.getOwnerCharacterId() == null || character.getId().equals(definition.getOwnerCharacterId()))
+                .toList();
+        var ranksByDefinitionId = valueRows.stream().collect(java.util.stream.Collectors.toMap(
+                CharacterMinorAttributeValueEntity::getDefinitionId, CharacterMinorAttributeValueEntity::getValue,
+                (left, right) -> left, LinkedHashMap::new));
+        var values = new LinkedHashMap<String, Integer>();
+        definitions.forEach(definition -> values.put(definition.getKey(), ranksByDefinitionId.getOrDefault(definition.getId(), 0)));
+        var modifierTotals = modifierRows.stream().collect(java.util.stream.Collectors.groupingBy(
                 CharacterAttributeModifierEntity::getAttributeKey, LinkedHashMap::new,
                 java.util.stream.Collectors.summingInt(CharacterAttributeModifierEntity::getScore)));
+        var modifiersByKey = modifierRows.stream().collect(java.util.stream.Collectors.groupingBy(
+                CharacterAttributeModifierEntity::getAttributeKey, LinkedHashMap::new, java.util.stream.Collectors.toList()));
         var out = new ArrayList<Map<String, Object>>();
-        defs.findByCampaignIdOrderByNameAsc(character.getCampaignId()).stream()
-                .filter(definition -> definition.getOwnerCharacterId() == null || characterId.equals(definition.getOwnerCharacterId()))
-                .forEach(definition -> {
-            int ranks = vals.findByCharacterIdAndDefinitionId(characterId, definition.getId())
-                    .map(CharacterMinorAttributeValueEntity::getValue).orElse(0);
-            var modifierRows = modifiers.findByCharacterIdAndAttributeKey(characterId, definition.getKey());
-            int total = ranks + modifierRows.stream().mapToInt(CharacterAttributeModifierEntity::getValue).sum();
+        definitions.forEach(definition -> {
+            int ranks = ranksByDefinitionId.getOrDefault(definition.getId(), 0);
+            var rowsForAttribute = modifiersByKey.getOrDefault(definition.getKey(), List.of());
+            int total = ranks + rowsForAttribute.stream().mapToInt(CharacterAttributeModifierEntity::getValue).sum();
             int max = evaluate(definition.getMaxFormula(), attrs, genetics, values, character.getLevel());
             String source = definition.getBonusSource();
             int plus = 0, d6 = 0;
@@ -86,7 +99,7 @@ public class MinorAttributeService {
                 var bonus = CharacterRules.project(0, Map.of(sourceKey, sourceValue), Map.of()).bonuses().get(sourceKey);
                 if (bonus != null) { plus = bonus.plusOne(); d6 = bonus.plusD6(); }
             }
-            var modifierView = modifierRows.stream().map(m -> Map.of("name", m.getName(), "value", m.getValue())).toList();
+            var modifierView = rowsForAttribute.stream().map(m -> Map.of("name", m.getName(), "value", m.getValue())).toList();
             var row = new LinkedHashMap<String, Object>();
             row.put("id", definition.getId()); row.put("key", definition.getKey()); row.put("name", definition.getName());
             row.put("value", ranks); row.put("ranks", ranks); row.put("total", total); row.put("max", max);

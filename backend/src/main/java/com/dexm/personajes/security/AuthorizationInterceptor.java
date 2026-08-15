@@ -9,12 +9,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @Configuration
 public class AuthorizationInterceptor implements WebMvcConfigurer {
     private final AuthorizationService authorization;
-    public AuthorizationInterceptor(AuthorizationService authorization){this.authorization=authorization;}
+    private final ApplicationSessionService sessions;
+    public AuthorizationInterceptor(AuthorizationService authorization, ApplicationSessionService sessions){this.authorization=authorization; this.sessions=sessions;}
     @Override public void addInterceptors(InterceptorRegistry registry){registry.addInterceptor(new HandlerInterceptor(){
         @Override public boolean preHandle(jakarta.servlet.http.HttpServletRequest request,jakarta.servlet.http.HttpServletResponse response,Object handler){
             String path=request.getRequestURI();
-            if(path.startsWith("/api/") && !path.startsWith("/api/auth/"))
-                authorization.requireApplicationAccess(SecurityContextHolder.getContext().getAuthentication());
+            if(path.startsWith("/api/") && !path.startsWith("/api/auth/") && !sessions.isValid(request, SecurityContextHolder.getContext().getAuthentication()))
+                throw new org.springframework.security.access.AccessDeniedException("Application session expired");
             if(path.startsWith("/api/characters/")){
                 String remainder=path.substring("/api/characters/".length()); String id=remainder.split("/",2)[0];
                 if(!id.isBlank()) authorization.requireCharacter(SecurityContextHolder.getContext().getAuthentication(),id, !"GET".equalsIgnoreCase(request.getMethod()));

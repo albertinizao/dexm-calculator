@@ -4,7 +4,11 @@ import com.dexm.personajes.adapter.out.persistence.*;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import java.util.*;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Service
 public class AuthorizationService {
@@ -12,7 +16,10 @@ public class AuthorizationService {
     private final CampaignInvitationRepository invitations;
     private final CharacterRepository characters;
     private final SecurityIdentityService identities;
-    public AuthorizationService(CampaignRepository campaigns, CampaignInvitationRepository invitations, CharacterRepository characters, SecurityIdentityService identities){this.campaigns=campaigns;this.invitations=invitations;this.characters=characters;this.identities=identities;}
+    private final ApplicationSessionService sessions;
+    @Autowired
+    public AuthorizationService(CampaignRepository campaigns, CampaignInvitationRepository invitations, CharacterRepository characters, SecurityIdentityService identities, ApplicationSessionService sessions){this.campaigns=campaigns;this.invitations=invitations;this.characters=characters;this.identities=identities;this.sessions=sessions;}
+    public AuthorizationService(CampaignRepository campaigns, CampaignInvitationRepository invitations, CharacterRepository characters, SecurityIdentityService identities){this(campaigns, invitations, characters, identities, null);}
     public AuthIdentity identity(Authentication auth){return identities.current(auth);}
     public boolean isAdmin(Authentication auth){return identities.isAdmin(identity(auth));}
     public void requireAdmin(Authentication auth){if(!isAdmin(auth)) throw new AccessDeniedException("Administrator role required");}
@@ -21,7 +28,7 @@ public class AuthorizationService {
         if(!identities.isAdmin(id) && !invitations.existsByEmailAndRevokedAtIsNull(id.email()))
             throw new AccessDeniedException("No active campaign invitation found");
     }
-    public boolean canAccessCampaign(String campaignId, Authentication auth){var id=identity(auth); return identities.isAdmin(id)||invitations.existsByCampaignIdAndEmailAndRevokedAtIsNull(campaignId,id.email());}
+    public boolean canAccessCampaign(String campaignId, Authentication auth){var id=identity(auth); if (identities.isAdmin(id)) return true; var attributes = RequestContextHolder.getRequestAttributes(); if (sessions != null && attributes instanceof ServletRequestAttributes servlet && sessions.hasCampaign(servlet.getRequest(), auth, campaignId)) return true; return invitations.existsByCampaignIdAndEmailAndRevokedAtIsNull(campaignId,id.email());}
     public boolean isActiveCampaignMember(String campaignId, String email){
         return campaignId != null && invitations.existsByCampaignIdAndEmailAndRevokedAtIsNull(campaignId, AuthIdentity.normalizeEmail(email));
     }

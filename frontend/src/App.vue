@@ -61,6 +61,7 @@ const hasCampaignSwitcher = computed(() => isDirector.value || campaigns.value.l
 const KEEPALIVE_INTERVAL_MS = 5 * 60 * 1000;
 let keepaliveTimer: number | undefined;
 let keepaliveStopped = true;
+let keepaliveCount = 0;
 
 const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
 const campaignCountLabel = computed(() => `${campaigns.value.length} ${campaigns.value.length === 1 ? 'campaña' : 'campañas'}`);
@@ -84,7 +85,7 @@ async function loadSession() {
 function stopKeepalive() {
   keepaliveStopped = true;
   if (keepaliveTimer !== undefined) {
-    window.clearInterval(keepaliveTimer);
+    window.clearTimeout(keepaliveTimer);
     keepaliveTimer = undefined;
   }
 }
@@ -101,6 +102,7 @@ function clearApplicationSession(status: number) {
 }
 async function keepSessionAlive() {
   if (!session.value || keepaliveStopped) return;
+  keepaliveCount += 1;
   try { await api.keepalive(); }
   catch (e: any) {
     if (e?.status === 503) {
@@ -116,20 +118,29 @@ async function keepSessionAlive() {
       }
     }
   }
+  if (keepaliveCount >= 4) stopKeepalive();
+  else scheduleKeepalive();
 }
 function startKeepalive() {
   stopKeepalive();
   keepaliveStopped = false;
-  void keepSessionAlive();
-  keepaliveTimer = window.setInterval(() => { void keepSessionAlive(); }, KEEPALIVE_INTERVAL_MS);
+  keepaliveCount = 0;
+  scheduleKeepalive();
+}
+function scheduleKeepalive() {
+  if (!session.value || keepaliveStopped || keepaliveCount >= 4) return;
+  keepaliveTimer = window.setTimeout(() => { void keepSessionAlive(); }, KEEPALIVE_INTERVAL_MS);
+}
+function resetKeepalive() {
+  if (session.value) startKeepalive();
 }
 async function selectCampaign(campaign: Campaign) {
   selectedCampaign.value = campaign;
   try { characters.value = await api.characters(campaign.id); error.value = ''; } catch (e: any) { error.value = e.message; }
-  await loadMembers(campaign);
 }
 async function logout() { await api.logout(); stopKeepalive(); session.value = null; }
 async function loadMembers(campaign: Campaign) { if (!isDirector.value) return; try { members.value = await api.campaignMembers(campaign.id) as CampaignMember[]; } catch (e: any) { error.value = e.message; } }
+async function toggleMembers() { membersOpen.value = !membersOpen.value; if (membersOpen.value && selectedCampaign.value) await loadMembers(selectedCampaign.value); }
 async function inviteMember() { if (!selectedCampaign.value || !memberEmail.value.trim()) return; try { await api.inviteCampaignMember(selectedCampaign.value.id, memberEmail.value.trim()); memberEmail.value = ''; await loadMembers(selectedCampaign.value); } catch (e: any) { error.value = e.message; } }
 async function revokeMember(member: CampaignMember) { if (!selectedCampaign.value || !confirm(`¿Revocar el acceso de ${member.email}?`)) return; try { await api.revokeCampaignMember(selectedCampaign.value.id, member.email); await loadMembers(selectedCampaign.value); } catch (e: any) { error.value = e.message; } }
 function openCampaignTransferModal() { if (!isDirector.value || !selectedCampaign.value) return; campaignTransferAction.value = 'export'; showCampaignTransferModal.value = true; }
@@ -249,12 +260,14 @@ async function readImage(event: Event) {
 function clearImage() { characterImage.value = ''; characterImageError.value = ''; if (imageInput.value) imageInput.value.value = ''; }
 function openCharacter(character: Character) { router.push(`/characters/${character.id}`); }
 onMounted(async () => {
+  window.addEventListener('dexm-api-activity', resetKeepalive);
   await loadSession();
   if (session.value) {
     await loadCampaigns();
+    startKeepalive();
   }
 });
-onUnmounted(stopKeepalive);
+onUnmounted(() => { stopKeepalive(); window.removeEventListener('dexm-api-activity', resetKeepalive); });
 watch(() => route.query.campaign, (campaignId) => {
   if (!campaignId) return;
   const campaign = campaigns.value.find(item => item.id === String(campaignId));
@@ -284,7 +297,8 @@ watch(() => route.query.campaign, (campaignId) => {
       </aside>
 
       <section v-if="selectedCampaign" class="campaign-view">
-        <div class="campaign-heading"><div><p class="eyebrow accent">CAMPAÑA SELECCIONADA</p><h2>{{ selectedCampaign.name }}</h2><p class="muted">{{ characters.length }} {{ characters.length === 1 ? 'personaje' : 'personajes' }} en esta aventura</p></div><div class="campaign-actions"><button v-if="isDirector" class="button button-quiet" @click="membersOpen = !membersOpen">Gestionar accesos</button><button v-if="isDirector" class="button button-quiet" @click="openCampaignTransferModal">Exportar / importar</button><button v-if="isDirector" class="button button-danger" @click="openDeleteCampaignModal">Borrar campaña</button><button class="button button-primary" @click="openCharacterModal"><span>＋</span> Nuevo personaje</button></div></div>
+        <div class="campaign-heading"><div><p class="eyebrow accent">CAMPAÑA SELECCIONADA</p><h2>{{ selectedCampaign.name }}</h2><p class="muted">{{ characters.length }} {{ characters.length === 1 ? 'personaje' : 'personajes' }} en esta aventura</p></div><div class="campaign-actions"><button v-if="isDirector" class="button button-quiet" @click="toggleMembers">Gestionar accesos</button><button v-if="isDirector" class="button button-quiet" @click="openCampaignTransferModal">Exportar / importar</button><button v-if="isDirector" class="button button-danger" @click="openDeleteCampaignModal">Borrar campaña</button><button class="button button-primary" @click="openCharacterModal"><span>＋</span> Nuevo personaje</button></div></div>
+        
         <section v-if="isDirector && membersOpen" class="sheet-panel campaign-members"><div class="sheet-panel-heading"><h3>Emails autorizados</h3><form @submit.prevent="inviteMember"><input v-model="memberEmail" type="email" placeholder="persona@example.com" required><button class="button button-primary" type="submit">Añadir</button></form></div><p v-if="!members.length" class="sheet-muted">No hay invitaciones.</p><ul v-else><li v-for="member in members" :key="member.id"><span>{{ member.email }}</span><button v-if="member.active" class="button button-quiet" type="button" @click="revokeMember(member)">Revocar</button><span v-else class="muted">Revocado</span></li></ul></section>
         <div v-if="characters.length" class="character-grid"><article v-for="character in characters" :key="character.id" class="character-card" role="link" tabindex="0" @click="openCharacter(character)" @keydown.enter="openCharacter(character)"><div class="portrait"><img v-if="character.imageUrl" :src="character.imageUrl" :alt="`Retrato de ${character.name}`" /><span v-else>{{ initials(character.name) }}</span></div><div class="character-info"><p class="eyebrow">PERSONAJE</p><h3>{{ character.name }}</h3><span class="field-hint">{{ character.canEdit ? 'Puedes editar' : 'Solo lectura' }}</span><span class="card-link">Ver ficha →</span></div></article></div>
         <div v-else class="empty-state"><div class="empty-icon">✦</div><h3>La aventura está esperando</h3><p>Añade el primer personaje a <strong>{{ selectedCampaign.name }}</strong>.</p><button class="button button-primary" @click="openCharacterModal">＋ Nuevo personaje</button></div>
@@ -342,3 +356,4 @@ watch(() => route.query.campaign, (campaignId) => {
     <div v-if="isDeleteCampaignModalOpen" class="modal-backdrop" @click.self="closeDeleteCampaignModal"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="delete-campaign-title"><button class="modal-close" aria-label="Cerrar" @click="closeDeleteCampaignModal">×</button><p class="eyebrow accent">CONFIRMAR BORRADO</p><h2 id="delete-campaign-title">¿Borrar campaña?</h2><p class="modal-copy">Se eliminará <strong>{{ selectedCampaign?.name }}</strong> y todos sus personajes. Esta acción no se puede deshacer.</p><div class="modal-actions"><button class="button button-quiet" type="button" @click="closeDeleteCampaignModal">Cancelar</button><button class="button button-danger" type="button" :disabled="saving" @click="deleteCampaign">{{ saving ? 'Borrando…' : 'Borrar definitivamente' }}</button></div></section></div>
   </main>
 </template>
+

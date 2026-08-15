@@ -4,8 +4,10 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import { useRoute, useRouter } from 'vue-router';
 
-import { api, type AllocationPayload, type Ammunition, type Armor, type ArmorCatalogItem, type ArmorSlot, type OtherInventoryItem, type PhysicalShield, type PhysicalShieldCatalogItem, type Shield, type ShieldCatalogItem, type Weapon, type WeaponCatalogItem } from './services/api';
+import { api, type AllocationPayload, type Ammunition, type Armor, type ArmorCatalogItem, type ArmorSlot, type GrenadeCatalogItem, type OtherInventoryItem, type PhysicalShield, type PhysicalShieldCatalogItem, type Shield, type ShieldCatalogItem, type Weapon, type WeaponCatalogItem } from './services/api';
 import { processPortraitFile } from './services/image';
+import { loadStaticAbilities, loadStaticObjects } from './services/staticCatalogs';
+import { abilityEligible, calculateTrainingPreview, effectiveAbilityGenetics } from './rules';
 
 const props = defineProps<{ isDirector: boolean }>();
 
@@ -34,16 +36,21 @@ type Progression = { kind: string; number: number; threshold: number; obtained: 
 type AttributeDetail = { key:string; definitionId?:string | null; name:string; type:string; total:number; ranks:number; maxRanks:number | null; formula:string; calculatedValue:number; plusOne:number; plusD6:number; modifiers:AttributeModifier[]; progressions:Progression[]; deletable:boolean };
 type AttributeRow = { key:string; name:string; value:number; definitionId?:string; deletable?:boolean };
 type AttributeRollDie = { id:string; type:'d10' | 'd6'; value:number; selected:boolean; disabled?:boolean };
-type AttributeRollState = { key:string; name:string; score:number; plusOne:number; plusD6:number; dice:AttributeRollDie[]; abilityName?:string; difficulty?:number|null; testName?:string };
+type AttributeRollState = { key:string; name:string; score:number; plusOne:number; plusD6:number; dice:AttributeRollDie[]; abilityName?:string; difficulty?:number|null; testName?:string; grenadePhase?:'physical'|'aim' };
 type WeaponDamage = Pick<Weapon, 'damageVital' | 'damageNormal' | 'damageLight' | 'damageVeryLight'>;
 type WeaponAimRoll = { id:string; dice:AttributeRollDie[]; damageD10:AttributeRollDie };
 type WeaponAimRollState = { weaponName:string; score:number; plusOne:number; plusD6:number; weaponAim:number; attributeName:string; isMelee:boolean; damage:WeaponDamage; rolls:WeaponAimRoll[] };
-type Ability = { name:string; description?:string; launchType?:string; cost?:number | string | null; test?:string; alternativesJson?:string; uniqueFlag?:string };
+type Ability = { name:string; description?:string; launchType?:string; cost?:number | string | null; test?:string; alternativesJson?:string; uniqueFlag?:string; eligible?:boolean };
 type PendingUniqueAbility = Ability & { requirements: unknown };
 type LastUpgrade = { available:boolean; current?:{level:number; closedAt:string}; previous?:{level:number; closedAt:string}; scores?:{key:string; type:string; before:number; after:number; increase:number}[]; bonuses?:{key:string; plusOne:number; plusD6:number}[]; modifiers?:{key:string; name:string; before:number|null; after:number|null}[]; abilities?:string[] };
 type HistoryVersion = { id:string; level:number; experience:number; createdAt:string; snapshot: Record<string, any> };
 type TrainingActivity = { id:string; type:string; name:string; startAge:number; endAge:number; priority:number; concurrent:boolean; primaryAttribute?:string|null; secondaryAttribute?:string|null; tertiaryAttribute?:string|null; modifiers?:{attributeKey:string;name:string;value:number}[] };
+type TrainingData = { enabled:boolean; startingAge:number; sheetAge:number; activities:TrainingActivity[] };
 type TrainingPreview = { humanYears:number; modifiers:{attributeKey:string; baseValue:number; previousSelections:number; value:number}[] };
+type AmmunitionDraft = { type:'CALIBER'|'GRENADE'; caliber:string; grenadeCatalogId:string; quantity:number };
+type GrenadeCatalogDraft = { name:string; description:string; additionalEffect:string; centralDamage:number; adjacentDamage:number; damageDecay:number; handGrenade:boolean; type:string };
+type GrenadeCustomDraft = { name:string; description:string; additionalEffect:string; centralDamage:number; adjacentDamage:number; damageDecay:number; launchType:'Mano'|'LG'|'LP'; quantity:number };
+type GrenadeLaunchState = { ammunition:Ammunition; grenade:GrenadeCatalogItem; phase:'physical'|'target'|'aim'|'result'; physicalResult:number|null; maximumRange:number|null; targetDistance:number|null; difficulty:number|null; aimResult:number|null; consumed:boolean };
 
 
 
@@ -93,7 +100,7 @@ const allocationModal = ref<HTMLElement | null>(null);
 const abilityCatalog = ref<Ability[]>([]);
 const abilityCatalogLoading = ref(false);
 const abilityCatalogError = ref('');
-const sheetView = ref<'sheet' | 'abilities' | 'inventory' | 'inventory-type' | 'inventory-detail' | 'ammunition-detail' | 'weapon-choice' | 'weapon-catalog' | 'weapon-detail' | 'armor-choice' | 'armor-catalog' | 'armor-detail' | 'shield-choice' | 'shield-catalog' | 'shield-detail' | 'physical-shield-detail'>('sheet');
+const sheetView = ref<'sheet' | 'abilities' | 'inventory' | 'inventory-type' | 'inventory-detail' | 'ammunition-catalog' | 'ammunition-detail' | 'grenade-choice' | 'grenade-catalog-select' | 'grenade-custom-detail' | 'grenade-catalog' | 'weapon-choice' | 'weapon-catalog' | 'weapon-detail' | 'armor-choice' | 'armor-catalog' | 'armor-detail' | 'shield-choice' | 'shield-catalog' | 'shield-detail' | 'physical-shield-detail'>('sheet');
 const otherInventory = ref<OtherInventoryItem[]>([]);
 const inventoryLoading = ref(false);
 const inventoryError = ref('');
@@ -103,13 +110,33 @@ const inventorySaving = ref(false);
 const inventoryDeleting = ref(false);
 const ammunition = ref<Ammunition[]>([]);
 const ammunitionCalibers = ref<string[]>([]);
+type AmmunitionCatalogEntry = { caliber: string; compatibleWeapons: string[] };
+const ammunitionCatalogEntries = ref<AmmunitionCatalogEntry[]>([]);
+const grenadeCatalog = ref<GrenadeCatalogItem[]>([]);
+const customGrenadeCatalog = ref<GrenadeCatalogItem[]>([]);
+const selectedGrenadeCatalog = ref<GrenadeCatalogItem | null>(null);
+const grenadeCatalogDraft = ref<GrenadeCatalogDraft>({ name:'', description:'', additionalEffect:'—', centralDamage:400, adjacentDamage:100, damageDecay:20, handGrenade:true, type:'' });
+const grenadeCatalogSaving = ref(false);
+const grenadeCatalogDeleting = ref(false);
+const grenadeCatalogLoading = ref(false);
+const selectedGrenadeInventory = ref<GrenadeCatalogItem | null>(null);
+const grenadeInventoryQuantity = ref(1);
+const grenadeCustomDraft = ref<GrenadeCustomDraft>({ name:'', description:'', additionalEffect:'—', centralDamage:400, adjacentDamage:100, damageDecay:20, launchType:'Mano', quantity:1 });
+const grenadeInventorySaving = ref(false);
+const showGrenadeCatalogModal = ref(false);
 const selectedAmmunition = ref<Ammunition | null>(null);
-const ammunitionDraft = ref<Omit<Ammunition, 'id'>>({ caliber: '', quantity: 1 });
+const ammunitionDraft = ref<AmmunitionDraft>({ type:'CALIBER', caliber: '', grenadeCatalogId:'', quantity: 1 });
+const selectedAmmunitionCatalogCaliber = ref<string | null>(null);
+const showAmmunitionCatalogModal = ref(false);
 const ammunitionSaving = ref(false);
 const ammunitionDeleting = ref(false);
+const selectedGrenadeAmmunition = ref<Ammunition | null>(null);
+const showGrenadeDetailModal = ref(false);
+const grenadeLaunch = ref<GrenadeLaunchState | null>(null);
 const weapons = ref<Weapon[]>([]);
 const weaponDraft = ref<Omit<Weapon, 'id'>>({slot:'SMALL_1',name:'',weaponType:'PISTOLA',size:'PEQUENA',range:0,reload:0,rate:'',damageVital:0,damageNormal:0,damageLight:0,damageVeryLight:0,aim:null,automaticFire:'',capacity:0,loadedBullets:0,caliber:'',extraRule:''});
-const catalogWeapons = ref<WeaponCatalogItem[]>([]); const catalogSearch = ref(''); const catalogType = ref(''); const catalogLoading = ref(false); const catalogSlot = ref('SMALL_1'); const customImageUrl = ref<string | null>(null);
+const catalogWeapons = ref<WeaponCatalogItem[]>([]); const ammunitionCatalogWeapons = ref<WeaponCatalogItem[]>([]); const customWeaponCatalog = ref<WeaponCatalogItem[]>([]); const catalogSearch = ref(''); const catalogType = ref(''); const catalogLoading = ref(false); const catalogSlot = ref('SMALL_1'); const customImageUrl = ref<string | null>(null);
+const visibleCatalogWeapons = computed(() => { const query = catalogSearch.value.trim().toLowerCase(); return catalogWeapons.value.filter(item => !query || item.name.toLowerCase().includes(query)); });
 const selectedWeapon = ref<Weapon | null>(null);
 const showWeaponDetailModal = ref(false);
 const weaponEditMode = ref(false);
@@ -139,7 +166,7 @@ const armorCatalogLoading = ref(false); const shieldCatalogLoading = ref(false);
 const armorSaving = ref(false); const armorDeleting = ref(false); const shieldSaving = ref(false); const shieldDeleting = ref(false);
 const armorSlots = [{value:'HEAD' as ArmorSlot,label:'Cabeza'},{value:'BODY' as ArmorSlot,label:'Cuerpo'},{value:'LEGS' as ArmorSlot,label:'Piernas'},{value:'ARMS' as ArmorSlot,label:'Brazos'}];
 const occupiedArmorSlots = computed(() => new Set(armors.value.filter(item => !selectedArmor.value || item.id !== selectedArmor.value.id).flatMap(item => item.slots)));
-const weaponTypes = [{value:'PISTOLA',label:'Pistola'},{value:'SUBFUSIL',label:'Subfusil'},{value:'FUSIL',label:'Fusil'},{value:'RIFLE_CAZA',label:'Rifle de caza'},{value:'FUSIL_FRANCOTIRADOR',label:'Fusil de francotirador'},{value:'AMETRALLADORA_LIGERA',label:'Ametralladora ligera'},{value:'ESCOPETA',label:'Escopeta'},{value:'CUERPO_PEQUENA',label:'Cuerpo a cuerpo pequeña'},{value:'CUERPO_MEDIANA',label:'Cuerpo a cuerpo mediana'},{value:'CUERPO_PESADA',label:'Cuerpo a cuerpo pesada'}];
+const weaponTypes = [{value:'PISTOLA',label:'Pistola'},{value:'SUBFUSIL',label:'Subfusil'},{value:'FUSIL',label:'Fusil'},{value:'RIFLE_CAZA',label:'Rifle de caza'},{value:'FUSIL_FRANCOTIRADOR',label:'Fusil de francotirador'},{value:'AMETRALLADORA_LIGERA',label:'Ametralladora ligera'},{value:'LANZAGRANADAS',label:'Lanzagranadas'},{value:'ESCOPETA',label:'Escopeta'},{value:'CUERPO_PEQUENA',label:'Cuerpo a cuerpo pequeña'},{value:'CUERPO_MEDIANA',label:'Cuerpo a cuerpo mediana'},{value:'CUERPO_PESADA',label:'Cuerpo a cuerpo pesada'}];
 const weaponSizes = [{value:'PEQUENA',label:'Pequeña'},{value:'MEDIANA',label:'Mediana'},{value:'GRANDE',label:'Grande'},{value:'ENORME',label:'Enorme'}];
 const weaponSlots = [{value:'SMALL_1',label:'Pequeña 1',kind:'small'},{value:'SMALL_2',label:'Pequeña 2',kind:'small'},{value:'SMALL_3',label:'Pequeña 3',kind:'small'},{value:'MEDIUM_1',label:'Mediana 1',kind:'medium'},{value:'MEDIUM_2',label:'Mediana 2',kind:'medium'},{value:'ANY',label:'Universal',kind:'any'}];
 const selectedAbility = ref<Ability | null>(null);
@@ -159,6 +186,8 @@ const legacyDraft = ref(false);
 const legacyEvolutionPoints = ref<number | null>(null);
 const showUniqueReview = ref(false);
 const pendingUniqueAbilities = ref<PendingUniqueAbility[]>([]);
+const pendingUniqueAbilitiesCache = new Map<string, PendingUniqueAbility[]>();
+const pendingUniqueAbilitiesRequests = new Map<string, Promise<PendingUniqueAbility[]>>();
 const uniqueReviewBusy = ref('');
 const uniqueReviewError = ref('');
 const showHistory = ref(false);
@@ -170,12 +199,11 @@ const historyRecovering = ref('');
 const cancelChangesBusy = ref(false);
 const showTrainingModal = ref(false); const trainingLoading = ref(false); const trainingError = ref('');
 const showTrainingForm = ref(false);
-const trainingData = ref<{enabled:boolean;startingAge:number;sheetAge:number;activities:TrainingActivity[]}>({enabled:false,startingAge:0,sheetAge:0,activities:[]});
+const trainingData = ref<TrainingData>({enabled:false,startingAge:0,sheetAge:0,activities:[]});
 const trainingDraft = ref<Partial<TrainingActivity>>({ type:'FORMATION', name:'', startAge:0, endAge:1, priority:0, concurrent:false, primaryAttribute:'', secondaryAttribute:'', tertiaryAttribute:'' });
 const trainingEditingId = ref<string|null>(null);
 const trainingReordering = ref<string | null>(null);
 const trainingPreview = ref<TrainingPreview | null>(null);
-let trainingPreviewTimer: ReturnType<typeof setTimeout> | null = null;
 
 
 
@@ -333,7 +361,7 @@ const canLevelUpAll = computed(() => (character.value?.experience ?? 0) >= 200);
 const attributes = computed(() => character.value?.attributes ?? {});
 
 const genetics = computed(() => character.value?.genetics ?? character.value?.genetic ?? {});
-const geneticTotals = computed(() => Object.fromEntries(Object.keys(genetics.value).map(key => [key, character.value?.attributeTotals?.[key] ?? genetics.value[key] ?? 0])));
+const geneticTotals = computed(() => Object.fromEntries(Object.keys(genetics.value).map(key => [key, displayedAttributeTotal(key, genetics.value[key] ?? 0)])));
 
 // The sheet must render the effective score (base ranks plus every persisted
 // modifier), not only the base attribute map.  `displayedAttributeTotal`
@@ -572,7 +600,21 @@ function clearProfileImage() {
   profileError.value = '';
   if (profileImageInput.value) profileImageInput.value.value = '';
 }
-function openEditorsModal() { editorError.value = ''; showEditorsModal.value = true; }
+async function openEditorsModal() {
+  editorError.value = ''; showEditorsModal.value = true;
+  if (!character.value?.campaignId) return;
+  try {
+    const [loadedEditors, loadedMembers] = await Promise.all([
+      api.characterEditors(character.value.id),
+      campaignMembers.value.length
+        ? Promise.resolve(campaignMembers.value)
+        : api.campaignMembers(character.value.campaignId) as Promise<CampaignMember[]>,
+    ]);
+    editorEmails.value = loadedEditors;
+    campaignMembers.value = loadedMembers;
+  }
+  catch (e: any) { editorError.value = e?.message || 'No se pudieron cargar los miembros de la campaña.'; }
+}
 
 const bonusSourceOptions = computed(() => {
   const keys = [...minorKeys.filter(key => key !== 'astronavegar'), ...(character.value?.minorAttributes ?? []).map(attribute => attribute.key)];
@@ -744,7 +786,7 @@ const abilityRollSuccess = computed(() => Boolean(
   && attributeRollResult.value >= attributeRoll.value.difficulty,
 ));
 
-function isMeleeWeapon(weapon: Weapon | WeaponCatalogItem){ return weapon.weaponType.startsWith('CUERPO_'); }
+function isMeleeWeapon(weapon: { weaponType: string }){ return weapon.weaponType.startsWith('CUERPO_'); }
 function openWeaponAimRolls(weapon: Weapon, rollCount: number) {
   const melee = isMeleeWeapon(weapon);
   const attributeKey = melee ? 'destreza' : 'punteria';
@@ -879,21 +921,29 @@ function closeHistory() {
 
 
 
-async function load() {
+async function reloadCharacterDocument(): Promise<Character> {
+  const loadedCharacter = await api.get(String(route.params.id)) as Character;
+  character.value = loadedCharacter;
+  if (editing.value) startModifierDraft();
+  else refreshAbilityEligibility();
+  return loadedCharacter;
+}
 
+async function load() {
   loading.value = true; error.value = '';
 
   try {
-
-    const loadedCharacter = await api.get(String(route.params.id));
-    character.value = loadedCharacter;
-    if (props.isDirector) {
-      try { editorEmails.value = await api.characterEditors(String(route.params.id)); }
-      catch (e: any) { editorError.value = e?.message || 'No se pudieron cargar los editores.'; }
-    }
+    const loadedCharacter = await reloadCharacterDocument();
+    const staticObjects = await loadStaticObjects();
+    ammunitionCatalogWeapons.value = staticObjects.weapons;
+    // The route watcher can load the inventory in parallel on first mount.
+    // Rebuild the list once the static catalog is available as well.
+    refreshAmmunitionCalibers();
+    await loadPendingUniqueAbilities();
     if (route.query.mode === 'edit' && loadedCharacter.closed && (loadedCharacter.canEdit || props.isDirector)) {
       try {
-        character.value = await api.edit(String(route.params.id));
+        await api.edit(String(route.params.id));
+        await reloadCharacterDocument();
       } catch (e: any) {
         closeError.value = e?.message || 'No se pudo abrir la ficha para edición.';
         await router.replace({ query: queryWithEditMode(false) });
@@ -901,44 +951,83 @@ async function load() {
     } else if (route.query.mode === 'edit' && !loadedCharacter.canEdit && !props.isDirector) {
       await router.replace({ query: queryWithEditMode(false) });
     }
-    await loadTraining();
-    await loadOtherInventory(); await loadWeapons(); await loadProtectiveEquipment(); await loadAmmunition();
     legacyDraft.value = false; legacyEvolutionPoints.value = null;
     editing.value = !character.value?.closed && canEdit.value;
     if (editing.value) startModifierDraft();
+    else refreshAbilityEligibility();
     if (editing.value && route.query.mode !== 'edit') await router.replace({ query: queryWithEditMode(true) });
 
-    if (character.value?.campaignId) {
-      campaign.value = await api.campaign(character.value.campaignId);
-      if (props.isDirector) {
-        try { campaignMembers.value = await api.campaignMembers(character.value.campaignId) as CampaignMember[]; }
-        catch (e: any) { editorError.value = e?.message || 'No se pudieron cargar los miembros de la campaña.'; }
-      }
-    }
-
+    if (character.value?.campaignId) campaign.value = await api.campaign(character.value.campaignId);
   } catch (e: any) { error.value = e?.message || 'No se pudo cargar el personaje.'; }
-
   finally { loading.value = false; }
-
 }
-
-async function loadOtherInventory() {
+function refreshAmmunitionCalibers() {
+  const caliberText = (value: unknown) => String(value ?? '').trim();
+  const weaponCalibers = weapons.value
+    .map(item => caliberText(item.caliber))
+    .filter((caliber): caliber is string => Boolean(caliber));
+  const inventoryCalibers = ammunition.value
+    .map(item => caliberText(item.caliber))
+    .filter((caliber): caliber is string => Boolean(caliber));
+  const catalogCalibers = ammunitionCatalogWeapons.value
+    .map(item => caliberText(item.caliber))
+    .filter((caliber): caliber is string => Boolean(caliber));
+  const unique = (values: string[]) => [...new Set(values)];
+  const orderedCalibers = unique([
+    ...unique(weaponCalibers),
+    ...unique(inventoryCalibers),
+    ...unique(catalogCalibers),
+  ]);
+  const weaponNamesByCaliber = new Map<string, string[]>();
+  weapons.value.forEach(weapon => {
+    const caliber = caliberText(weapon.caliber);
+    if (!caliber) return;
+    const names = weaponNamesByCaliber.get(caliber) ?? [];
+    if (!names.includes(weapon.name)) names.push(weapon.name);
+    weaponNamesByCaliber.set(caliber, names);
+  });
+  ammunitionCalibers.value = orderedCalibers;
+  ammunitionCatalogEntries.value = orderedCalibers.map(caliber => ({
+    caliber,
+    compatibleWeapons: weaponNamesByCaliber.get(caliber) ?? [],
+  }));
+}
+async function reloadGrenadeCatalog() {
+  grenadeCatalogLoading.value = true;
+  try {
+    const [staticResult, customResult] = await Promise.allSettled([loadStaticObjects(), api.customGrenadeCatalog()]);
+    if (staticResult.status === 'rejected') throw staticResult.reason;
+    const custom = customResult.status === 'fulfilled' ? customResult.value : [];
+    customGrenadeCatalog.value = custom;
+    grenadeCatalog.value = [...staticResult.value.grenades, ...custom];
+  } catch (e: any) { inventoryError.value = e?.message || 'No se pudo cargar el catálogo de granadas.'; throw e; }
+  finally { grenadeCatalogLoading.value = false; }
+}
+async function loadGrenadeCatalog() { await reloadGrenadeCatalog(); }
+async function reloadInventoryDocument() {
   if (!route.params.id) return;
   inventoryLoading.value = true; inventoryError.value = '';
-  try { otherInventory.value = await api.otherInventory(String(route.params.id)); }
-  catch (e: any) { inventoryError.value = e?.message || 'No se pudo cargar el inventario.'; }
+  try {
+    const inventory = await api.inventory(String(route.params.id));
+    otherInventory.value = inventory.others;
+    weapons.value = inventory.weapons;
+    ammunition.value = inventory.ammunition;
+    armors.value = inventory.armors;
+    shields.value = inventory.shields;
+    physicalShields.value = inventory.physicalShields;
+    refreshAmmunitionCalibers();
+    if (selectedWeapon.value) selectedWeapon.value = weapons.value.find(item => item.id === selectedWeapon.value?.id) ?? null;
+    if (selectedOtherItem.value) selectedOtherItem.value = otherInventory.value.find(item => item.id === selectedOtherItem.value?.id) ?? null;
+    if (selectedAmmunition.value) selectedAmmunition.value = ammunition.value.find(item => item.id === selectedAmmunition.value?.id) ?? null;
+    if (selectedGrenadeAmmunition.value) selectedGrenadeAmmunition.value = ammunition.value.find(item => item.id === selectedGrenadeAmmunition.value?.id) ?? null;
+  } catch (e: any) { inventoryError.value = e?.message || 'No se pudo cargar el inventario.'; throw e; }
   finally { inventoryLoading.value = false; }
 }
-async function loadAmmunition() {
-  if (!route.params.id) return;
-  try {
-    const [items, calibers] = await Promise.all([api.ammunition(String(route.params.id)), api.ammunitionCalibers(String(route.params.id))]);
-    ammunition.value = items;
-    ammunitionCalibers.value = calibers;
-  } catch (e: any) { inventoryError.value = e?.message || 'No se pudo cargar la munición.'; }
-}
-async function loadWeapons() { if (!route.params.id) return; try { weapons.value = await api.weapons(String(route.params.id)); } catch (e:any) { inventoryError.value = e?.message || 'No se pudieron cargar las armas.'; } }
-async function loadProtectiveEquipment() { if (!route.params.id) return; try { armors.value=await api.armors(String(route.params.id)); shields.value=await api.shields(String(route.params.id)); physicalShields.value=await api.physicalShields(String(route.params.id)); } catch(e:any){ inventoryError.value=e?.message||'No se pudo cargar las protecciones.'; } }
+async function loadInventory() { await reloadInventoryDocument(); }
+async function loadOtherInventory() { await reloadInventoryDocument(); }
+async function loadAmmunition() { await reloadInventoryDocument(); }
+async function loadWeapons() { await reloadInventoryDocument(); }
+async function loadProtectiveEquipment() { await reloadInventoryDocument(); }
 function armorAtSlot(slot:ArmorSlot){ return armors.value.find(item => item.slots.includes(slot)); }
 function openArmorDetail(a?:Armor, slot?:ArmorSlot){ selectedArmor.value=a||null; armorDraft.value=a?{...a,slots:[...a.slots],rdBySlot:{...a.rdBySlot},armorBySlot:{...a.armorBySlot}}:{name:'',description:'',slots:slot?[slot]:[],rdBySlot:{HEAD:0,BODY:0,LEGS:0,ARMS:0},armorBySlot:{HEAD:0,BODY:0,LEGS:0,ARMS:0},imageUrl:null}; if(a){showArmorDetailModal.value=true;sheetView.value='inventory';}else{sheetView.value='armor-detail';} }
 function closeArmorDetailModal(){showArmorDetailModal.value=false;selectedArmor.value=null;sheetView.value='inventory';}
@@ -952,16 +1041,16 @@ function editSelectedPhysicalShield(){if(!selectedPhysicalShield.value)return;sh
 function armorSlotUnavailable(slot:ArmorSlot){ return occupiedArmorSlots.value.has(slot) && !armorDraft.value.slots.includes(slot); }
 function toggleArmorSlot(slot:ArmorSlot){ if(armorSlotUnavailable(slot)) return; const slots=armorDraft.value.slots; armorDraft.value.slots=slots.includes(slot)?slots.filter(x=>x!==slot):[...slots,slot]; }
 async function onProtectiveImage(event:Event,target:'armor'|'shield'|'physicalShield'){const file=(event.target as HTMLInputElement).files?.[0];if(!file)return;if(!file.type.startsWith('image/')||file.size>5_000_000){inventoryError.value='Selecciona una imagen de hasta 5 MB.';return;}const url=await new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=reject;reader.readAsDataURL(file);});if(target==='armor')armorDraft.value.imageUrl=url;else if(target==='shield')shieldDraft.value.imageUrl=url;else physicalShieldDraft.value.imageUrl=url;}
-async function saveArmor(){ if(!route.params.id||!armorDraft.value.name.trim()||!armorDraft.value.slots.length)return; armorSaving.value=true;inventoryError.value='';try{const b={...armorDraft.value,name:armorDraft.value.name.trim(),slots:Object.fromEntries(armorDraft.value.slots.map(s=>[s,{rd:Number(armorDraft.value.rdBySlot[s]||0),armor:Number(armorDraft.value.armorBySlot[s]||0)}]))};if(selectedArmor.value)await api.updateArmor(String(route.params.id),selectedArmor.value.id,b);else await api.createArmorInventory(String(route.params.id),b);await loadProtectiveEquipment();sheetView.value='inventory';}catch(e:any){inventoryError.value=e?.message||'No se pudo guardar la armadura.';}finally{armorSaving.value=false;}}
-async function saveShield(){if(!route.params.id||!shieldDraft.value.name.trim())return;shieldSaving.value=true;inventoryError.value='';try{const b={...shieldDraft.value,name:shieldDraft.value.name.trim(),hitPoints:Number(shieldDraft.value.hitPoints)};if(selectedShield.value)await api.updateShield(String(route.params.id),selectedShield.value.id,b);else await api.createShieldInventory(String(route.params.id),b);await loadProtectiveEquipment();sheetView.value='inventory';}catch(e:any){inventoryError.value=e?.message||'No se pudo guardar el escudo.';}finally{shieldSaving.value=false;}}
-async function savePhysicalShield(){if(!route.params.id||!physicalShieldDraft.value.name.trim())return;shieldSaving.value=true;inventoryError.value='';try{const b={...physicalShieldDraft.value,name:physicalShieldDraft.value.name.trim(),rd:Number(physicalShieldDraft.value.rd),armor:Number(physicalShieldDraft.value.armor),defense:Number(physicalShieldDraft.value.defense)};if(selectedPhysicalShield.value)await api.updatePhysicalShield(String(route.params.id),selectedPhysicalShield.value.id,b);else await api.createPhysicalShieldInventory(String(route.params.id),b);await loadProtectiveEquipment();sheetView.value='inventory';}catch(e:any){inventoryError.value=e?.message||'No se pudo guardar el escudo.';}finally{shieldSaving.value=false;}}
-async function deleteArmor(){if(!route.params.id||!selectedArmor.value||!confirm(`¿Eliminar ${selectedArmor.value.name}?`))return;await api.deleteArmor(String(route.params.id),selectedArmor.value.id);await loadProtectiveEquipment();closeArmorDetailModal();}
-async function deleteShield(){if(!route.params.id||!selectedShield.value||!confirm(`¿Eliminar ${selectedShield.value.name}?`))return;await api.deleteShield(String(route.params.id),selectedShield.value.id);await loadProtectiveEquipment();closeShieldDetailModal();}
-async function deletePhysicalShield(){if(!route.params.id||!selectedPhysicalShield.value||!confirm(`¿Eliminar ${selectedPhysicalShield.value.name}?`))return;await api.deletePhysicalShield(String(route.params.id),selectedPhysicalShield.value.id);await loadProtectiveEquipment();closePhysicalShieldDetailModal();}
+async function saveArmor(){ if(!route.params.id||!armorDraft.value.name.trim()||!armorDraft.value.slots.length)return; armorSaving.value=true;inventoryError.value='';try{const b={...armorDraft.value,name:armorDraft.value.name.trim(),slots:Object.fromEntries(armorDraft.value.slots.map(s=>[s,{rd:Number(armorDraft.value.rdBySlot[s]||0),armor:Number(armorDraft.value.armorBySlot[s]||0)}]))};if(selectedArmor.value)await api.updateArmor(String(route.params.id),selectedArmor.value.id,b);else await api.createArmorInventory(String(route.params.id),b);await reloadInventoryDocument();sheetView.value='inventory';}catch(e:any){inventoryError.value=e?.message||'No se pudo guardar la armadura.';}finally{armorSaving.value=false;}}
+async function saveShield(){if(!route.params.id||!shieldDraft.value.name.trim())return;shieldSaving.value=true;inventoryError.value='';try{const b={...shieldDraft.value,name:shieldDraft.value.name.trim(),hitPoints:Number(shieldDraft.value.hitPoints)};if(selectedShield.value)await api.updateShield(String(route.params.id),selectedShield.value.id,b);else await api.createShieldInventory(String(route.params.id),b);await reloadInventoryDocument();sheetView.value='inventory';}catch(e:any){inventoryError.value=e?.message||'No se pudo guardar el escudo.';}finally{shieldSaving.value=false;}}
+async function savePhysicalShield(){if(!route.params.id||!physicalShieldDraft.value.name.trim())return;shieldSaving.value=true;inventoryError.value='';try{const b={...physicalShieldDraft.value,name:physicalShieldDraft.value.name.trim(),rd:Number(physicalShieldDraft.value.rd),armor:Number(physicalShieldDraft.value.armor),defense:Number(physicalShieldDraft.value.defense)};if(selectedPhysicalShield.value)await api.updatePhysicalShield(String(route.params.id),selectedPhysicalShield.value.id,b);else await api.createPhysicalShieldInventory(String(route.params.id),b);await reloadInventoryDocument();sheetView.value='inventory';}catch(e:any){inventoryError.value=e?.message||'No se pudo guardar el escudo.';}finally{shieldSaving.value=false;}}
+async function deleteArmor(){if(!route.params.id||!selectedArmor.value||!confirm(`¿Eliminar ${selectedArmor.value.name}?`))return;await api.deleteArmor(String(route.params.id),selectedArmor.value.id);await reloadInventoryDocument();closeArmorDetailModal();}
+async function deleteShield(){if(!route.params.id||!selectedShield.value||!confirm(`¿Eliminar ${selectedShield.value.name}?`))return;await api.deleteShield(String(route.params.id),selectedShield.value.id);await reloadInventoryDocument();closeShieldDetailModal();}
+async function deletePhysicalShield(){if(!route.params.id||!selectedPhysicalShield.value||!confirm(`¿Eliminar ${selectedPhysicalShield.value.name}?`))return;await api.deletePhysicalShield(String(route.params.id),selectedPhysicalShield.value.id);await reloadInventoryDocument();closePhysicalShieldDetailModal();}
 function weaponAt(slot:string){ return weapons.value.find(w => w.slot === slot); }
-function weaponImage(weapon: Weapon | WeaponCatalogItem){ const url=weapon.imageUrl?.startsWith('/weapons/') && 'catalogWeaponId' in weapon && weapon.catalogWeaponId ? `/api/weapon-catalog/${encodeURIComponent(weapon.catalogWeaponId)}/image` : weapon.imageUrl || undefined; return url?.startsWith('/api/weapon-catalog/') ? `${url}?v=3` : url; }
-function weaponCatalogImage(weapon: WeaponCatalogItem){ return weapon.imageUrl?.startsWith('/api/weapon-catalog/') ? `${weapon.imageUrl}?v=3` : weapon.imageUrl || undefined; }
-function weaponDamage(weapon: Weapon | WeaponCatalogItem){ return [weapon.damageVital, weapon.damageNormal, weapon.damageLight, weapon.damageVeryLight].join('/'); }
+function weaponImage(weapon: Weapon | WeaponCatalogItem){ return weapon.imageUrl || undefined; }
+function weaponCatalogImage(weapon: WeaponCatalogItem){ return weapon.imageUrl || undefined; }
+function weaponDamage(weapon: WeaponDamage){ return [weapon.damageVital, weapon.damageNormal, weapon.damageLight, weapon.damageVeryLight].join('/'); }
 function weaponRate(rate: string | null | undefined){ const value=String(rate ?? '').trim(); return value ? (value.toLowerCase().includes('x') ? value : `x${value}`) : '—'; }
 function numericWeaponValue(value: string | number | null | undefined){ const match=String(value ?? '').match(/\d+(?:[.,]\d+)?/); return match ? Math.max(0, Math.floor(Number(match[0].replace(',', '.')))) : 0; }
 function weaponCadence(weapon: Weapon){ return Math.max(1, numericWeaponValue(weapon.rate)); }
@@ -980,10 +1069,10 @@ function weaponMoveTargets(w:Weapon){ return compatibleSlots(w.size).filter(targ
 function onWeaponSlotChange(){ if(!compatibleSizes(weaponDraft.value.slot).includes(weaponDraft.value.size)) weaponDraft.value.size=compatibleSizes(weaponDraft.value.slot)[0]; }
 function onWeaponSizeChange(){ if(!compatibleSlots(weaponDraft.value.size).includes(weaponDraft.value.slot)) weaponDraft.value.slot=compatibleSlots(weaponDraft.value.size)[0]; }
 function openNewWeapon(slot?:string){ selectedWeapon.value=null; weaponSlotLocked.value=slot !== undefined; catalogSlot.value=slot ?? 'SMALL_1'; weaponDraft.value=emptyWeaponDraft(catalogSlot.value); customImageUrl.value=null; sheetView.value='weapon-choice'; }
-async function loadWeaponCatalog(){ catalogLoading.value=true; inventoryError.value=''; try { catalogWeapons.value=await api.weaponCatalog(catalogSlot.value,catalogSearch.value,catalogType.value); } catch(e:any) { inventoryError.value=e?.message || 'No se pudo cargar el catálogo de armas.'; } finally { catalogLoading.value=false; } }
+async function loadWeaponCatalog(){ catalogLoading.value=true; inventoryError.value=''; try { const catalog=await loadStaticObjects(); const sizes=catalogSlot.value.startsWith('SMALL')?['PEQUENA']:catalogSlot.value.startsWith('MEDIUM')?['PEQUENA','MEDIANA']:['GRANDE','ENORME']; catalogWeapons.value=catalog.weapons.filter(item=>sizes.includes(item.size) && (!catalogType.value || item.weaponType===catalogType.value)); } catch(e:any) { catalogWeapons.value=[]; inventoryError.value=e?.message || 'No se pudo cargar el catálogo estático de armas.'; } finally { catalogLoading.value=false; } }
 function openWeaponCatalog(){ sheetView.value='weapon-catalog'; loadWeaponCatalog(); }
 async function selectCatalogWeapon(item:WeaponCatalogItem){ selectedCatalogWeapon.value=item; showCatalogWeaponModal.value=true; }
-async function addSelectedCatalogWeapon(){ if(!route.params.id || !selectedCatalogWeapon.value) return; catalogLoading.value=true; inventoryError.value=''; try { await api.addCatalogWeaponToCharacter(selectedCatalogWeapon.value.id,String(route.params.id),catalogSlot.value); await loadWeapons(); showCatalogWeaponModal.value=false; selectedCatalogWeapon.value=null; sheetView.value='inventory'; } catch(e:any) { inventoryError.value=e?.message || 'No se pudo añadir el arma seleccionada.'; } finally { catalogLoading.value=false; } }
+async function addSelectedCatalogWeapon(){ if(!route.params.id || !selectedCatalogWeapon.value) return; catalogLoading.value=true; inventoryError.value=''; try { await api.addCatalogWeaponToCharacter(selectedCatalogWeapon.value.id,String(route.params.id),catalogSlot.value); await reloadInventoryDocument(); showCatalogWeaponModal.value=false; selectedCatalogWeapon.value=null; sheetView.value='inventory'; } catch(e:any) { inventoryError.value=e?.message || 'No se pudo añadir el arma seleccionada.'; } finally { catalogLoading.value=false; } }
 async function onCustomWeaponImage(event:Event){ const file=(event.target as HTMLInputElement).files?.[0]; if(!file) return; if(!file.type.startsWith('image/') || file.size>5_000_000){ inventoryError.value='Selecciona una imagen de hasta 5 MB.'; return; } customImageUrl.value=await new Promise<string>((resolve,reject)=>{ const reader=new FileReader(); reader.onload=()=>resolve(String(reader.result)); reader.onerror=reject; reader.readAsDataURL(file); }); }
 function openInventoryType(){ sheetView.value='inventory-type'; }
 function openWeapon(w:Weapon){ selectedWeapon.value=w; weaponSlotLocked.value=true; weaponEditMode.value=false; weaponDraft.value={...w}; showWeaponDetailModal.value=true; }
@@ -995,8 +1084,7 @@ async function reloadWeapon(weapon: Weapon){
   weaponReloading.value=true; inventoryError.value='';
   try {
     const result = await api.reloadWeapon(String(route.params.id), weapon.id);
-    await loadWeapons();
-    await loadAmmunition();
+    await reloadInventoryDocument();
     inventoryError.value = result.missing > 0
       ? `Recarga parcial: se consumieron ${result.consumed} balas y faltan ${result.missing} balas.`
       : '';
@@ -1009,7 +1097,7 @@ function closeShoot(){ showShootModal.value=false; shootWeaponTarget.value=null;
 async function shootWeapon(weapon: Weapon, shots: number, automatic=false){
   if(!route.params.id || weaponShooting.value) return;
   weaponShooting.value=true; inventoryError.value='';
-  try { await api.shootWeapon(String(route.params.id), weapon.id, shots, automatic); await loadWeapons(); closeShoot(); openWeaponAimRolls(weapon, automatic ? weaponCadence(weapon) : shots); }
+  try { await api.shootWeapon(String(route.params.id), weapon.id, shots, automatic); await reloadInventoryDocument(); closeShoot(); openWeaponAimRolls(weapon, automatic ? weaponCadence(weapon) : shots); }
   catch(e:any){ inventoryError.value=e?.message||(isMeleeWeapon(weapon) ? 'No se pudo atacar con el arma.' : 'No se pudo disparar el arma.'); }
   finally { weaponShooting.value=false; }
 }
@@ -1017,30 +1105,315 @@ function ammunitionForCaliber(caliber: string | null | undefined){
   if(!caliber) return 0;
   return ammunition.value.find(item => item.caliber === caliber)?.quantity ?? 0;
 }
-async function saveWeapon(){ if(!route.params.id || !weaponDraft.value.name.trim() || (!isMeleeWeapon(weaponDraft.value as Weapon) && !weaponDraft.value.caliber?.trim()) || !weaponDraft.value.rate.trim()) return; weaponSaving.value=true; inventoryError.value=''; try { const body={...weaponDraft.value,name:weaponDraft.value.name.trim(),caliber:isMeleeWeapon(weaponDraft.value as Weapon) ? null : weaponDraft.value.caliber?.trim(),rate:weaponDraft.value.rate.trim(),range:Number(weaponDraft.value.range),reload:Number(weaponDraft.value.reload),damageVital:Number(weaponDraft.value.damageVital),damageNormal:Number(weaponDraft.value.damageNormal),damageLight:Number(weaponDraft.value.damageLight),damageVeryLight:Number(weaponDraft.value.damageVeryLight),aim:weaponDraft.value.aim==null?null:Number(weaponDraft.value.aim),capacity:Number(weaponDraft.value.capacity),loadedBullets:Number(weaponDraft.value.loadedBullets)}; if(selectedWeapon.value) await api.updateWeapon(String(route.params.id),selectedWeapon.value.id,body); else { const { loadedBullets: _loadedBullets, ...catalogBody } = body; const catalog=await api.createCatalogWeapon({...catalogBody,imageUrl:customImageUrl.value}); await api.addCatalogWeaponToCharacter(catalog.id,String(route.params.id),weaponDraft.value.slot); } await loadWeapons(); closeWeaponDetail(); } catch(e:any){inventoryError.value=e?.message||'No se pudo guardar el arma.';} finally{weaponSaving.value=false;} }
-async function deleteWeapon(){if(!route.params.id||!selectedWeapon.value||!confirm(`¿Eliminar ${selectedWeapon.value.name}?`))return;weaponDeleting.value=true;try{await api.deleteWeapon(String(route.params.id),selectedWeapon.value.id);await loadWeapons();closeWeaponDetail();}catch(e:any){inventoryError.value=e?.message||'No se pudo eliminar el arma.';}finally{weaponDeleting.value=false;}}
-async function moveWeapon(w:Weapon,slot:string){if(slot===w.slot||!route.params.id)return;if(!weaponMoveTargets(w).includes(slot)){inventoryError.value='El intercambio no es válido: ambas armas deben poder entrar en el hueco de la otra.';return;}weaponMoving.value=true;try{const moved=await api.moveWeapon(String(route.params.id),w.id,slot);if(selectedWeapon.value?.id===w.id){selectedWeapon.value=moved;weaponDraft.value={...moved};}await loadWeapons();}catch(e:any){inventoryError.value=e?.message||'El arma no cabe en ese hueco.';}finally{weaponMoving.value=false;}}
+function normalizeAmmunitionCaliber(caliber: string | null | undefined) {
+  return (caliber || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/\s+/g, ' ');
+}
+const ammunitionImageByCaliber: Record<string, string> = {
+  [normalizeAmmunitionCaliber('.9mm')]: '/ammunition/caliber-001.png',
+  [normalizeAmmunitionCaliber('.44 Magnum')]: '/ammunition/caliber-002.png',
+  [normalizeAmmunitionCaliber('.38')]: '/ammunition/caliber-003.png',
+  [normalizeAmmunitionCaliber('.45 ACP')]: '/ammunition/caliber-004.png',
+  [normalizeAmmunitionCaliber('.357 Magnum')]: '/ammunition/caliber-005.png',
+  [normalizeAmmunitionCaliber('.50 AE')]: '/ammunition/caliber-006.png',
+  [normalizeAmmunitionCaliber('.41 AE')]: '/ammunition/caliber-007.png',
+  [normalizeAmmunitionCaliber('.9x18')]: '/ammunition/caliber-008.png',
+  [normalizeAmmunitionCaliber('.380 ACP')]: '/ammunition/caliber-009.png',
+  [normalizeAmmunitionCaliber('.45')]: '/ammunition/caliber-010.png',
+  [normalizeAmmunitionCaliber('.357')]: '/ammunition/caliber-011.png',
+  [normalizeAmmunitionCaliber('5,7 x 28mm')]: '/ammunition/caliber-012.png',
+  [normalizeAmmunitionCaliber('5.45 x 39mm')]: '/ammunition/caliber-013.png',
+  [normalizeAmmunitionCaliber('4m6 x 30mm')]: '/ammunition/caliber-014.png',
+  [normalizeAmmunitionCaliber('.32 ACP')]: '/ammunition/caliber-015.png',
+  [normalizeAmmunitionCaliber('5.56')]: '/ammunition/caliber-016.png',
+  [normalizeAmmunitionCaliber('7.62 x 39mm')]: '/ammunition/caliber-017.png',
+  [normalizeAmmunitionCaliber('7.62 x 51mm')]: '/ammunition/caliber-018.png',
+  [normalizeAmmunitionCaliber('.300 WM')]: '/ammunition/caliber-019.png',
+  [normalizeAmmunitionCaliber('30.06')]: '/ammunition/caliber-020.png',
+  [normalizeAmmunitionCaliber('308 Winchester')]: '/ammunition/caliber-021.png',
+  [normalizeAmmunitionCaliber('500 Jeffery')]: '/ammunition/caliber-022.png',
+  [normalizeAmmunitionCaliber('.22 Hornet')]: '/ammunition/caliber-023.png',
+  [normalizeAmmunitionCaliber('.300 Winchester Magnum')]: '/ammunition/caliber-024.png',
+  [normalizeAmmunitionCaliber('7.62')]: '/ammunition/caliber-025.png',
+  [normalizeAmmunitionCaliber('.338 Laupa Magnum')]: '/ammunition/caliber-026.png',
+  [normalizeAmmunitionCaliber('12,7x99')]: '/ammunition/caliber-027.png',
+  [normalizeAmmunitionCaliber('7.62 x 54R')]: '/ammunition/caliber-028.png',
+  [normalizeAmmunitionCaliber('12.7x99')]: '/ammunition/caliber-029.png',
+  [normalizeAmmunitionCaliber('.12')]: '/ammunition/caliber-030.png',
+  [normalizeAmmunitionCaliber('.12Alternativamente puede funcionar con Cadencia 1x4 a eleccion de cada accion de disparo.')]: '/ammunition/caliber-031.png',
+  [normalizeAmmunitionCaliber('.12 Alternativamente puede funcionar con Cadencia 1x4 a eleccion de cada accion de disparo.')]: '/ammunition/caliber-032.png',
+  [normalizeAmmunitionCaliber('5.56 x 45mm')]: '/ammunition/caliber-033.png',
+  [normalizeAmmunitionCaliber('LG ligero')]: '/ammunition/caliber-034.png',
+  [normalizeAmmunitionCaliber('LG pesado')]: '/ammunition/caliber-035.png',
+};
+function ammunitionImage(caliber: string | null | undefined) {
+  return ammunitionImageByCaliber[normalizeAmmunitionCaliber(caliber)] || '/ammunition/special.png';
+}
+function hideBrokenAmmunitionImage(event: Event) { (event.currentTarget as HTMLImageElement).hidden = true; }
+async function saveWeapon(){ if(!route.params.id || !weaponDraft.value.name.trim() || (!isMeleeWeapon(weaponDraft.value as Weapon) && !weaponDraft.value.caliber?.trim()) || !weaponDraft.value.rate.trim()) return; weaponSaving.value=true; inventoryError.value=''; try { const body={...weaponDraft.value,name:weaponDraft.value.name.trim(),caliber:isMeleeWeapon(weaponDraft.value as Weapon) ? null : weaponDraft.value.caliber?.trim(),rate:weaponDraft.value.rate.trim(),range:Number(weaponDraft.value.range),reload:Number(weaponDraft.value.reload),damageVital:Number(weaponDraft.value.damageVital),damageNormal:Number(weaponDraft.value.damageNormal),damageLight:Number(weaponDraft.value.damageLight),damageVeryLight:Number(weaponDraft.value.damageVeryLight),aim:weaponDraft.value.aim==null?null:Number(weaponDraft.value.aim),capacity:Number(weaponDraft.value.capacity),loadedBullets:Number(weaponDraft.value.loadedBullets)}; if(selectedWeapon.value) await api.updateWeapon(String(route.params.id),selectedWeapon.value.id,body); else { const { loadedBullets: _loadedBullets, ...catalogBody } = body; const catalog=await api.createCatalogWeapon({...catalogBody,imageUrl:customImageUrl.value}); customWeaponCatalog.value = await api.customWeaponCatalog(); await api.addCatalogWeaponToCharacter(catalog.id,String(route.params.id),weaponDraft.value.slot); } await reloadInventoryDocument(); closeWeaponDetail(); } catch(e:any){inventoryError.value=e?.message||'No se pudo guardar el arma.';} finally{weaponSaving.value=false;} }
+async function deleteWeapon(){if(!route.params.id||!selectedWeapon.value||!confirm(`¿Eliminar ${selectedWeapon.value.name}?`))return;weaponDeleting.value=true;try{await api.deleteWeapon(String(route.params.id),selectedWeapon.value.id);await reloadInventoryDocument();closeWeaponDetail();}catch(e:any){inventoryError.value=e?.message||'No se pudo eliminar el arma.';}finally{weaponDeleting.value=false;}}
+async function moveWeapon(w:Weapon,slot:string){if(slot===w.slot||!route.params.id)return;if(!weaponMoveTargets(w).includes(slot)){inventoryError.value='El intercambio no es válido: ambas armas deben poder entrar en el hueco de la otra.';return;}weaponMoving.value=true;try{const moved=await api.moveWeapon(String(route.params.id),w.id,slot);if(selectedWeapon.value?.id===w.id){selectedWeapon.value=moved;weaponDraft.value={...moved};}await reloadInventoryDocument();}catch(e:any){inventoryError.value=e?.message||'El arma no cabe en ese hueco.';}finally{weaponMoving.value=false;}}
 function emptyInventoryDraft(): Omit<OtherInventoryItem, 'id'> { return { name: '', description: '', location: '', quantity: 1, unitValue: 0 }; }
 function openInventory() { navigateToSection('inventory'); }
-function emptyAmmunitionDraft(): Omit<Ammunition, 'id'> { return { caliber: ammunitionCalibers.value[0] || '', quantity: 1 }; }
-function openNewAmmunition() { selectedAmmunition.value = null; ammunitionDraft.value = emptyAmmunitionDraft(); sheetView.value = 'ammunition-detail'; }
-function openAmmunition(item: Ammunition) { selectedAmmunition.value = item; ammunitionDraft.value = { caliber: item.caliber, quantity: item.quantity }; sheetView.value = 'ammunition-detail'; }
-function closeAmmunitionDetail() { selectedAmmunition.value = null; sheetView.value = 'inventory'; }
-async function saveAmmunition() {
-  if (!route.params.id || !ammunitionDraft.value.caliber || Number(ammunitionDraft.value.quantity) < 1) return;
+function emptyAmmunitionDraft(): AmmunitionDraft { return { type:'CALIBER', caliber: ammunitionCalibers.value[0] || '', grenadeCatalogId: grenadeCatalog.value[0]?.id || '', quantity: 1 }; }
+function openNewAmmunition() { selectedAmmunition.value = null; ammunitionDraft.value = emptyAmmunitionDraft(); selectedAmmunitionCatalogCaliber.value = null; showAmmunitionCatalogModal.value = false; inventoryError.value = ''; sheetView.value = 'ammunition-catalog'; }
+function ammunitionCatalogStock(caliber: string | null) { return caliber ? ammunitionForCaliber(caliber) : 0; }
+function selectAmmunitionCaliber(caliber: string) { selectedAmmunitionCatalogCaliber.value = caliber; ammunitionDraft.value.quantity = 1; showAmmunitionCatalogModal.value = true; }
+function closeAmmunitionCatalogModal() { showAmmunitionCatalogModal.value = false; selectedAmmunitionCatalogCaliber.value = null; }
+async function addAmmunitionFromCatalog() {
+  const caliber = selectedAmmunitionCatalogCaliber.value;
+  const quantity = Number(ammunitionDraft.value.quantity);
+  if (!route.params.id || !caliber || !Number.isInteger(quantity) || quantity < 1 || ammunitionSaving.value) return;
   ammunitionSaving.value = true; inventoryError.value = '';
   try {
-    const body = { caliber: ammunitionDraft.value.caliber, quantity: Number(ammunitionDraft.value.quantity) };
+    await api.createAmmunition(String(route.params.id), { type:'CALIBER', caliber, grenadeCatalogId:null, quantity });
+    await reloadInventoryDocument();
+    closeAmmunitionCatalogModal();
+    sheetView.value = 'inventory';
+  } catch (e: any) { inventoryError.value = e?.message || 'No se pudo añadir la munición.'; }
+  finally { ammunitionSaving.value = false; }
+}
+function emptyGrenadeCatalogDraft(): GrenadeCatalogDraft { return { name:'', description:'', additionalEffect:'—', centralDamage:400, adjacentDamage:100, damageDecay:20, handGrenade:true, type:'' }; }
+function emptyGrenadeCustomDraft(): GrenadeCustomDraft { return { name:'', description:'', additionalEffect:'—', centralDamage:400, adjacentDamage:100, damageDecay:20, launchType:'Mano', quantity:1 }; }
+function openGrenadeChoice() {
+  selectedGrenadeInventory.value = null;
+  showGrenadeCatalogModal.value = false;
+  grenadeInventoryQuantity.value = 1;
+  grenadeCustomDraft.value = emptyGrenadeCustomDraft();
+  sheetView.value = 'grenade-choice';
+  if (!grenadeCatalog.value.length) loadGrenadeCatalog();
+}
+function openGrenadeCatalogSelection() {
+  selectedGrenadeInventory.value = null;
+  showGrenadeCatalogModal.value = false;
+  grenadeInventoryQuantity.value = 1;
+  sheetView.value = 'grenade-catalog-select';
+  if (!grenadeCatalog.value.length) loadGrenadeCatalog();
+}
+function openCustomGrenade() {
+  grenadeCustomDraft.value = emptyGrenadeCustomDraft();
+  sheetView.value = 'grenade-custom-detail';
+}
+async function openGrenadeCatalog() { await loadGrenadeCatalog(); selectedGrenadeCatalog.value = null; grenadeCatalogDraft.value = emptyGrenadeCatalogDraft(); sheetView.value = 'grenade-catalog'; }
+function editGrenadeCatalog(item: GrenadeCatalogItem) { selectedGrenadeCatalog.value = item; grenadeCatalogDraft.value = { name:item.name, description:item.description || '', additionalEffect:item.additionalEffect || '—', centralDamage:item.centralDamage, adjacentDamage:item.adjacentDamage, damageDecay:item.damageDecay, handGrenade:item.handGrenade, type:item.type || '' }; sheetView.value = 'grenade-catalog'; }
+async function saveGrenadeCatalog() {
+  if (!grenadeCatalogDraft.value.name.trim() || Number(grenadeCatalogDraft.value.centralDamage) < 0 || Number(grenadeCatalogDraft.value.adjacentDamage) < 0 || Number(grenadeCatalogDraft.value.damageDecay) < 0) return;
+  grenadeCatalogSaving.value = true; inventoryError.value = '';
+  try {
+    const body = { ...grenadeCatalogDraft.value, name:grenadeCatalogDraft.value.name.trim(), description:grenadeCatalogDraft.value.description.trim() || null, additionalEffect:grenadeCatalogDraft.value.additionalEffect, centralDamage:Number(grenadeCatalogDraft.value.centralDamage), adjacentDamage:Number(grenadeCatalogDraft.value.adjacentDamage), damageDecay:Number(grenadeCatalogDraft.value.damageDecay), type:grenadeCatalogDraft.value.handGrenade ? null : (grenadeCatalogDraft.value.type.trim() || null) };
+    if (selectedGrenadeCatalog.value) await api.updateCatalogGrenade(selectedGrenadeCatalog.value.id, body);
+    else await api.createCatalogGrenade(body);
+    await reloadGrenadeCatalog(); selectedGrenadeCatalog.value = null; grenadeCatalogDraft.value = emptyGrenadeCatalogDraft();
+  } catch (e:any) { inventoryError.value = e?.message || 'No se pudo guardar la granada del catálogo.'; }
+  finally { grenadeCatalogSaving.value = false; }
+}
+async function deleteGrenadeCatalog(item: GrenadeCatalogItem) {
+  if (!confirm(`¿Eliminar ${item.name}?`)) return;
+  grenadeCatalogDeleting.value = true; inventoryError.value = '';
+  try { await api.deleteCatalogGrenade(item.id); await reloadGrenadeCatalog(); if (selectedGrenadeCatalog.value?.id === item.id) { selectedGrenadeCatalog.value = null; grenadeCatalogDraft.value = emptyGrenadeCatalogDraft(); } }
+  catch (e:any) { inventoryError.value = e?.message || 'No se pudo eliminar la granada del catálogo.'; }
+  finally { grenadeCatalogDeleting.value = false; }
+}
+function openAmmunition(item: Ammunition) {
+  if (item.type === 'GRENADE') { openGrenadeDetail(item); return; }
+  selectedAmmunition.value = item;
+  ammunitionDraft.value = { type:'CALIBER', caliber: item.caliber || '', grenadeCatalogId:'', quantity: item.quantity };
+  sheetView.value = 'ammunition-detail';
+}
+function closeAmmunitionDetail() { selectedAmmunition.value = null; sheetView.value = 'inventory'; }
+async function saveAmmunition() {
+  if (!route.params.id || !Number.isInteger(Number(ammunitionDraft.value.quantity)) || Number(ammunitionDraft.value.quantity) < 1 || (ammunitionDraft.value.type === 'CALIBER' ? !ammunitionDraft.value.caliber : !ammunitionDraft.value.grenadeCatalogId)) return;
+  ammunitionSaving.value = true; inventoryError.value = '';
+  try {
+    const body = { type: ammunitionDraft.value.type, caliber: ammunitionDraft.value.type === 'CALIBER' ? ammunitionDraft.value.caliber : null, grenadeCatalogId: ammunitionDraft.value.type === 'GRENADE' ? ammunitionDraft.value.grenadeCatalogId : null, quantity: Number(ammunitionDraft.value.quantity) };
     if (selectedAmmunition.value) await api.updateAmmunition(String(route.params.id), selectedAmmunition.value.id, body);
     else await api.createAmmunition(String(route.params.id), body);
-    await loadAmmunition(); closeAmmunitionDetail();
+    await reloadInventoryDocument(); closeAmmunitionDetail();
   } catch (e: any) { inventoryError.value = e?.message || 'No se pudo guardar la munición.'; }
   finally { ammunitionSaving.value = false; }
 }
+function grenadeInventoryItem(catalogId: string) { return ammunition.value.find(item => item.type === 'GRENADE' && item.grenadeCatalogId === catalogId); }
+const grenadeIllustrationGlyphs = ['✦', '☣', '∿', '✹', '⚡', '◈'] as const;
+function grenadeIllustration(grenade: GrenadeCatalogItem) {
+  const seed = `${grenade.id}:${grenade.type || ''}`;
+  const hash = [...seed].reduce((total, character) => ((total * 31) + character.charCodeAt(0)) >>> 0, 0);
+  const searchText = `${grenade.id} ${grenade.type || ''}`.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const launcherType = (grenade.type || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const asset = grenade.handGrenade
+    ? searchText.includes('fragment') || /\b(he|hedp)\b/.test(searchText)
+      ? '/grenades/fragmentation.png'
+      : /conmocion|aturdidora|stun/.test(searchText)
+        ? '/grenades/stun.png'
+        : /humo|iluminacion|smoke/.test(searchText)
+          ? '/grenades/smoke.png'
+          : /gas lacrimogeno|lacrimogeno|tear gas|gas/.test(searchText)
+            ? '/grenades/gas.png'
+            : /incendiaria|incendiario|incendiary/.test(searchText)
+              ? '/grenades/incendiary.png'
+              : undefined
+    : launcherType.includes('lp')
+      ? /airburst/.test(searchText)
+        ? '/grenades/lp-airburst.png'
+        : '/grenades/lp-heavy.png'
+      : launcherType.includes('lg')
+        ? /hedp/.test(searchText)
+          ? '/grenades/lg-hedp.png'
+          : searchText.includes('fragment') || /\bhe\b/.test(searchText)
+            ? '/grenades/lg-fragmentation.png'
+            : /conmocion|aturdidora|stun/.test(searchText)
+              ? '/grenades/lg-stun.png'
+              : /humo|iluminacion|smoke/.test(searchText)
+                ? '/grenades/lg-smoke.png'
+                : '/grenades/launcher.png'
+        : undefined;
+  return { asset, alt: `Ilustración de ${grenade.name}`, glyph: grenadeIllustrationGlyphs[hash % grenadeIllustrationGlyphs.length], tone: `grenade-tone-${hash % grenadeIllustrationGlyphs.length}` };
+}
+function hideBrokenGrenadeImage(event: Event) { (event.currentTarget as HTMLImageElement).hidden = true; }
+function grenadeTypeLabel(grenade: GrenadeCatalogItem) {
+  if (grenade.handGrenade) return 'Mano';
+  const type = (grenade.type || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if (type.includes('lp') || type.includes('pesad')) return 'Lanzagranadas pesado';
+  if (type.includes('lg') || type.includes('liger')) return 'Lanzagranadas ligero';
+  return grenade.type || 'Necesita arma';
+}
+function closeGrenadeCatalogModal() { showGrenadeCatalogModal.value = false; selectedGrenadeInventory.value = null; }
+async function addGrenadeFromCatalog() {
+  const quantity = Number(grenadeInventoryQuantity.value);
+  if (!route.params.id || !selectedGrenadeInventory.value || !Number.isInteger(quantity) || quantity < 1) return;
+  const catalogId = selectedGrenadeInventory.value.id;
+  grenadeInventorySaving.value = true; inventoryError.value = '';
+  try {
+    await api.createAmmunition(String(route.params.id), { type:'GRENADE', caliber:null, grenadeCatalogId:catalogId, quantity });
+    await reloadInventoryDocument();
+    const item = grenadeInventoryItem(catalogId);
+    closeGrenadeCatalogModal();
+    if (item) { sheetView.value = 'inventory'; openGrenadeDetail(item); }
+  } catch (e:any) { inventoryError.value = e?.message || 'No se pudo añadir la granada.'; }
+  finally { grenadeInventorySaving.value = false; }
+}
+function selectGrenadeFromCatalog(grenade: GrenadeCatalogItem) {
+  selectedGrenadeInventory.value = grenade;
+  grenadeInventoryQuantity.value = 1;
+  showGrenadeCatalogModal.value = true;
+}
+async function saveCustomGrenade() {
+  const draft = grenadeCustomDraft.value;
+  if (!route.params.id || !draft.name.trim() || !draft.additionalEffect.trim() || Number(draft.centralDamage) < 0 || Number(draft.adjacentDamage) < 0 || Number(draft.damageDecay) < 0 || Number(draft.quantity) < 1) return;
+  grenadeInventorySaving.value = true; inventoryError.value = '';
+  try {
+     const catalogGrenade = await api.createCatalogGrenade({
+      name:draft.name.trim(), description:draft.description.trim() || null,
+      additionalEffect:draft.additionalEffect.trim(), centralDamage:Number(draft.centralDamage),
+      adjacentDamage:Number(draft.adjacentDamage), damageDecay:Number(draft.damageDecay),
+       handGrenade:draft.launchType === 'Mano', type:draft.launchType === 'Mano' ? null : draft.launchType,
+     });
+     await reloadGrenadeCatalog();
+     await api.createAmmunition(String(route.params.id), { type:'GRENADE', caliber:null, grenadeCatalogId:catalogGrenade.id, quantity:Number(draft.quantity) });
+    await reloadInventoryDocument();
+    const item = grenadeInventoryItem(catalogGrenade.id);
+    if (item) { sheetView.value = 'inventory'; openGrenadeDetail(item); }
+  } catch (e:any) { inventoryError.value = e?.message || 'No se pudo guardar la granada personalizada.'; }
+  finally { grenadeInventorySaving.value = false; }
+}
+function grenadeFor(item: Ammunition): GrenadeCatalogItem | null {
+  return item.grenade || grenadeCatalog.value.find(grenade => grenade.id === item.grenadeCatalogId) || null;
+}
+function openGrenadeDetail(item: Ammunition) {
+  if (item.type !== 'GRENADE' || !grenadeFor(item)) return;
+  selectedGrenadeAmmunition.value = item;
+  showGrenadeDetailModal.value = true;
+  nextTick(() => document.getElementById('grenade-detail-close')?.focus());
+}
+function closeGrenadeDetail() { showGrenadeDetailModal.value = false; selectedGrenadeAmmunition.value = null; grenadeLaunch.value = null; }
+async function increaseGrenadeQuantity() {
+  const item = selectedGrenadeAmmunition.value;
+  const grenade = item ? grenadeFor(item) : null;
+  if (!route.params.id || !item || !grenade || grenadeInventorySaving.value) return;
+  grenadeInventorySaving.value = true; inventoryError.value = '';
+  try {
+    await api.createAmmunition(String(route.params.id), { type:'GRENADE', caliber:null, grenadeCatalogId:grenade.id, quantity:1 });
+    await reloadInventoryDocument();
+    selectedGrenadeAmmunition.value = grenadeInventoryItem(grenade.id) || item;
+  } catch (e:any) { inventoryError.value = e?.message || 'No se pudo añadir una unidad.'; }
+  finally { grenadeInventorySaving.value = false; }
+}
+async function decreaseGrenadeQuantity() {
+  const item = selectedGrenadeAmmunition.value;
+  if (!route.params.id || !item || item.quantity < 1 || grenadeInventorySaving.value) return;
+  grenadeInventorySaving.value = true; inventoryError.value = '';
+  try {
+    await api.decrementAmmunition(String(route.params.id), item.id, -1);
+    await reloadInventoryDocument();
+    const updated = grenadeInventoryItem(item.grenadeCatalogId || '');
+    if (updated) selectedGrenadeAmmunition.value = updated;
+    else closeGrenadeDetail();
+  } catch (e:any) { inventoryError.value = e?.message || 'No se pudo quitar una unidad.'; }
+  finally { grenadeInventorySaving.value = false; }
+}
+function grenadeDamageAtDistance(grenade: GrenadeCatalogItem, distance: number): number {
+  if (distance === 0) return Math.max(0, grenade.centralDamage);
+  if (distance === 1) return Math.max(0, grenade.adjacentDamage);
+  return Math.max(0, grenade.adjacentDamage - grenade.damageDecay * (distance - 1));
+}
+function grenadeDamageGrid(grenade: GrenadeCatalogItem) {
+  const side = grenadeDamageGridSide(grenade);
+  const radius = Math.floor(side / 2);
+  return Array.from({ length: side * side }, (_, index) => {
+    const x = (index % side) - radius;
+    const y = Math.floor(index / side) - radius;
+    const distance = Math.max(Math.abs(x), Math.abs(y));
+    return { x, y, distance, damage: grenadeDamageAtDistance(grenade, distance), center: distance === 0 };
+  });
+}
+function grenadeDamageGridSide(grenade: GrenadeCatalogItem): number {
+  if (grenade.damageDecay <= 0) return 1;
+  return Math.max(1, Math.ceil((grenade.adjacentDamage / grenade.damageDecay) * 2) + 1);
+}
+function grenadeHasDamage(grenade: GrenadeCatalogItem) { return grenade.centralDamage > 0 || grenade.adjacentDamage > 0; }
+function openGrenadeLaunch() {
+  const ammunitionItem = selectedGrenadeAmmunition.value;
+  const grenade = ammunitionItem ? grenadeFor(ammunitionItem) : null;
+  if (!ammunitionItem || !grenade || !grenade.handGrenade || ammunitionItem.quantity < 1) return;
+  grenadeLaunch.value = { ammunition: ammunitionItem, grenade, phase:'physical', physicalResult:null, maximumRange:null, targetDistance:null, difficulty:null, aimResult:null, consumed:false };
+  showGrenadeDetailModal.value = false;
+  const details = attributeRollDetails('fisico', character.value?.attributeTotals?.fisico ?? attributes.value.fisico ?? 0, true);
+  attributeRoll.value = { ...details, dice:createAttributeRollDice(details.plusD6), grenadePhase:'physical' };
+  showAttributeRoll.value = true;
+  nextTick(() => document.getElementById('attribute-roll-close')?.focus());
+}
+function continueGrenadePhysicalRoll() {
+  if (!grenadeLaunch.value || !attributeRollHasValidSelection.value || attributeRollResult.value === null) return;
+  const result = attributeRollResult.value;
+  grenadeLaunch.value = { ...grenadeLaunch.value, phase:'target', physicalResult:result, maximumRange:10 + Math.floor(result / 3) };
+  attributeRoll.value = null; showAttributeRoll.value = false;
+  nextTick(() => document.getElementById('grenade-distance')?.focus());
+}
+function confirmGrenadeDistance() {
+  const state = grenadeLaunch.value;
+  const distance = Number(state?.targetDistance);
+  if (!state || state.maximumRange === null || !Number.isInteger(distance) || distance < 1 || distance > state.maximumRange) return;
+  const difficulty = 1 + Math.floor(distance / 2);
+  grenadeLaunch.value = { ...state, phase:'aim', targetDistance:distance, difficulty };
+  const details = attributeRollDetails('punteria', character.value?.attributeTotals?.punteria ?? attributes.value.punteria ?? 0, false);
+  attributeRoll.value = { ...details, dice:createAttributeRollDice(details.plusD6), difficulty, grenadePhase:'aim' };
+  showAttributeRoll.value = true;
+  nextTick(() => document.getElementById('attribute-roll-close')?.focus());
+}
+async function confirmGrenadeLaunch() {
+  const state = grenadeLaunch.value;
+  if (!route.params.id || !state || state.phase !== 'aim' || !attributeRollHasValidSelection.value || attributeRollResult.value === null || state.consumed) return;
+  const aimResult = attributeRollResult.value;
+  try {
+    await api.launchGrenade(String(route.params.id), state.grenade.id);
+    grenadeLaunch.value = { ...state, phase:'result', aimResult, consumed:true };
+    attributeRoll.value = { ...attributeRoll.value!, grenadePhase:'aim' };
+    try { await reloadInventoryDocument(); } catch (reloadError: any) { inventoryError.value = reloadError?.message || 'No se pudo actualizar el inventario.'; }
+  } catch (e: any) { inventoryError.value = e?.message || 'No se pudo consumir la granada.'; }
+}
+function closeGrenadeLaunch() { showAttributeRoll.value = false; attributeRoll.value = null; grenadeLaunch.value = null; selectedGrenadeAmmunition.value = null; }
 async function decrementAmmunition(item: Ammunition, amount: -1 | -5 | -10) {
   if (!route.params.id || item.quantity < Math.abs(amount)) return;
   ammunitionDeleting.value = true; inventoryError.value = '';
-  try { await api.decrementAmmunition(String(route.params.id), item.id, amount); await loadAmmunition(); }
+  try { await api.decrementAmmunition(String(route.params.id), item.id, amount); await reloadInventoryDocument(); }
   catch (e: any) { inventoryError.value = e?.message || 'No se pudo descontar la munición.'; }
   finally { ammunitionDeleting.value = false; }
 }
@@ -1054,22 +1427,42 @@ async function saveOtherItem() {
     const body = { ...inventoryDraft.value, name: inventoryDraft.value.name.trim(), quantity: Number(inventoryDraft.value.quantity), unitValue: inventoryDraft.value.unitValue == null ? 0 : Number(inventoryDraft.value.unitValue) };
     if (selectedOtherItem.value) await api.updateOtherInventory(String(route.params.id), selectedOtherItem.value.id, body);
     else await api.createOtherInventory(String(route.params.id), body);
-    await loadOtherInventory(); closeInventoryDetail();
+    await reloadInventoryDocument(); closeInventoryDetail();
   } catch (e: any) { inventoryError.value = e?.message || 'No se pudo guardar el objeto.'; }
   finally { inventorySaving.value = false; }
 }
 async function deleteOtherItem() {
   if (!route.params.id || !selectedOtherItem.value || !window.confirm(`¿Eliminar ${selectedOtherItem.value.name}?`)) return;
   inventoryDeleting.value = true; inventoryError.value = '';
-  try { await api.deleteOtherInventory(String(route.params.id), selectedOtherItem.value.id); await loadOtherInventory(); closeInventoryDetail(); }
+  try { await api.deleteOtherInventory(String(route.params.id), selectedOtherItem.value.id); await reloadInventoryDocument(); closeInventoryDetail(); }
   catch (e: any) { inventoryError.value = e?.message || 'No se pudo eliminar el objeto.'; }
   finally { inventoryDeleting.value = false; }
 }
 
-async function loadTraining() { if (!route.params.id) return; trainingLoading.value=true; try { trainingData.value=await api.training(String(route.params.id)) as typeof trainingData.value; } catch(e:any){ trainingError.value=e?.message||'No se pudo cargar la trayectoria'; } finally { trainingLoading.value=false; } }
+async function reloadTrainingDocument() {
+  if (!route.params.id) return;
+  trainingLoading.value = true; trainingError.value = '';
+  try {
+    applyTrainingResponse(await api.training(String(route.params.id)) as TrainingData);
+    await reloadCharacterDocument();
+  } catch (e: any) { trainingError.value = e?.message || 'No se pudo cargar la trayectoria'; throw e; }
+  finally { trainingLoading.value = false; }
+}
+async function loadTraining() { await reloadTrainingDocument(); }
+function applyTrainingResponse(data: TrainingData) {
+  trainingData.value = data;
+  if (!character.value) return;
+  const modifiers = { ...(character.value.attributeModifiers ?? {}) } as Record<string, AttributeModifier[]>;
+  Object.keys(modifiers).forEach(key => { modifiers[key] = modifiers[key].filter(modifier => !modifier.source?.startsWith('TRAINING:')); });
+  data.activities.forEach(activity => (activity.modifiers ?? []).forEach(modifier => {
+    const rows = modifiers[modifier.attributeKey] ?? (modifiers[modifier.attributeKey] = []);
+    rows.push({ name: modifier.name, value: modifier.value, source: `TRAINING:${activity.id}` });
+  }));
+  character.value = { ...character.value, attributeModifiers: modifiers };
+}
 function trainingPayload() { const course=trainingDraft.value.type==='COURSE'; return {...trainingDraft.value,startAge:course?trainingData.value.startingAge:Number(trainingDraft.value.startAge),endAge:course?trainingData.value.sheetAge:Number(trainingDraft.value.endAge),priority:Number(trainingDraft.value.priority||0),primaryAttribute:trainingDraft.value.primaryAttribute||null,secondaryAttribute:course?null:(trainingDraft.value.secondaryAttribute||null),tertiaryAttribute:course?null:(trainingDraft.value.tertiaryAttribute||null)}; }
-async function refreshTrainingPreview() { if (!route.params.id || !trainingDraft.value.name || !trainingDraft.value.type || trainingDraft.value.startAge == null || trainingDraft.value.endAge == null || Number(trainingDraft.value.endAge) <= Number(trainingDraft.value.startAge)) { trainingPreview.value=null; return; } try { trainingPreview.value=await api.previewTraining(String(route.params.id), {activity:trainingPayload(), replacingActivityId:trainingEditingId.value}) as TrainingPreview; } catch { trainingPreview.value=null; } }
-watch([trainingDraft, trainingEditingId], () => { if (trainingPreviewTimer) clearTimeout(trainingPreviewTimer); trainingPreviewTimer=setTimeout(refreshTrainingPreview, 200); }, {deep:true});
+function refreshTrainingPreview() { if (!trainingDraft.value.name || !trainingDraft.value.type || trainingDraft.value.startAge == null || trainingDraft.value.endAge == null || Number(trainingDraft.value.endAge) <= Number(trainingDraft.value.startAge)) { trainingPreview.value=null; return; } trainingPreview.value = calculateTrainingPreview(character.value ?? {}, trainingData.value.activities, trainingPayload() as any, trainingEditingId.value); }
+watch([trainingDraft, trainingEditingId], refreshTrainingPreview, {deep:true});
 watch(() => trainingDraft.value.startAge, () => { const options=trainingEndAgeOptions.value; if (options.length && !options.includes(Number(trainingDraft.value.endAge))) trainingDraft.value.endAge=options[0]; });
 watch(() => trainingDraft.value.type, type => {
   if (type === 'COURSE') {
@@ -1085,17 +1478,22 @@ watch(() => trainingDraft.value.type, type => {
 });
 function trainingDefaultInterval(){const activities=trainingData.value.activities.filter(a=>a.type!=='COURSE'&&!(a.type==='OCCUPATION'&&a.concurrent));for(let start=trainingData.value.startingAge;start<trainingData.value.sheetAge;start++){for(let end=start+1;end<=trainingData.value.sheetAge;end++){if(!activities.some(a=>start<a.endAge&&a.startAge<end))return{startAge:start,endAge:end};}}return{startAge:trainingData.value.startingAge,endAge:Math.min(trainingData.value.startingAge+1,trainingData.value.sheetAge)};}
 function resetTrainingDraft(){trainingEditingId.value=null;trainingPreview.value=null;trainingDraft.value={type:'FORMATION',name:'',...trainingDefaultInterval(),priority:0,concurrent:false,primaryAttribute:'',secondaryAttribute:'',tertiaryAttribute:''};}
-function openTraining() { resetTrainingDraft(); showTrainingForm.value=true; showTrainingModal.value=true; }
+  async function openTraining() { await reloadTrainingDocument(); showTrainingModal.value=true; if (!trainingData.value.enabled) return; resetTrainingDraft(); showTrainingForm.value=true; }
+
+  function closeTraining() {
+    applyTrainingResponse(trainingData.value);
+    showTrainingModal.value = false;
+  }
 function editTraining(a:TrainingActivity){trainingPreview.value=null;trainingEditingId.value=a.id;trainingDraft.value={...a};showTrainingForm.value=true;}
-async function saveTraining(){if(!route.params.id||!trainingDraft.value.name)return;trainingLoading.value=true;trainingError.value='';try{const b=trainingPayload();if(trainingEditingId.value)await api.updateTraining(String(route.params.id),trainingEditingId.value,b);else await api.addTraining(String(route.params.id),b);await loadTraining();character.value=await api.get(String(route.params.id));resetTrainingDraft();showTrainingForm.value=false;}catch(e:any){trainingError.value=e?.message||'No se pudo guardar';}finally{trainingLoading.value=false;}}
-async function removeTraining(a:TrainingActivity){if(!route.params.id||!window.confirm(`¿Eliminar ${a.name}?`))return;trainingLoading.value=true;try{await api.deleteTraining(String(route.params.id),a.id);await loadTraining();character.value=await api.get(String(route.params.id));}catch(e:any){trainingError.value=e?.message||'No se pudo eliminar';}finally{trainingLoading.value=false;}}
+async function saveTraining(){if(!route.params.id||!trainingDraft.value.name)return;try{const b=trainingPayload();await (trainingEditingId.value?api.updateTraining(String(route.params.id),trainingEditingId.value,b):api.addTraining(String(route.params.id),b));await reloadTrainingDocument();resetTrainingDraft();showTrainingForm.value=false;}catch(e:any){trainingError.value=e?.message||'No se pudo guardar';}}
+async function removeTraining(a:TrainingActivity){if(!route.params.id||!window.confirm(`¿Eliminar ${a.name}?`))return;try{await api.deleteTraining(String(route.params.id),a.id);await reloadTrainingDocument();}catch(e:any){trainingError.value=e?.message||'No se pudo eliminar';}}
 function trainingTypeLabel(t:string){return ({FORMATION:'Formación',PROFESSION:'Profesión',OCCUPATION:'Ocupación',COURSE:'Curso'} as Record<string,string>)[t]||t;}
 function trainingEndAgeLabel(age:number){return age === trainingData.value.sheetAge + 1 ? 'Actual' : `${age} años`;}
 function trainingBarStyle(a:TrainingActivity){const span=Math.max(1,trainingData.value.sheetAge-trainingData.value.startingAge);return{left:`${((a.startAge-trainingData.value.startingAge)/span)*100}%`,width:`${((a.endAge-a.startAge)/span)*100}%`};}
 function trainingAttributeDisabled(key:string, slot:'primary'|'secondary'|'tertiary'){const duplicate=[trainingDraft.value.primaryAttribute,trainingDraft.value.secondaryAttribute,trainingDraft.value.tertiaryAttribute].some((selected, index) => selected===key && ['primary','secondary','tertiary'][index]!==slot); const trajectoryTotal=(character.value?.attributeModifiers?.[key]??[]).filter(modifier=>modifier.source?.startsWith('TRAINING:')).reduce((sum,modifier)=>sum+Number(modifier.value||0),0); return duplicate || (trainingDraft.value.type==='COURSE' && trajectoryTotal>=5 && trainingDraft.value.primaryAttribute!==key);}
 function trainingGroup(a:TrainingActivity){return trainingData.value.activities.filter(item=>item.startAge===a.startAge);}
 function canMoveTraining(a:TrainingActivity, direction:number){const group=trainingGroup(a);const index=group.findIndex(item=>item.id===a.id);return index>=0 && index+direction>=0 && index+direction<group.length;}
-async function moveTraining(a:TrainingActivity, direction:number){if(!route.params.id||!canMoveTraining(a,direction))return;const group=trainingGroup(a);const index=group.findIndex(item=>item.id===a.id);const reordered=[...group];const [moved]=reordered.splice(index,1);reordered.splice(index+direction,0,moved);trainingReordering.value=a.id;trainingError.value='';try{await api.reorderTraining(String(route.params.id),reordered.map(item=>item.id));await loadTraining();character.value=await api.get(String(route.params.id));}catch(e:any){trainingError.value=e?.message||'No se pudo reordenar';}finally{trainingReordering.value=null;}}
+async function moveTraining(a:TrainingActivity, direction:number){if(!route.params.id||!canMoveTraining(a,direction))return;const group=trainingGroup(a);const index=group.findIndex(item=>item.id===a.id);const reordered=[...group];const [moved]=reordered.splice(index,1);reordered.splice(index+direction,0,moved);trainingReordering.value=a.id;trainingError.value='';try{await api.reorderTraining(String(route.params.id),reordered.map(item=>item.id));await reloadTrainingDocument();}catch(e:any){trainingError.value=e?.message||'No se pudo reordenar';}finally{trainingReordering.value=null;}}
 
 const showProfileModal=ref(false); const showEditorsModal=ref(false); const showMinorModal=ref(false); const minorKind=ref('GALDR'); const customName=ref(''); const customFormula=ref(''); const customSource=ref('informatica'); const minorBusy=ref(false); const minorError=ref('');
 const profileImageInput = ref<HTMLInputElement | null>(null);
@@ -1109,23 +1507,44 @@ function insertToken(t:string){ customFormula.value += t; }
 
 function clearFormula(){customFormula.value='';}
 
-async function addMinor(){ if(!campaign.value||!customName.value&&minorKind.value==='CUSTOM') return; minorBusy.value=true; minorError.value=''; try { const presets:any={GALDR:{key:'galdr',name:'Galdr',maxFormula:'min(cruzarbifrost,einherjer,sentiryggdrasil)',bonusSource:null,type:'GALDR'},ASTRONAVEGAR:{key:'astronavegar',name:'Astronavegar',maxFormula:'conduccion',bonusSource:'conduccion',type:'PRESET'},FORJA:{key:'forja',name:'Forja',maxFormula:'(fisico+estudio)/2',bonusSource:'informatica',type:'PRESET'}}; const body=minorKind.value==='CUSTOM'?{name:customName.value,maxFormula:customFormula.value,bonusSource:customSource.value,type:'CUSTOM'}:presets[minorKind.value]; await api.createMinorAttribute(campaign.value.id,body); character.value=await api.get(String(route.params.id)); showMinorModal.value=false; } catch(e:any){minorError.value=e?.message||'No se pudo crear';} finally{minorBusy.value=false;} }
+async function addMinor(){ if(!campaign.value||!customName.value&&minorKind.value==='CUSTOM') return; minorBusy.value=true; minorError.value=''; try { const presets:any={GALDR:{key:'galdr',name:'Galdr',maxFormula:'min(cruzarbifrost,einherjer,sentiryggdrasil)',bonusSource:null,type:'GALDR'},ASTRONAVEGAR:{key:'astronavegar',name:'Astronavegar',maxFormula:'conduccion',bonusSource:'conduccion',type:'PRESET'},FORJA:{key:'forja',name:'Forja',maxFormula:'(fisico+estudio)/2',bonusSource:'informatica',type:'PRESET'}}; const body=minorKind.value==='CUSTOM'?{name:customName.value,maxFormula:customFormula.value,bonusSource:customSource.value,type:'CUSTOM'}:presets[minorKind.value]; await api.createMinorAttribute(campaign.value.id,body); await reloadCharacterDocument(); showMinorModal.value=false; } catch(e:any){minorError.value=e?.message||'No se pudo crear';} finally{minorBusy.value=false;} }
 
 function startModifierDraft() {
   if (!character.value) return;
   modifierDraft.value = Object.fromEntries(Object.entries(character.value.attributeModifiers ?? {}).map(([key, values]) => [key, values.filter(value => !value.source || value.source === 'MANUAL').map(value => ({ ...value }))]));
+  refreshAbilityEligibility();
+}
+
+function normalizedModifiers(values: Record<string, AttributeModifier[]> | undefined) {
+  return Object.fromEntries(Object.entries(values ?? {})
+    .map(([key, modifiers]) => [key, modifiers
+      .filter(modifier => !isTrainingModifier(modifier))
+      .map(modifier => ({ name: modifier.name.trim(), value: Number(modifier.value) || 0 }))
+      .sort((left, right) => left.name.localeCompare(right.name))])
+    .filter(([, modifiers]) => modifiers.length)
+    .sort(([left], [right]) => String(left).localeCompare(String(right))));
+}
+
+function modifiersDirty() {
+  return JSON.stringify(normalizedModifiers(modifierDraft.value)) !==
+    JSON.stringify(normalizedModifiers(character.value?.attributeModifiers));
 }
 
 async function startEdit() {
   if (!character.value || editing.value || !canEdit.value) return;
   try {
-    character.value = await api.edit(String(route.params.id));
+    await api.edit(String(route.params.id));
+    await reloadCharacterDocument();
     legacyDraft.value = false; legacyEvolutionPoints.value = null;
     editing.value = true;
     startModifierDraft();
     closeError.value = '';
     await router.push({ query: queryWithEditMode(true) });
   } catch (e: any) { closeError.value = e?.message || 'No se pudo abrir la ficha para edición.'; }
+}
+
+function applyEditState(state: { closed: boolean }) {
+  if (character.value) character.value = { ...character.value, ...state };
 }
 
 async function toggleEditor(email: string) {
@@ -1143,13 +1562,44 @@ function hasEditorAccess(email: string) {
   return editorEmails.value.some(item => item.toLowerCase() === email.toLowerCase());
 }
 
+function localAttributeDetail(key: string): AttributeDetail {
+  // In edit mode the draft is the source shown to the user. The persisted
+  // training modifiers are kept alongside it because they are not editable
+  // in this dialog, while manual modifiers may have just been added or
+  // removed without a round-trip to the backend yet.
+  const persistedModifiers = character.value?.attributeModifiers?.[key] ?? [];
+  const modifiers = editing.value
+    ? [
+      // Automatic modifiers (including training) remain visible while editing;
+      // only the manual draft is exposed in the editor below.
+      ...persistedModifiers.filter(modifier => modifier.source && modifier.source !== 'MANUAL'),
+      ...modifierRows(key),
+    ]
+    : persistedModifiers;
+  const custom = customMinor(key);
+  const ranks = Number(character.value?.attributes?.[key] ?? custom?.ranks ?? custom?.value ?? 0);
+  const total = displayedAttributeTotal(key, ranks);
+  const type = custom?.type ?? (majorKeys.includes(key) ? 'MAJOR' : minorKeys.includes(key) ? 'PREDEFINED' : 'CUSTOM');
+  const formula = custom?.maxFormula ?? minorCapFormulas[key] ?? '';
+  const calculatedValue = formula ? evaluateLocalFormula(formula) : 0;
+  const progression = (thresholds: number[], kind: string) => thresholds.map((threshold, index) => ({ kind, number: index + 1, threshold, obtained: total >= threshold }));
+  return { key, definitionId: custom?.id ?? null, name: custom?.name ?? attributeLabels[key] ?? key, type, total, ranks, maxRanks: type === 'MAJOR' ? Math.max(...majorKeys.filter(item => item !== key).map(item => Number(character.value?.attributes?.[item] ?? 0))) * 2 : (calculatedValue || null), formula, calculatedValue, plusOne: oneBonus(key, total, majorKeys.includes(key)), plusD6: d6Bonus(key, total, majorKeys.includes(key)), modifiers, progressions: [...progression(majorOneThresholds, '+1'), ...progression(majorD6Thresholds, '+D6')], deletable: type === 'CUSTOM' };
+}
+
+function evaluateLocalFormula(formula: string): number {
+  const attributes = character.value?.attributes ?? {};
+  const genetics = character.value?.genetics ?? {};
+  const minorAttributes = Object.fromEntries((character.value?.minorAttributes ?? []).map(item => [item.key, item.value]));
+  return evaluateAllocationFormula(formula, { level: character.value?.level ?? 0, experience: character.value?.experience ?? 0, evolutionAvailable: 0, geneticsAvailable: 0, minorEvolutionCost: 0, attributes, genetics, minorAttributes, baseAttributes: attributes, baseGenetics: genetics, baseMinorAttributes: minorAttributes });
+}
+
 async function openAttributeDetail(key: string) {
   detailError.value = '';
   detailLoading.value = true;
   showAttributeDetail.value = true;
   attributeDetail.value = null;
   try {
-    attributeDetail.value = await api.attributeDetail(String(route.params.id), key);
+    attributeDetail.value = localAttributeDetail(key);
     if (attributeDetail.value?.type === 'DERIVED' && editing.value) {
       attributeDetail.value = { ...attributeDetail.value, calculatedValue: derivedBaseValue(key) };
     }
@@ -1162,7 +1612,7 @@ async function addExperience() {
   const amount = Number(experienceAmount.value);
   if (!Number.isInteger(amount) || amount < 1) { experienceError.value = 'Introduce una cantidad entera positiva.'; return; }
   experienceBusy.value = true; experienceError.value = '';
-  try { character.value = await api.addExperience(String(route.params.id), amount); experienceAmount.value = null; showExperienceModal.value = false; }
+  try { await api.addExperience(String(route.params.id), amount); await reloadCharacterDocument(); experienceAmount.value = null; showExperienceModal.value = false; }
   catch (e: any) { experienceError.value = e?.message || 'No se pudo añadir experiencia.'; }
   finally { experienceBusy.value = false; }
 }
@@ -1184,14 +1634,20 @@ function modifierDisplayName(name: string): string {
 function detailModifierTotal(): number {
   if (!attributeDetail.value) return 0;
   if (!editing.value) return modifierTotal(attributeDetail.value.modifiers);
-  const trajectoryTotal = modifierTotal(attributeDetail.value.modifiers.filter(isTrainingModifier));
-  return trajectoryTotal + modifierTotal(modifierRows(attributeDetail.value.key));
+  // Automatic modifiers (racial, ability and training) remain visible in edit
+  // mode; only manual modifiers are replaced by the editable draft.
+  const automaticTotal = modifierTotal(attributeDetail.value.modifiers
+    .filter(modifier => modifier.source && modifier.source !== 'MANUAL'));
+  return automaticTotal + modifierTotal(modifierRows(attributeDetail.value.key));
 }
 
 function detailTotal(): number {
   if (!attributeDetail.value) return 0;
-  if (attributeDetail.value.type === 'DERIVED') return derivedBaseValue(attributeDetail.value.key) + detailModifierTotal();
-  return attributeDetail.value.total - modifierTotal(attributeDetail.value.modifiers) + detailModifierTotal();
+  if (attributeDetail.value.type === 'DERIVED') return derivedBaseValue(attributeDetail.value.key) + modifierTotal(modifierRows(attributeDetail.value.key));
+  // `displayedAttributeTotal` already combines persisted automatic modifiers
+  // with the in-progress manual draft. Rebuilding the total from modal rows
+  // used to discard automatic modifiers in edit mode.
+  return displayedAttributeTotal(attributeDetail.value.key, attributeDetail.value.ranks);
 }
 
 function detailBonus(kind: 'plusOne' | 'plusD6'): number {
@@ -1226,20 +1682,42 @@ function displayedAttributeTotal(key: string, fallback: number): number {
   const persistedTotal = character.value?.attributeTotals?.[key] ?? fallback;
   if (!editing.value) return persistedTotal;
   const persistedModifiers = character.value?.attributeModifiers?.[key] ?? [];
-  // The draft contains only manual modifiers. Never fall back to persisted
-  // trajectory modifiers, otherwise training would be applied twice in edit mode.
+  // The draft contains only manual modifiers. Automatic persisted modifiers
+  // remain part of the base total and must not be subtracted in edit mode.
   const draftModifiers = modifierDraft.value[key] ?? [];
-  const persistedModifierTotal = modifierTotal(persistedModifiers.filter(modifier => !isTrainingModifier(modifier)));
+  const persistedManualTotal = modifierTotal(persistedModifiers
+    .filter(modifier => !modifier.source || modifier.source === 'MANUAL'));
   const draftModifierTotal = draftModifiers.reduce((sum, modifier) => sum + (Number(modifier.value) || 0), 0);
-  return persistedTotal - persistedModifierTotal + draftModifierTotal;
+  return persistedTotal - persistedManualTotal + draftModifierTotal;
 }
 
-function addModifier(key: string) { modifierRows(key).push({ name: '', value: 0 }); }
+function refreshAttributeDetail() {
+  if (!attributeDetail.value) return;
+  const key = attributeDetail.value.key;
+  const current = localAttributeDetail(key);
+  if (current.type === 'DERIVED' && editing.value) {
+    current.calculatedValue = derivedBaseValue(key);
+  }
+  attributeDetail.value = current;
+  refreshAbilityEligibility();
+}
 
-function removeModifier(key: string, index: number) { modifierRows(key).splice(index, 1); }
+function addModifier(key: string) {
+  modifierRows(key).push({ name: '', value: 0 });
+  refreshAttributeDetail();
+}
+
+function removeModifier(key: string, index: number) {
+  modifierRows(key).splice(index, 1);
+  refreshAttributeDetail();
+}
 
 async function saveModifiers(): Promise<boolean> {
   if (!character.value || modifierSaveBusy.value) return false;
+  if (!modifiersDirty()) {
+    closeAttributeDetail();
+    return true;
+  }
   modifierError.value = '';
   const body: Record<string, AttributeModifier[]> = {};
   for (const [key, values] of Object.entries(modifierDraft.value)) {
@@ -1254,8 +1732,8 @@ async function saveModifiers(): Promise<boolean> {
   }
   modifierSaveBusy.value = true;
   try {
-    const result = await api.saveAttributeModifiers(String(route.params.id), body) as { character: Character };
-    if (!legacyDraft.value) character.value = result.character;
+     await api.saveAttributeModifiers(String(route.params.id), body);
+     if (!legacyDraft.value) await reloadCharacterDocument();
     closeAttributeDetail();
     return true;
   } catch (e: any) { modifierError.value = e?.message || 'No se pudieron guardar los modificadores.'; return false; }
@@ -1308,7 +1786,7 @@ async function closeDraft() {
   try {
     if (!await saveModifiers()) { closeBusy.value = false; return; }
     const source = character.value;
-    const result = await api.save(String(route.params.id), {
+     await api.save(String(route.params.id), {
       name: source.name,
       level: source.level,
       experience: source.experience,
@@ -1326,11 +1804,11 @@ async function closeDraft() {
        sheetAge: source.sheetAge ?? null,
        imageUrl: profileImageChanged.value ? profileImageDraft.value : undefined,
       });
-     character.value = result.character;
-     editing.value = false;
+      editing.value = false;
+      await reloadCharacterDocument();
      showProfileModal.value = false;
      profileImageChanged.value = false;
-     profileImageDraft.value = result.character.imageUrl ?? null;
+      profileImageDraft.value = character.value?.imageUrl ?? null;
      profileError.value = '';
     legacyDraft.value = false; legacyEvolutionPoints.value = null;
     await router.replace({ query: queryWithEditMode(false) });
@@ -1342,8 +1820,7 @@ async function cancelChanges() {
   if (!editing.value || cancelChangesBusy.value || profileImageProcessing.value || !confirm('¿Cancelar todos los cambios y volver a la última versión cerrada?')) return;
   cancelChangesBusy.value = true; closeError.value = '';
   try {
-    const result = await api.cancelChanges(String(route.params.id)) as { character: Character };
-    character.value = result.character; editing.value = false; showProfileModal.value = false; profileImageChanged.value = false; profileImageDraft.value = character.value.imageUrl ?? null; profileError.value = ''; legacyDraft.value = false; legacyEvolutionPoints.value = null; startModifierDraft();
+    await api.cancelChanges(String(route.params.id)); editing.value = false; await reloadCharacterDocument(); showProfileModal.value = false; profileImageChanged.value = false; profileImageDraft.value = character.value?.imageUrl ?? null; profileError.value = ''; legacyDraft.value = false; legacyEvolutionPoints.value = null; startModifierDraft();
     await router.replace({ query: queryWithEditMode(false) });
   } catch (e: any) { closeError.value = e?.message || 'No se pudieron cancelar los cambios.'; }
   finally { cancelChangesBusy.value = false; }
@@ -1364,15 +1841,38 @@ async function recoverHistory(version: HistoryVersion) {
   if (historyRecovering.value || !confirm(`¿Recuperar la versión de nivel ${version.level} del ${new Date(version.createdAt).toLocaleString('es-ES')}?`)) return;
   historyRecovering.value = version.id; historyError.value = '';
   try {
-    const result = await api.recoverMilestone(String(route.params.id), version.id) as { character: Character };
-    character.value = result.character; editing.value = false; legacyDraft.value = false; legacyEvolutionPoints.value = null; startModifierDraft();
+    await api.recoverMilestone(String(route.params.id), version.id); editing.value = false; await reloadCharacterDocument(); legacyDraft.value = false; legacyEvolutionPoints.value = null; startModifierDraft();
     history.value = await api.milestones(String(route.params.id)) as HistoryVersion[]; selectedHistory.value = history.value[0] ?? null;
   } catch (e: any) { historyError.value = e?.message || 'No se pudo recuperar la versión.'; }
   finally { historyRecovering.value = ''; }
 }
 
-async function openLastUpgrade() { if (!character.value?.closed || lastUpgradeLoading.value) return; showLastUpgrade.value = true; currentUpgradeMode.value = false; lastUpgrade.value = null; lastUpgradeError.value = ''; lastUpgradeLoading.value = true; try { lastUpgrade.value = await api.lastUpgrade(String(route.params.id)) as LastUpgrade; } catch (e: any) { lastUpgradeError.value = e?.message || 'No se pudo comparar la última subida.'; } finally { lastUpgradeLoading.value = false; } }
-async function openCurrentUpgrade() { if (!editing.value || lastUpgradeLoading.value) return; if (!await saveModifiers()) return; showLastUpgrade.value = true; currentUpgradeMode.value = true; lastUpgrade.value = null; lastUpgradeError.value = ''; lastUpgradeLoading.value = true; try { lastUpgrade.value = await api.currentUpgrade(String(route.params.id)) as LastUpgrade; } catch (e: any) { lastUpgradeError.value = e?.message || 'No se pudo comparar la subida actual.'; } finally { lastUpgradeLoading.value = false; } }
+async function openLastUpgrade() { if (!character.value?.closed || lastUpgradeLoading.value) return; showLastUpgrade.value = true; currentUpgradeMode.value = false; lastUpgrade.value = null; lastUpgradeError.value = ''; lastUpgradeLoading.value = true; try { [lastUpgrade.value] = await Promise.all([api.lastUpgrade(String(route.params.id)) as Promise<LastUpgrade>, ensureAbilityCatalogLoaded()]); } catch (e: any) { lastUpgradeError.value = e?.message || 'No se pudo comparar la última subida.'; } finally { lastUpgradeLoading.value = false; } }
+async function openCurrentUpgrade() {
+  if (!editing.value || lastUpgradeLoading.value) return;
+  if (modifiersDirty() && !await saveModifiers()) return;
+  showLastUpgrade.value = true; currentUpgradeMode.value = true; lastUpgrade.value = null;
+  lastUpgradeError.value = ''; lastUpgradeLoading.value = true;
+  try {
+    const [serverUpgrade, closedVersions] = await Promise.all([
+      api.currentUpgrade(String(route.params.id)) as Promise<LastUpgrade>,
+      api.milestones(String(route.params.id)) as Promise<HistoryVersion[]>,
+    ]);
+    await ensureAbilityCatalogLoaded();
+    const latestClosed = closedVersions[0];
+    const knownAbilities = new Set<string>(latestClosed?.snapshot?.abilities ?? []);
+    // The ability preview is deliberately computed from the open draft in the frontend.
+    // The server response remains canonical for scores, modifiers and bonuses only.
+    const currentAbilities = frontendCurrentAbilityNames();
+    lastUpgrade.value = {
+      ...serverUpgrade,
+      abilities: serverUpgrade.available
+        ? currentAbilities.filter(name => !knownAbilities.has(name))
+        : [],
+    };
+  } catch (e: any) { lastUpgradeError.value = e?.message || 'No se pudo comparar la subida actual.'; }
+  finally { lastUpgradeLoading.value = false; }
+}
 function closeLastUpgrade() { showLastUpgrade.value = false; currentUpgradeMode.value = false; lastUpgrade.value = null; lastUpgradeError.value = ''; }
 function upgradeScoreLabel(change: { key:string; type:string }) { return change.type === 'genetic' ? geneticLabels[change.key] || change.key : attributeLabels[change.key] || customMinor(change.key)?.name || change.key; }
 
@@ -1417,13 +1917,13 @@ async function submitAllocation() {
   levelBusy.value = true; levelError.value = '';
   let savedFinalStep = false;
   try {
-    const result = allocationMode.value === 'single'
-      ? await api.levelUp(String(route.params.id), payload)
-      : await api.levelUpAll(String(route.params.id), payload);
-    const updatedCharacter: Character = result.character;
-    character.value = updatedCharacter;
+     const saveRequest = allocationMode.value === 'single'
+       ? api.levelUp(String(route.params.id), payload)
+       : api.levelUpAll(String(route.params.id), payload);
+     await saveRequest;
+     const updatedCharacter = await reloadCharacterDocument();
     savedFinalStep = finalStep;
-    if (!finalStep) {
+     if (!finalStep) {
       allocationStep.value += 1;
       allocationDraft.value = draftFor(updatedCharacter, updatedCharacter.level + 1, updatedCharacter.experience - 100,
         (updatedCharacter.allocation?.evolutionRemaining ?? 0) + (updatedCharacter.allocation?.nextEvolutionReward ?? (35 + Math.max(0, updatedCharacter.attributes?.evolcurva ?? 0))),
@@ -1432,7 +1932,7 @@ async function submitAllocation() {
       clampAllocationMinors();
       await nextTick();
       allocationModal.value?.scrollTo({ top: 0 });
-    }
+      }
   } catch (e: any) { levelError.value = e?.message || 'No se pudo guardar la asignación de nivel.'; }
   finally {
     levelBusy.value = false;
@@ -1448,7 +1948,7 @@ async function deleteAttribute() {
   deletingAttribute.value = true; detailError.value = '';
   try {
     await api.deleteMinorAttribute(String(route.params.id), attributeDetail.value.definitionId);
-    character.value = await api.get(String(route.params.id));
+     await reloadCharacterDocument();
     closeAttributeDetail();
   } catch (e: any) { detailError.value = e?.message || 'No se pudo eliminar el atributo.'; }
   finally { deletingAttribute.value = false; }
@@ -1456,14 +1956,16 @@ async function deleteAttribute() {
 
 async function openUniqueReview() {
   uniqueReviewError.value = '';
-  try { pendingUniqueAbilities.value = await api.pendingUniqueAbilities(String(route.params.id)) as PendingUniqueAbility[]; showUniqueReview.value = true; }
+  try { await loadPendingUniqueAbilities(); showUniqueReview.value = true; }
   catch (e: any) { uniqueReviewError.value = e?.message || 'No se pudieron cargar las habilidades únicas pendientes.'; }
 }
 async function decideUniqueAbility(ability: PendingUniqueAbility, decision: 'accepted' | 'rejected') {
   uniqueReviewBusy.value = ability.name; uniqueReviewError.value = '';
   try {
-    character.value = await api.decideUniqueAbility(String(route.params.id), ability.name, decision) as Character;
-    pendingUniqueAbilities.value = pendingUniqueAbilities.value.filter(item => item.name !== ability.name);
+    await api.decideUniqueAbility(String(route.params.id), ability.name, decision);
+    await reloadCharacterDocument();
+    await loadAbilities();
+    await loadPendingUniqueAbilities(true);
     if (!pendingUniqueAbilities.value.length) showUniqueReview.value = false;
   } catch (e: any) { uniqueReviewError.value = e?.message || 'No se pudo guardar la decisión.'; }
   finally { uniqueReviewBusy.value = ''; }
@@ -1492,6 +1994,7 @@ const obtainedAbilities = computed(() => (character.value?.abilities ?? []).map(
 
 const lastUpgradeAbilities = computed(() => (lastUpgrade.value?.abilities ?? []).map(name =>
   abilityCatalog.value.find(ability => ability.name === name) ?? { name }));
+const eligibleAbilityCount = computed(() => abilityCatalog.value.filter(ability => ability.eligible).length);
 
 function abilityTestValue(ability: Ability | null): string | undefined {
   if (!ability) return undefined;
@@ -1545,10 +2048,107 @@ function canRollAbility(ability: Ability): boolean {
   return details?.score !== null && details?.score !== undefined && details?.difficulty !== null && details?.difficulty !== undefined;
 }
 
+function abilityEvaluationValues(): Record<string, number> {
+  const values: Record<string, number> = {
+    ...(character.value?.attributes ?? {}),
+    ...(character.value?.attributeTotals ?? {}),
+  };
+  const keys = new Set([
+    ...majorKeys,
+    ...minorKeys,
+    ...(character.value?.minorAttributes ?? []).map(attribute => attribute.key),
+  ]);
+  keys.forEach(key => {
+    const custom = customMinor(key);
+    values[key] = displayedAttributeTotal(key, custom?.total ?? attributes.value[key] ?? values[key] ?? 0);
+  });
+  return values;
+}
+
+function abilityEvaluationModifiers(): Record<string, AttributeModifier[]> {
+  if (!editing.value) return character.value?.attributeModifiers ?? {};
+  const keys = new Set([
+    ...Object.keys(character.value?.attributeModifiers ?? {}),
+    ...Object.keys(modifierDraft.value),
+  ]);
+  return Object.fromEntries([...keys].map(key => [
+    key,
+    [
+      ...(character.value?.attributeModifiers?.[key] ?? []).filter(modifier => modifier.source && modifier.source !== 'MANUAL'),
+      ...(modifierDraft.value[key] ?? []),
+    ],
+  ]));
+}
+
+function refreshAbilityEligibility() {
+  if (!abilityCatalog.value.length) return;
+  const values = abilityEvaluationValues();
+  const genetics = effectiveAbilityGenetics(character.value?.genetics ?? {}, abilityEvaluationModifiers());
+  abilityCatalog.value = abilityCatalog.value.map(ability => ({
+    ...ability,
+    eligible: abilityEligible(ability.alternativesJson, values, genetics),
+  }));
+}
+
+async function loadPendingUniqueAbilities(force = false): Promise<PendingUniqueAbility[]> {
+  const characterId = route.params.id ? String(route.params.id) : '';
+  if (!props.isDirector || !characterId) {
+    pendingUniqueAbilities.value = [];
+    return [];
+  }
+
+  if (force) pendingUniqueAbilitiesCache.delete(characterId);
+  const cached = pendingUniqueAbilitiesCache.get(characterId);
+  if (!force && cached) {
+    pendingUniqueAbilities.value = cached;
+    return cached;
+  }
+
+  pendingUniqueAbilities.value = cached ?? [];
+  let request = pendingUniqueAbilitiesRequests.get(characterId);
+  if (!request) {
+    request = api.pendingUniqueAbilities(characterId) as Promise<PendingUniqueAbility[]>;
+    pendingUniqueAbilitiesRequests.set(characterId, request);
+  }
+
+  try {
+    const loaded = await request;
+    pendingUniqueAbilitiesCache.set(characterId, loaded);
+    if (String(route.params.id) === characterId && props.isDirector) pendingUniqueAbilities.value = loaded;
+    return loaded;
+  } finally {
+    if (pendingUniqueAbilitiesRequests.get(characterId) === request) pendingUniqueAbilitiesRequests.delete(characterId);
+  }
+}
+
+function isUniqueAbility(ability: Ability): boolean {
+  const value = String(ability.uniqueFlag ?? '').trim().toLowerCase();
+  return value === 'si' || value === 'sí' || value === 'true' || value === '1';
+}
+
+function frontendCurrentAbilityNames(): string[] {
+  refreshAbilityEligibility();
+  return abilityCatalog.value
+    .filter(ability => ability.eligible && !isUniqueAbility(ability))
+    .map(ability => ability.name);
+}
+
+async function ensureAbilityCatalogLoaded() {
+  if (abilityCatalog.value.length) return;
+  const catalog = await loadStaticAbilities();
+  const values = abilityEvaluationValues();
+  const genetics = effectiveAbilityGenetics(character.value?.genetics ?? {}, abilityEvaluationModifiers());
+  abilityCatalog.value = catalog.map(ability => ({ ...ability, eligible: abilityEligible(ability.alternativesJson, values, genetics) }));
+}
+
 async function loadAbilities() {
+  if (!route.params.id) return;
   abilityCatalogLoading.value = true; abilityCatalogError.value = '';
-  try { abilityCatalog.value = await api.abilities() as Ability[]; }
-  catch (e: any) { abilityCatalogError.value = e?.message || 'No se pudo cargar el catálogo de habilidades.'; }
+  try {
+    await ensureAbilityCatalogLoaded();
+    const state = await api.characterAbilities(String(route.params.id));
+    if (character.value) character.value = { ...character.value, abilities: state.abilities, pendingUniqueAbilities: state.pendingUniqueAbilities };
+  } catch (e: any) { abilityCatalogError.value = e?.message || 'No se pudo cargar el catálogo de habilidades.'; }
   finally { abilityCatalogLoading.value = false; }
 }
 
@@ -1561,8 +2161,8 @@ function onEscape(event: KeyboardEvent) {
   else closeAbilityDetail();
 }
 
-onMounted(() => { load(); loadAbilities(); window.addEventListener('keydown', onEscape); });
-onBeforeUnmount(() => { window.removeEventListener('keydown', onEscape); if (trainingPreviewTimer) clearTimeout(trainingPreviewTimer); });
+onMounted(() => { load(); window.addEventListener('keydown', onEscape); });
+onBeforeUnmount(() => { window.removeEventListener('keydown', onEscape); });
 
 watch(() => route.params.id, (id, previousId) => { if (id && id !== previousId) load(); });
 
@@ -1580,9 +2180,9 @@ watch(() => route.name, async (name) => {
   }
 
   showHistory.value = false;
-  if (name === 'character-abilities') sheetView.value = 'abilities';
-  else if (name === 'character-inventory') sheetView.value = 'inventory';
-  else if (name === 'character-sheet') sheetView.value = 'sheet';
+   if (name === 'character-abilities') { sheetView.value = 'abilities'; await loadAbilities(); }
+   else if (name === 'character-inventory') { sheetView.value = 'inventory'; await loadInventory(); }
+   else if (name === 'character-sheet') { sheetView.value = 'sheet'; await reloadCharacterDocument(); await loadPendingUniqueAbilities(); }
 }, { immediate: true });
 
 </script>
@@ -1610,7 +2210,7 @@ watch(() => route.name, async (name) => {
         <dl class="sheet-meta"><dt>Campaña</dt><dd>{{ campaign?.name || 'Sin campaña' }}</dd><dt>Versión</dt><dd>{{ character.closed ? 'Cerrada' : 'Borrador' }}</dd><dt>Último guardado</dt><dd>{{ savedAt }}</dd></dl>
         <p v-if="closeError" class="error-banner" role="alert">{{ closeError }}</p><input ref="archiveInput" class="sr-only" type="file" accept="application/json,.dexm.json" @change="importArchive">
 
-         <template v-if="editing"><button class="button button-primary" :disabled="closeBusy || levelBusy || modifierSaveBusy || profileImageProcessing" @click="closeDraft">{{ profileImageProcessing ? 'Procesando retrato…' : (closeBusy ? 'Guardando…' : 'Guardar') }}</button><button class="button button-quiet" type="button" :disabled="cancelChangesBusy || profileImageProcessing" @click="cancelChanges">{{ cancelChangesBusy ? 'Cancelando…' : 'Cancelar cambios' }}</button><button v-if="canEdit" class="button button-quiet" type="button" @click="openTransferModal">Exportar / importar</button><button class="button button-quiet" type="button" @click="openCurrentUpgrade">Ver subida actual</button></template><template v-else><button v-if="canEdit" class="button button-quiet" type="button" @click="startEdit">Editar ficha</button><button v-if="canEdit" class="button button-quiet" type="button" @click="openTransferModal">Exportar / importar</button><button class="button button-quiet" type="button" @click="openLastUpgrade">Última subida</button></template><button class="button button-quiet" type="button" @click="openHistory">Historial</button><button class="button button-quiet" type="button" @click="openInventory">Inventario</button><button v-if="props.isDirector && (character.pendingUniqueAbilities?.length ?? 0)" class="button button-primary unique-review-trigger" type="button" @click="openUniqueReview">Revisar habilidades únicas</button><button class="button button-quiet" type="button" @click="navigateToSection(sheetView === 'sheet' ? 'abilities' : 'sheet')">{{ sheetView === 'sheet' ? 'Ver habilidades' : 'Ver ficha' }}</button><button class="button button-quiet" type="button" @click="openProfileModal">{{ editing ? 'Editar perfil' : 'Ver perfil' }}</button><button class="button button-quiet" type="button" :disabled="profileImageProcessing" @click="back">Volver</button><button v-if="props.isDirector" class="button button-danger" type="button" @click="deleteCharacter">Borrar personaje</button><button v-if="props.isDirector" class="button button-quiet" type="button" @click="openEditorsModal">Permisos</button>
+         <template v-if="editing"><button class="button button-primary" :disabled="closeBusy || levelBusy || modifierSaveBusy || profileImageProcessing" @click="closeDraft">{{ profileImageProcessing ? 'Procesando retrato…' : (closeBusy ? 'Guardando…' : 'Guardar') }}</button><button class="button button-quiet" type="button" :disabled="cancelChangesBusy || profileImageProcessing" @click="cancelChanges">{{ cancelChangesBusy ? 'Cancelando…' : 'Cancelar cambios' }}</button><button v-if="canEdit" class="button button-quiet" type="button" @click="openTransferModal">Exportar / importar</button><button class="button button-quiet" type="button" @click="openCurrentUpgrade">Ver subida actual</button></template><template v-else><button v-if="canEdit" class="button button-quiet" type="button" @click="startEdit">Editar ficha</button><button v-if="canEdit" class="button button-quiet" type="button" @click="openTransferModal">Exportar / importar</button><button class="button button-quiet" type="button" @click="openLastUpgrade">Última subida</button></template><button class="button button-quiet" type="button" @click="openHistory">Historial</button><button class="button button-quiet" type="button" @click="openInventory">Inventario</button><button v-if="props.isDirector && pendingUniqueAbilities.length" class="button button-primary unique-review-trigger" type="button" @click="openUniqueReview">Revisar habilidades únicas</button><button class="button button-quiet" type="button" @click="navigateToSection(sheetView === 'sheet' ? 'abilities' : 'sheet')">{{ sheetView === 'sheet' ? 'Ver habilidades' : 'Ver ficha' }}</button><button class="button button-quiet" type="button" @click="openProfileModal">{{ editing ? 'Editar perfil' : 'Ver perfil' }}</button><button class="button button-quiet" type="button" :disabled="profileImageProcessing" @click="back">Volver</button><button v-if="props.isDirector" class="button button-danger" type="button" @click="deleteCharacter">Borrar personaje</button><button v-if="props.isDirector" class="button button-quiet" type="button" @click="openEditorsModal">Permisos</button>
         <p v-if="editing" class="field-hint">Haz clic en un atributo para editar sus modificadores varios.</p><p v-if="modifierError" class="error-banner" role="alert">{{ modifierError }}</p>
 
       </aside>
@@ -1740,7 +2340,7 @@ watch(() => route.name, async (name) => {
             <p v-if="detailError" class="error-banner" role="alert">{{ detailError }}</p>
             <div class="attribute-detail-summary"><div><span>{{ attributeDetail.type === 'DERIVED' ? 'Valor total' : 'Puntuación total actual' }}</span><strong>{{ detailTotal() }}</strong></div><div v-if="attributeDetail.type !== 'DERIVED'"><span>Bonificadores +1</span><strong>+{{ editing ? detailBonus('plusOne') : attributeDetail.plusOne }}</strong></div><div v-if="attributeDetail.type !== 'DERIVED'"><span>Bonificadores +D6</span><strong>+{{ editing ? detailBonus('plusD6') : attributeDetail.plusD6 }}D6</strong></div></div>
             <div class="detail-grid"><template v-if="attributeDetail.type !== 'DERIVED'"><p><span>Rangos actuales</span><strong>{{ attributeDetail.ranks }}</strong></p><p><span>Rangos máximos</span><strong>{{ attributeDetail.maxRanks ?? 'No aplica' }}</strong></p></template><p class="detail-wide"><span>{{ attributeDetail.type === 'DERIVED' ? 'Fórmula' : 'Fórmula máxima' }}</span><strong>{{ attributeDetail.formula }}<template v-if="attributeDetail.type === 'DERIVED'"> = {{ attributeDetail.calculatedValue }}</template><template v-else-if="attributeDetail.maxRanks !== null"> = {{ attributeDetail.calculatedValue }}</template></strong></p></div>
-            <section class="detail-section"><h3>Modificadores varios</h3><ul v-if="attributeDetail.modifiers.length" class="modifier-list"><li v-for="modifier in attributeDetail.modifiers" :key="modifier.name"><span>{{ modifierDisplayName(modifier.name) }}</span><strong>{{ modifier.value > 0 ? '+' : '' }}{{ modifier.value }}</strong></li></ul><p v-else class="sheet-muted">Sin modificadores varios.</p></section><section v-if="editing" class="detail-section modifier-editor"><h3>Editar modificadores</h3><div v-for="(modifier, index) in modifierRows(attributeDetail.key)" :key="index" class="modifier-edit-row"><input v-model="modifier.name" aria-label="Nombre del modificador" placeholder="Nombre"><input v-model.number="modifier.value" type="number" step="1" aria-label="Valor del modificador"><button class="button button-danger" type="button" @click="removeModifier(attributeDetail.key, index)">Eliminar</button></div><button class="button button-quiet" type="button" @click="addModifier(attributeDetail.key)">Añadir modificador</button></section>
+            <section class="detail-section"><h3>Modificadores varios</h3><ul v-if="attributeDetail.modifiers.length" class="modifier-list"><li v-for="modifier in attributeDetail.modifiers" :key="modifier.name"><span>{{ modifierDisplayName(modifier.name) }}</span><strong>{{ modifier.value > 0 ? '+' : '' }}{{ modifier.value }}</strong></li></ul><p v-else class="sheet-muted">Sin modificadores varios.</p></section><section v-if="editing" class="detail-section modifier-editor"><h3>Editar modificadores</h3><div v-for="(modifier, index) in modifierRows(attributeDetail.key)" :key="index" class="modifier-edit-row"><input v-model="modifier.name" aria-label="Nombre del modificador" placeholder="Nombre" @input="refreshAttributeDetail"><input v-model.number="modifier.value" type="number" step="1" aria-label="Valor del modificador" @input="refreshAttributeDetail"><button class="button button-danger" type="button" @click="removeModifier(attributeDetail.key, index)">Eliminar</button></div><button class="button button-quiet" type="button" @click="addModifier(attributeDetail.key)">Añadir modificador</button></section>
             <section v-if="attributeDetail.type !== 'DERIVED'" class="detail-section"><h3>Progresión</h3><div class="progression-groups"><div><h4>+1</h4><div class="progression-list"><span v-for="item in attributeDetail.progressions.filter(p => p.kind === '+1')" :key="`${item.kind}-${item.number}`" :class="['progression-item', { obtained: editing ? detailTotal() >= item.threshold : item.obtained }]">{{ item.threshold }}</span></div></div><div><h4>+D6</h4><div class="progression-list"><span v-for="item in attributeDetail.progressions.filter(p => p.kind === '+D6')" :key="`${item.kind}-${item.number}`" :class="['progression-item', { obtained: editing ? detailTotal() >= item.threshold : item.obtained }]">{{ item.threshold }}</span></div></div></div></section>
           </div>
           <footer class="modal-actions"><button class="button button-quiet" type="button" @click="closeAttributeDetail">Cerrar</button><button v-if="attributeDetail?.deletable" class="button button-danger" type="button" :disabled="deletingAttribute" @click="deleteAttribute">{{ deletingAttribute ? 'Eliminando…' : 'Eliminar' }}</button></footer>
@@ -1770,11 +2370,11 @@ watch(() => route.name, async (name) => {
 
       <div v-if="showLastUpgrade" class="modal-backdrop" @click.self="closeLastUpgrade"><section class="modal-card last-upgrade-modal" role="dialog" aria-modal="true" aria-labelledby="last-upgrade-title"><header class="modal-header"><div><p class="eyebrow accent">PROGRESIÓN</p><h2 id="last-upgrade-title">{{ currentUpgradeMode ? 'Ver subida actual' : 'Última subida' }}</h2><p v-if="lastUpgrade?.available" class="modal-copy">Comparación entre la versión actual y el nivel {{ lastUpgrade.previous?.level }}.</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="closeLastUpgrade">×</button></header><div class="modal-body"><p v-if="lastUpgradeLoading" class="sheet-state">{{ currentUpgradeMode ? 'Comparando subida actual…' : 'Comparando versiones cerradas…' }}</p><p v-else-if="lastUpgradeError" class="error-banner" role="alert">{{ lastUpgradeError }}</p><p v-else-if="!lastUpgrade?.available" class="sheet-state">Aún no existe una versión cerrada anterior para comparar.</p><template v-else><section class="upgrade-section"><h3>Nuevas puntuaciones</h3><ul v-if="lastUpgrade.scores?.length" class="upgrade-list"><li v-for="change in lastUpgrade.scores" :key="`${change.type}-${change.key}`"><span>{{ upgradeScoreLabel(change) }}</span><strong>{{ change.before }} → {{ change.after }} <em>+{{ change.increase }}</em></strong></li></ul><p v-else class="sheet-muted">Sin nuevas puntuaciones.</p></section><section class="upgrade-section"><h3>Modificadores varios</h3><ul v-if="lastUpgrade.modifiers?.length" class="upgrade-list"><li v-for="change in lastUpgrade.modifiers" :key="`${change.key}-${change.name}`"><span>{{ attributeLabels[change.key] || change.key }} · {{ change.name }}</span><strong>{{ change.before ?? '—' }} → {{ change.after ?? '—' }}</strong></li></ul><p v-else class="sheet-muted">Sin cambios en modificadores varios.</p></section><section class="upgrade-section"><h3>Nuevos bonificadores</h3><ul v-if="lastUpgrade.bonuses?.length" class="upgrade-list"><li v-for="bonus in lastUpgrade.bonuses" :key="bonus.key"><span>{{ attributeLabels[bonus.key] || bonus.key }}</span><strong><template v-if="bonus.plusOne">+{{ bonus.plusOne }}</template><template v-if="bonus.plusOne && bonus.plusD6"> · </template><template v-if="bonus.plusD6">+{{ bonus.plusD6 }}D6</template></strong></li></ul><p v-else class="sheet-muted">Sin nuevos +1 ni +D6.</p></section><section class="upgrade-section"><h3>Nuevas habilidades</h3><ul v-if="lastUpgradeAbilities.length" class="upgrade-list"><li v-for="ability in lastUpgradeAbilities" :key="ability.name"><button class="upgrade-ability-link" type="button" @click="openAbilityDetail(ability)">{{ ability.name }}</button></li></ul><p v-else class="sheet-muted">No se han obtenido habilidades nuevas.</p></section></template></div><footer class="modal-actions"><button class="button button-quiet" type="button" @click="closeLastUpgrade">Cerrar</button></footer></section></div>
 
-      <div v-if="showTrainingModal" class="modal-backdrop" @click.self="showTrainingModal=false"><section class="modal-card training-modal" role="dialog" aria-modal="true" aria-labelledby="training-title"><header class="modal-header"><div><p class="eyebrow accent">TRAYECTORIA VITAL</p><h2 id="training-title">Formación</h2><p class="modal-copy">Consulta y ajusta las experiencias que desarrollaron tus atributos menores.</p></div><button class="modal-close" type="button" aria-label="Cerrar" @click="showTrainingModal=false">×</button></header><div class="modal-body"><p v-if="trainingError" class="error-banner" role="alert">{{ trainingError }}</p><div class="training-axis"><span>{{ trainingData.startingAge }} años</span><span>{{ trainingData.sheetAge }} años</span></div><section class="training-section"><h3 class="training-section-title">Formación, profesiones y ocupaciones</h3><div class="training-track"><template v-for="activity in trainingCoreActivities" :key="activity.id"><div class="training-bar" :class="activity.type.toLowerCase()" :style="trainingBarStyle(activity)" :title="`${trainingTypeLabel(activity.type)}: ${activity.name}`"></div></template></div><p v-if="!trainingCoreActivities.length" class="sheet-muted">Aún no hay formación, profesiones u ocupaciones registradas.</p><article v-for="activity in trainingCoreActivities" :key="`row-${activity.id}`" class="training-row"><div><strong>{{ activity.name }}</strong><span>{{ trainingTypeLabel(activity.type) }}<template v-if="activity.type !== 'COURSE'"> · {{ activity.startAge }}–<template v-if="activity.endAge === trainingData.sheetAge + 1">actual</template><template v-else>{{ activity.endAge }}</template> años</template><template v-if="activity.concurrent"> · compaginada</template></span><div v-if="activity.modifiers?.length" class="training-row-modifiers"><span v-for="modifier in activity.modifiers" :key="`${activity.id}-${modifier.attributeKey}`">{{ attributeLabels[modifier.attributeKey] || modifier.attributeKey }} +{{ modifier.value }}</span></div></div><div class="training-row-actions"><div v-if="editing && trainingGroup(activity).length > 1" class="training-order-actions"><button class="button button-quiet" type="button" :disabled="!canMoveTraining(activity,-1) || trainingReordering !== null" @click="moveTraining(activity,-1)" :aria-label="`Subir ${activity.name}`">↑</button><button class="button button-quiet" type="button" :disabled="!canMoveTraining(activity,1) || trainingReordering !== null" @click="moveTraining(activity,1)" :aria-label="`Bajar ${activity.name}`">↓</button></div><div class="modal-actions"><button v-if="editing" class="button button-quiet" type="button" @click="editTraining(activity)">Editar</button><button v-if="editing" class="button button-danger" type="button" @click="removeTraining(activity)">Eliminar</button></div></div></article></section><section class="training-section training-courses-section"><h3 class="training-section-title">Cursos</h3><div class="training-course-meter" :aria-label="`Cursos utilizados: ${trainingCourseUsed} de ${trainingCourseSlots}`"><div class="training-course-meter-label"><span>Cursos utilizados</span><strong>{{ trainingCourseUsed }} / {{ trainingCourseSlots }}</strong></div><div class="training-course-meter-track"><div class="training-course-meter-fill" :style="{ width: `${trainingCourseSlots ? Math.min(100, (trainingCourseUsed / trainingCourseSlots) * 100) : 0}%` }"></div></div></div><p v-if="!trainingCourseActivities.length" class="sheet-muted">Aún no hay cursos registrados.</p><article v-for="activity in trainingCourseActivities" :key="`row-${activity.id}`" class="training-row"><div><strong>{{ activity.name }}</strong><span>{{ trainingTypeLabel(activity.type) }}<template v-if="activity.type !== 'COURSE'"> · {{ activity.startAge }}–<template v-if="activity.endAge === trainingData.sheetAge + 1">actual</template><template v-else>{{ activity.endAge }}</template> años</template><template v-if="activity.concurrent"> · compaginada</template></span><div v-if="activity.modifiers?.length" class="training-row-modifiers"><span v-for="modifier in activity.modifiers" :key="`${activity.id}-${modifier.attributeKey}`">{{ attributeLabels[modifier.attributeKey] || modifier.attributeKey }} +{{ modifier.value }}</span></div></div><div class="training-row-actions"><div v-if="editing && trainingGroup(activity).length > 1" class="training-order-actions"><button class="button button-quiet" type="button" :disabled="!canMoveTraining(activity,-1) || trainingReordering !== null" @click="moveTraining(activity,-1)" :aria-label="`Subir ${activity.name}`">↑</button><button class="button button-quiet" type="button" :disabled="!canMoveTraining(activity,1) || trainingReordering !== null" @click="moveTraining(activity,1)" :aria-label="`Bajar ${activity.name}`">↓</button></div><div class="modal-actions"><button v-if="editing" class="button button-quiet" type="button" @click="editTraining(activity)">Editar</button><button v-if="editing" class="button button-danger" type="button" @click="removeTraining(activity)">Eliminar</button></div></div></article></section><section class="training-section training-total-section"><h3 class="training-section-title">Total modificadores</h3><div v-if="trainingTotalByAttribute.length" class="training-total-cards"><article v-for="group in trainingTotalByAttribute" :key="group.key" class="training-total-card"><div class="training-total-card-heading"><span>{{ attributeLabels[group.key] || group.key }}</span><strong>+{{ group.total }}</strong></div><div class="training-total-card-tags"><span v-for="(modifier,index) in group.modifiers" :key="`${group.key}-${modifier.activityName}-${index}`">{{ modifier.activityName }} +{{ modifier.value }}</span></div></article></div><p v-else class="sheet-muted">Aún no hay modificadores de trayectoria.</p></section><button v-if="editing && !showTrainingForm" class="button button-primary training-add-button" type="button" @click="openTraining">Añadir actividad</button><form v-if="showTrainingForm" class="training-form" @submit.prevent="saveTraining"><h3>{{ trainingEditingId ? 'Editar actividad' : 'Añadir actividad' }}</h3><section class="modal-section-panel"><h4 class="modal-section-title">Datos de la actividad</h4><div class="training-form-grid"><label class="modal-field">Tipo<select v-model="trainingDraft.type"><option value="FORMATION">Formación</option><option value="PROFESSION">Profesión</option><option value="OCCUPATION">Ocupación</option><option value="COURSE">Curso</option></select></label><label class="modal-field">Nombre<input v-model="trainingDraft.name" required maxlength="160"></label></div></section><section v-if="trainingDraft.type !== 'COURSE'" class="modal-section-panel"><h4 class="modal-section-title">Periodo vital</h4><div class="training-form-grid"><label class="modal-field">Edad desde<select v-model.number="trainingDraft.startAge" required><option v-for="age in trainingStartAgeOptions" :key="`start-${age}`" :value="age">{{ age }} años</option></select></label><label class="modal-field">Edad hasta<select v-model.number="trainingDraft.endAge" required><option v-for="age in trainingEndAgeOptions" :key="`end-${age}`" :value="age">{{ trainingEndAgeLabel(age) }}</option></select></label></div><p class="field-hint">Duración: {{ Math.max(0, Number(trainingDraft.endAge || 0) - Number(trainingDraft.startAge || 0)) }} años</p><label v-if="trainingDraft.type === 'OCCUPATION'" class="training-option"><input v-model="trainingDraft.concurrent" type="checkbox"> <span><strong>Ocupación compaginada</strong><small>Consume un 150% del tiempo cuando coincide con otra actividad principal.</small></span></label></section><p v-if="trainingDraft.type === 'COURSE'" class="field-hint training-course-slots">Cursos disponibles: {{ trainingCourseSlots }} · Se concede uno por cada periodo de cuatro años, contando también el periodo parcial final.</p><section class="modal-section-panel"><h4 class="modal-section-title">Atributos desarrollados</h4><div class="training-form-grid training-attributes-grid"><label class="modal-field">Principal<select v-model="trainingDraft.primaryAttribute"><option value="">Sin atributo</option><option v-for="attribute in trainingAttributeOptions" :key="`primary-${attribute.key}`" :value="attribute.key" :disabled="trainingAttributeDisabled(attribute.key, 'primary')">{{ attribute.label }}</option></select></label><label v-if="trainingDraft.type !== 'COURSE'" class="modal-field">Secundario<select v-model="trainingDraft.secondaryAttribute"><option value="">Sin atributo</option><option v-for="attribute in trainingAttributeOptions" :key="`secondary-${attribute.key}`" :value="attribute.key" :disabled="trainingAttributeDisabled(attribute.key, 'secondary')">{{ attribute.label }}</option></select></label><label v-if="trainingDraft.type !== 'COURSE'" class="modal-field">Terciario<select v-model="trainingDraft.tertiaryAttribute"><option value="">Sin atributo</option><option v-for="attribute in trainingAttributeOptions" :key="`tertiary-${attribute.key}`" :value="attribute.key" :disabled="trainingAttributeDisabled(attribute.key, 'tertiary')">{{ attribute.label }}</option></select></label></div></section><section v-if="trainingPreview" class="training-preview modal-section-panel"><h4 class="modal-section-title">Vista previa del cálculo</h4><p><strong><template v-if="trainingDraft.type === 'COURSE'">No consume intervalo de tiempo</template><template v-else>{{ trainingPreview.humanYears }} años humanos equivalentes</template></strong></p><ul><li v-for="modifier in trainingPreview.modifiers" :key="modifier.attributeKey"><strong>{{ attributeLabels[modifier.attributeKey] || modifier.attributeKey }}</strong>: +{{ modifier.value }} <span>(base +{{ modifier.baseValue }}, coincidencias previas: {{ modifier.previousSelections }})</span></li></ul></section><div class="modal-actions"><button class="button button-primary" type="submit" :disabled="trainingLoading">{{ trainingLoading ? 'Guardando…' : 'Guardar actividad' }}</button><button class="button button-quiet" type="button" @click="resetTrainingDraft(); showTrainingForm=false">Limpiar</button></div></form></div><footer class="modal-actions"><button class="button button-primary" type="button" @click="showTrainingModal=false">Cerrar</button></footer></section></div>
+      <div v-if="showTrainingModal" class="modal-backdrop" @click.self="closeTraining"><section class="modal-card training-modal" role="dialog" aria-modal="true" aria-labelledby="training-title"><header class="modal-header"><div><p class="eyebrow accent">TRAYECTORIA VITAL</p><h2 id="training-title">Formación</h2><p class="modal-copy">Consulta y ajusta las experiencias que desarrollaron tus atributos menores.</p></div><button class="modal-close" type="button" aria-label="Cerrar" @click="closeTraining">×</button></header><div class="modal-body"><p v-if="trainingError" class="error-banner" role="alert">{{ trainingError }}</p><div class="training-axis"><span>{{ trainingData.startingAge }} años</span><span>{{ trainingData.sheetAge }} años</span></div><section class="training-section"><h3 class="training-section-title">Formación, profesiones y ocupaciones</h3><div class="training-track"><template v-for="activity in trainingCoreActivities" :key="activity.id"><div class="training-bar" :class="activity.type.toLowerCase()" :style="trainingBarStyle(activity)" :title="`${trainingTypeLabel(activity.type)}: ${activity.name}`"></div></template></div><p v-if="!trainingCoreActivities.length" class="sheet-muted">Aún no hay formación, profesiones u ocupaciones registradas.</p><article v-for="activity in trainingCoreActivities" :key="`row-${activity.id}`" class="training-row"><div><strong>{{ activity.name }}</strong><span>{{ trainingTypeLabel(activity.type) }}<template v-if="activity.type !== 'COURSE'"> · {{ activity.startAge }}–<template v-if="activity.endAge === trainingData.sheetAge + 1">actual</template><template v-else>{{ activity.endAge }}</template> años</template><template v-if="activity.concurrent"> · compaginada</template></span><div v-if="activity.modifiers?.length" class="training-row-modifiers"><span v-for="modifier in activity.modifiers" :key="`${activity.id}-${modifier.attributeKey}`">{{ attributeLabels[modifier.attributeKey] || modifier.attributeKey }} +{{ modifier.value }}</span></div></div><div class="training-row-actions"><div v-if="editing && trainingGroup(activity).length > 1" class="training-order-actions"><button class="button button-quiet" type="button" :disabled="!canMoveTraining(activity,-1) || trainingReordering !== null" @click="moveTraining(activity,-1)" :aria-label="`Subir ${activity.name}`">↑</button><button class="button button-quiet" type="button" :disabled="!canMoveTraining(activity,1) || trainingReordering !== null" @click="moveTraining(activity,1)" :aria-label="`Bajar ${activity.name}`">↓</button></div><div class="modal-actions"><button v-if="editing" class="button button-quiet" type="button" @click="editTraining(activity)">Editar</button><button v-if="editing" class="button button-danger" type="button" @click="removeTraining(activity)">Eliminar</button></div></div></article></section><section class="training-section training-courses-section"><h3 class="training-section-title">Cursos</h3><div class="training-course-meter" :aria-label="`Cursos utilizados: ${trainingCourseUsed} de ${trainingCourseSlots}`"><div class="training-course-meter-label"><span>Cursos utilizados</span><strong>{{ trainingCourseUsed }} / {{ trainingCourseSlots }}</strong></div><div class="training-course-meter-track"><div class="training-course-meter-fill" :style="{ width: `${trainingCourseSlots ? Math.min(100, (trainingCourseUsed / trainingCourseSlots) * 100) : 0}%` }"></div></div></div><p v-if="!trainingCourseActivities.length" class="sheet-muted">Aún no hay cursos registrados.</p><article v-for="activity in trainingCourseActivities" :key="`row-${activity.id}`" class="training-row"><div><strong>{{ activity.name }}</strong><span>{{ trainingTypeLabel(activity.type) }}<template v-if="activity.type !== 'COURSE'"> · {{ activity.startAge }}–<template v-if="activity.endAge === trainingData.sheetAge + 1">actual</template><template v-else>{{ activity.endAge }}</template> años</template><template v-if="activity.concurrent"> · compaginada</template></span><div v-if="activity.modifiers?.length" class="training-row-modifiers"><span v-for="modifier in activity.modifiers" :key="`${activity.id}-${modifier.attributeKey}`">{{ attributeLabels[modifier.attributeKey] || modifier.attributeKey }} +{{ modifier.value }}</span></div></div><div class="training-row-actions"><div v-if="editing && trainingGroup(activity).length > 1" class="training-order-actions"><button class="button button-quiet" type="button" :disabled="!canMoveTraining(activity,-1) || trainingReordering !== null" @click="moveTraining(activity,-1)" :aria-label="`Subir ${activity.name}`">↑</button><button class="button button-quiet" type="button" :disabled="!canMoveTraining(activity,1) || trainingReordering !== null" @click="moveTraining(activity,1)" :aria-label="`Bajar ${activity.name}`">↓</button></div><div class="modal-actions"><button v-if="editing" class="button button-quiet" type="button" @click="editTraining(activity)">Editar</button><button v-if="editing" class="button button-danger" type="button" @click="removeTraining(activity)">Eliminar</button></div></div></article></section><section class="training-section training-total-section"><h3 class="training-section-title">Total modificadores</h3><div v-if="trainingTotalByAttribute.length" class="training-total-cards"><article v-for="group in trainingTotalByAttribute" :key="group.key" class="training-total-card"><div class="training-total-card-heading"><span>{{ attributeLabels[group.key] || group.key }}</span><strong>+{{ group.total }}</strong></div><div class="training-total-card-tags"><span v-for="(modifier,index) in group.modifiers" :key="`${group.key}-${modifier.activityName}-${index}`">{{ modifier.activityName }} +{{ modifier.value }}</span></div></article></div><p v-else class="sheet-muted">Aún no hay modificadores de trayectoria.</p></section><button v-if="editing && !showTrainingForm" class="button button-primary training-add-button" type="button" @click="openTraining">Añadir actividad</button><form v-if="showTrainingForm" class="training-form" @submit.prevent="saveTraining"><h3>{{ trainingEditingId ? 'Editar actividad' : 'Añadir actividad' }}</h3><section class="modal-section-panel"><h4 class="modal-section-title">Datos de la actividad</h4><div class="training-form-grid"><label class="modal-field">Tipo<select v-model="trainingDraft.type"><option value="FORMATION">Formación</option><option value="PROFESSION">Profesión</option><option value="OCCUPATION">Ocupación</option><option value="COURSE">Curso</option></select></label><label class="modal-field">Nombre<input v-model="trainingDraft.name" required maxlength="160"></label></div></section><section v-if="trainingDraft.type !== 'COURSE'" class="modal-section-panel"><h4 class="modal-section-title">Periodo vital</h4><div class="training-form-grid"><label class="modal-field">Edad desde<select v-model.number="trainingDraft.startAge" required><option v-for="age in trainingStartAgeOptions" :key="`start-${age}`" :value="age">{{ age }} años</option></select></label><label class="modal-field">Edad hasta<select v-model.number="trainingDraft.endAge" required><option v-for="age in trainingEndAgeOptions" :key="`end-${age}`" :value="age">{{ trainingEndAgeLabel(age) }}</option></select></label></div><p class="field-hint">Duración: {{ Math.max(0, Number(trainingDraft.endAge || 0) - Number(trainingDraft.startAge || 0)) }} años</p><label v-if="trainingDraft.type === 'OCCUPATION'" class="training-option"><input v-model="trainingDraft.concurrent" type="checkbox"> <span><strong>Ocupación compaginada</strong><small>Consume un 150% del tiempo cuando coincide con otra actividad principal.</small></span></label></section><p v-if="trainingDraft.type === 'COURSE'" class="field-hint training-course-slots">Cursos disponibles: {{ trainingCourseSlots }} · Se concede uno por cada periodo de cuatro años, contando también el periodo parcial final.</p><section class="modal-section-panel"><h4 class="modal-section-title">Atributos desarrollados</h4><div class="training-form-grid training-attributes-grid"><label class="modal-field">Principal<select v-model="trainingDraft.primaryAttribute"><option value="">Sin atributo</option><option v-for="attribute in trainingAttributeOptions" :key="`primary-${attribute.key}`" :value="attribute.key" :disabled="trainingAttributeDisabled(attribute.key, 'primary')">{{ attribute.label }}</option></select></label><label v-if="trainingDraft.type !== 'COURSE'" class="modal-field">Secundario<select v-model="trainingDraft.secondaryAttribute"><option value="">Sin atributo</option><option v-for="attribute in trainingAttributeOptions" :key="`secondary-${attribute.key}`" :value="attribute.key" :disabled="trainingAttributeDisabled(attribute.key, 'secondary')">{{ attribute.label }}</option></select></label><label v-if="trainingDraft.type !== 'COURSE'" class="modal-field">Terciario<select v-model="trainingDraft.tertiaryAttribute"><option value="">Sin atributo</option><option v-for="attribute in trainingAttributeOptions" :key="`tertiary-${attribute.key}`" :value="attribute.key" :disabled="trainingAttributeDisabled(attribute.key, 'tertiary')">{{ attribute.label }}</option></select></label></div></section><section v-if="trainingPreview" class="training-preview modal-section-panel"><h4 class="modal-section-title">Vista previa del cálculo</h4><p><strong><template v-if="trainingDraft.type === 'COURSE'">No consume intervalo de tiempo</template><template v-else>{{ trainingPreview.humanYears }} años humanos equivalentes</template></strong></p><ul><li v-for="modifier in trainingPreview.modifiers" :key="modifier.attributeKey"><strong>{{ attributeLabels[modifier.attributeKey] || modifier.attributeKey }}</strong>: +{{ modifier.value }} <span>(base +{{ modifier.baseValue }}, coincidencias previas: {{ modifier.previousSelections }})</span></li></ul></section><div class="modal-actions"><button class="button button-primary" type="submit" :disabled="trainingLoading">{{ trainingLoading ? 'Guardando…' : 'Guardar actividad' }}</button><button class="button button-quiet" type="button" @click="resetTrainingDraft(); showTrainingForm=false">Limpiar</button></div></form></div><footer class="modal-actions"><button class="button button-primary" type="button" @click="closeTraining">Cerrar</button></footer></section></div>
 
       <section v-if="sheetView === 'sheet'" class="sheet-content" aria-labelledby="sheet-title">
 
-<div class="sheet-heading"><div><p class="eyebrow accent">HOJA DE PERSONAJE</p><h2 id="sheet-title">{{ character.name }}</h2><p v-if="levelError" class="error-banner" role="alert">{{ levelError }}</p></div><div class="sheet-level"><span>Nivel</span><strong>{{ level }}</strong><small @dblclick="editing && (showExperienceModal=true, experienceError='')" title="Doble clic para añadir experiencia">{{ character.experience }} PX</small><div class="level-actions"><button v-if="trainingData.enabled" class="button button-quiet" type="button" @click="showTrainingModal=true; showTrainingForm=false">Formación</button><template v-if="editing"><button class="button button-quiet" type="button" :disabled="!canLevelUp || levelBusy" @click="openLevelUp()">Subir nivel</button><button class="button button-quiet" type="button" :disabled="!canLevelUpAll || levelBusy" @click="openLevelUp(true)">Subir varios niveles</button><button class="button button-quiet" type="button" @click="showExperienceModal=true; experienceError=''">Añadir experiencia</button></template></div></div></div>
+<div class="sheet-heading"><div><p class="eyebrow accent">HOJA DE PERSONAJE</p><h2 id="sheet-title">{{ character.name }}</h2><p v-if="levelError" class="error-banner" role="alert">{{ levelError }}</p></div><div class="sheet-level"><span>Nivel</span><strong>{{ level }}</strong><small @dblclick="editing && (showExperienceModal=true, experienceError='')" title="Doble clic para añadir experiencia">{{ character.experience }} PX</small><div class="level-actions"><template v-if="editing"><button class="button button-quiet" type="button" @click="openTraining">Formación</button><button class="button button-quiet" type="button" :disabled="!canLevelUp || levelBusy" @click="openLevelUp()">Subir nivel</button><button class="button button-quiet" type="button" :disabled="!canLevelUpAll || levelBusy" @click="openLevelUp(true)">Subir varios niveles</button><button class="button button-quiet" type="button" @click="showExperienceModal=true; experienceError=''">Añadir experiencia</button></template></div></div></div>
 <section class="sheet-panel"><h3>Atributos Mayores</h3><div class="value-grid attributes-grid major-attributes-grid"><div v-for="[key, value] in majorAttributes" :key="key" class="attribute-card"><button class="value-row attribute-row attribute-clickable attribute-detail-trigger" type="button" @click="openAttributeDetail(key)"><span>{{ attributeLabels[key] || key }}</span><strong>{{ displayedAttributeTotal(key, value) }}</strong></button><div class="attribute-card-footer"><button class="attribute-roll-trigger" type="button" :aria-label="`Tirar D10 de ${attributeLabels[key] || key}`" @click="openAttributeRoll(key, value, true)"><span class="attribute-roll-icon" aria-hidden="true"><img src="/diceD10.png" alt=""></span></button><small class="attribute-bonus">+{{ oneBonus(key, displayedAttributeTotal(key, value), true) }} · +{{ d6Bonus(key, displayedAttributeTotal(key, value), true) }}D6</small></div></div><p v-if="!Object.keys(attributes).length" class="sheet-muted">Sin atributos registrados.</p></div></section>
 
         <section class="sheet-panel"><div class="sheet-panel-heading"><h3>Atributos Menores</h3><button v-if="editing" class="button button-quiet" type="button" @click="showMinorModal=true">Añadir atributo menor</button></div><div class="value-grid attributes-grid"><div v-for="[key, value] in minorAttributes" :key="key" class="attribute-card"><button class="value-row attribute-row attribute-clickable attribute-detail-trigger" type="button" @click="openAttributeDetail(key)"><span>{{ attributeLabels[key] || customMinor(key)?.name || key }}</span><strong>{{ displayedAttributeTotal(key, customMinor(key)?.total ?? value) }}</strong></button><div class="attribute-card-footer"><button class="attribute-roll-trigger" type="button" :aria-label="`Tirar D10 de ${attributeLabels[key] || customMinor(key)?.name || key}`" @click="openAttributeRoll(key, value, false)"><span class="attribute-roll-icon" aria-hidden="true"><img src="/diceD10.png" alt=""></span></button><small class="attribute-bonus">+{{ maxBonus(key, displayedAttributeTotal(key, customMinor(key)?.total ?? value), false) }} · +{{ maxD6(key, displayedAttributeTotal(key, customMinor(key)?.total ?? value), false) }}D6</small></div></div></div></section>
@@ -1794,19 +2394,64 @@ watch(() => route.name, async (name) => {
           <article class="weapon-slot protection-slot"><header><strong>Escudo</strong><button v-if="!physicalShields.length" class="button button-quiet" type="button" @click="openPhysicalShieldDetail()">Añadir</button></header><template v-if="physicalShields.length"><button class="inventory-item weapon-card shield-card" type="button" @click="openPhysicalShieldDetail(physicalShields[0])"><img v-if="physicalShields[0].imageUrl" class="weapon-thumbnail" :src="physicalShields[0].imageUrl" :alt="physicalShields[0].name"><span><strong>{{ physicalShields[0].name }}</strong><small>Escudo físico activo</small><small class="weapon-card-stats">RD {{ physicalShields[0].rd }} · Armadura {{ physicalShields[0].armor }} · Defensa {{ physicalShields[0].defense }}</small></span></button></template><p v-else class="sheet-muted">Hueco libre</p></article>
           <article class="weapon-slot protection-slot"><header><strong>Escudo de energía</strong><button v-if="!shields.length" class="button button-quiet" type="button" @click="openShieldDetail()">Añadir</button></header><template v-if="shields.length"><button class="inventory-item weapon-card shield-card" type="button" @click="openShieldDetail(shields[0])"><img v-if="shields[0].imageUrl" class="weapon-thumbnail" :src="shields[0].imageUrl" :alt="shields[0].name"><span><strong>{{ shields[0].name }}</strong><small>Escudo de energía activo</small><small class="weapon-card-stats">{{ shields[0].hitPoints }} PV</small></span></button></template><p v-else class="sheet-muted">Hueco libre</p></article>
         </div></section>
-        <section class="weapon-section ammunition-section"><div class="sheet-panel-heading"><h3>Munición</h3><button class="button button-quiet" type="button" @click="openNewAmmunition">＋ Añadir munición</button></div><p v-if="!ammunition.length" class="sheet-state">No hay munición registrada.</p><div v-else class="ammunition-list"><article v-for="item in ammunition" :key="item.id" class="ammunition-item"><button class="inventory-item ammunition-summary" type="button" @click="openAmmunition(item)"><span><strong>{{ item.caliber }}</strong><small>Munición disponible</small></span><strong>{{ item.quantity }} ud.</strong></button><div class="ammunition-actions" aria-label="Descontar munición"><button v-for="amount in [-1, -5, -10]" :key="amount" class="button button-quiet" type="button" :disabled="ammunitionDeleting || item.quantity < Math.abs(amount)" @click="decrementAmmunition(item, amount as -1 | -5 | -10)">{{ amount }}</button></div></article></div></section>
-        <section class="weapon-section"><div class="sheet-panel-heading"><h3>Otros objetos</h3><button class="button button-quiet" type="button" @click="openNewOtherItem">＋ Añadir objeto</button></div><p v-if="!otherInventory.length" class="sheet-state">No hay objetos registrados.</p><div v-else class="inventory-list"><button v-for="item in otherInventory" :key="item.id" class="inventory-item" type="button" @click="openOtherItem(item)"><span><strong>{{ item.name }}</strong><small>{{ item.location || 'Sin localización' }} · {{ item.quantity }} ud.</small></span><strong>{{ item.unitValue ?? 0 }}</strong></button></div></section>
+          <section class="weapon-section ammunition-section"><div class="sheet-panel-heading"><h3>Munición</h3><button class="button button-quiet" type="button" @click="openNewAmmunition">＋ Añadir munición</button></div><p v-if="!ammunition.length" class="sheet-state">No hay munición registrada.</p><template v-else><div v-if="ammunition.some(item => item.type === 'CALIBER')" class="ammunition-card-grid"><article v-for="item in ammunition.filter(item => item.type === 'CALIBER')" :key="item.id" class="ammunition-card"><button class="ammunition-card-main" type="button" @click="openAmmunition(item)"><span class="ammunition-card-image"><span class="ammunition-image-fallback" aria-hidden="true">▣</span><img :src="ammunitionImage(item.caliber)" :alt="`Munición de calibre ${item.caliber}`" @error="hideBrokenAmmunitionImage"></span><span class="ammunition-card-info"><strong>{{ item.caliber }}</strong><small>Munición disponible</small><small>{{ item.quantity }} unidades</small></span></button><div class="ammunition-actions" :aria-label="`Descontar munición de calibre ${item.caliber}`"><button v-for="amount in [-1, -5, -10]" :key="amount" class="button button-quiet" type="button" :disabled="ammunitionDeleting || item.quantity < Math.abs(amount)" @click="decrementAmmunition(item, amount as -1 | -5 | -10)">{{ amount }}</button></div></article></div><div v-if="ammunition.some(item => item.type === 'GRENADE')" class="ammunition-list ammunition-grenade-list"><article v-for="item in ammunition.filter(item => item.type === 'GRENADE')" :key="item.id" class="ammunition-item"><button class="inventory-item ammunition-summary" type="button" @click="openAmmunition(item)"><span><strong>{{ grenadeFor(item)?.name || 'Granada' }}</strong><small>Granada · {{ grenadeFor(item)?.handGrenade ? 'de mano' : `necesita arma${grenadeFor(item)?.type ? ` · ${grenadeFor(item)?.type}` : ''}` }}</small></span><strong>{{ item.quantity }} ud.</strong></button></article></div></template></section>
+         <section class="weapon-section"><div class="sheet-panel-heading"><h3>Otros objetos</h3><button class="button button-quiet" type="button" @click="openInventoryType">＋ Añadir objeto</button></div><p v-if="!otherInventory.length" class="sheet-state">No hay objetos registrados.</p><div v-else class="inventory-list"><button v-for="item in otherInventory" :key="item.id" class="inventory-item" type="button" @click="openOtherItem(item)"><span><strong>{{ item.name }}</strong><small>{{ item.location || 'Sin localización' }} · {{ item.quantity }} ud.</small></span><strong>{{ item.unitValue ?? 0 }}</strong></button></div></section>
       </section>
 
       <section v-else-if="sheetView === 'inventory-type'" class="sheet-content inventory-content" aria-labelledby="inventory-type-title">
         <div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO</p><h2 id="inventory-type-title">Añadir objeto</h2><p class="modal-copy">Selecciona qué tipo de objeto quieres añadir al inventario.</p></div></div>
-        <div class="inventory-type-grid"><button class="inventory-type-card" type="button" @click="openNewWeapon()"><strong>Arma</strong><span>Una de las armas que lleva equipada el personaje.</span></button><button class="inventory-type-card" type="button" @click="openArmorDetail()"><strong>Armadura</strong><span>Protección con RD y Armadura por hueco.</span></button><button class="inventory-type-card" type="button" @click="openShieldDetail()"><strong>Escudo de energía</strong><span>Protección activa con PV.</span></button><button class="inventory-type-card" type="button" @click="openPhysicalShieldDetail()"><strong>Escudo</strong><span>Escudo físico con RD, Armadura y Defensa.</span></button><button class="inventory-type-card" type="button" @click="openNewAmmunition()"><strong>Munición</strong><span>Una reserva agrupada por calibre.</span></button><button class="inventory-type-card" type="button" @click="openNewOtherItem()"><strong>Otro</strong><span>Un objeto personal que no es un arma.</span></button></div>
-        <div class="modal-actions"><button class="button button-quiet" type="button" @click="sheetView='inventory'">Cancelar</button></div>
+          <div class="inventory-type-grid"><button class="inventory-type-card" type="button" @click="openNewWeapon()"><strong>Arma</strong><span>Una de las armas que lleva equipada el personaje.</span></button><button class="inventory-type-card" type="button" @click="openArmorDetail()"><strong>Armadura</strong><span>Protección con RD y Armadura por hueco.</span></button><button class="inventory-type-card" type="button" @click="openShieldDetail()"><strong>Escudo de energía</strong><span>Protección activa con PV.</span></button><button class="inventory-type-card" type="button" @click="openPhysicalShieldDetail()"><strong>Escudo</strong><span>Escudo físico con RD, Armadura y Defensa.</span></button><button class="inventory-type-card" type="button" @click="openNewAmmunition()"><strong>Munición</strong><span>Una reserva de munición agrupada por calibre.</span></button><button class="inventory-type-card" type="button" @click="openGrenadeChoice"><strong>Granadas</strong><span>Añade granadas del catálogo o crea una personalizada.</span></button><button class="inventory-type-card" type="button" @click="openNewOtherItem()"><strong>Otro</strong><span>Un objeto personal que no es un arma.</span></button></div>
+         <div class="modal-actions"><button class="button button-quiet" type="button" @click="sheetView='inventory'">Cancelar</button></div>
+       </section>
+
+      <section v-else-if="sheetView === 'grenade-choice'" class="sheet-content inventory-content" aria-labelledby="grenade-choice-title">
+        <div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO · GRANADAS</p><h2 id="grenade-choice-title">Añadir granadas</h2><p class="modal-copy">Elige cómo quieres añadirlas al inventario.</p></div></div>
+        <div class="inventory-type-grid grenade-choice-grid"><button class="inventory-type-card" type="button" @click="openGrenadeCatalogSelection"><strong>Del catálogo</strong><span>Usa una granada existente y elige la cantidad.</span></button><button class="inventory-type-card" type="button" @click="openCustomGrenade"><strong>Personalizada</strong><span>Define nombre, daños, tipo y efecto adicional.</span></button></div>
+         <div class="modal-actions"><button class="button button-quiet" type="button" @click="sheetView='inventory-type'">Volver</button></div>
       </section>
 
-      <section v-else-if="sheetView === 'weapon-choice'" class="sheet-content inventory-content"><div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO · ARMAS</p><h2>Añadir arma</h2><p class="modal-copy">Elige una arma de lista o crea una plantilla personalizada.</p></div></div><div class="inventory-type-grid"><button class="inventory-type-card" type="button" @click="openWeaponCatalog"><strong>Lista</strong><span>Busca las armas oficiales y las personalizadas guardadas.</span></button><button class="inventory-type-card" type="button" @click="sheetView='weapon-detail'"><strong>Personalizado</strong><span>Crea un arma reutilizable con su propia imagen.</span></button></div><div class="modal-actions"><button class="button button-quiet" type="button" @click="sheetView='inventory'">Cancelar</button></div></section>
+      <section v-else-if="sheetView === 'grenade-catalog-select'" class="sheet-content inventory-content" aria-labelledby="grenade-catalog-select-title">
+        <div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO · GRANADAS</p><h2 id="grenade-catalog-select-title">Del catálogo</h2><p class="modal-copy">Selecciona una granada y la cantidad que quieres añadir.</p></div></div>
+        <p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p>
+         <p v-if="grenadeCatalogLoading" class="sheet-state">Cargando granadas…</p>
+         <div v-else-if="grenadeCatalog.length" class="character-grid grenade-catalog-grid">
+           <button v-for="grenade in grenadeCatalog" :key="grenade.id" class="grenade-catalog-card character-card" :class="{ selected: selectedGrenadeInventory?.id === grenade.id }" type="button" @click="selectGrenadeFromCatalog(grenade)">
+             <div class="grenade-catalog-portrait grenade-illustration" :class="grenadeIllustration(grenade).tone"><span class="grenade-image-fallback" aria-hidden="true">{{ grenadeIllustration(grenade).glyph }}</span><img v-if="grenadeIllustration(grenade).asset" class="grenade-catalog-image" :src="grenadeIllustration(grenade).asset" :alt="grenadeIllustration(grenade).alt" @error="hideBrokenGrenadeImage"><small>CATÁLOGO</small></div>
+             <div class="character-info grenade-catalog-info"><p class="eyebrow accent">GRANADA</p><h3>{{ grenade.name }}</h3><small class="grenade-catalog-type">{{ grenadeTypeLabel(grenade) }}</small><dl class="grenade-catalog-stats"><div><dt>Daño</dt><dd>{{ grenade.centralDamage }}/{{ grenade.adjacentDamage }}/{{ grenade.damageDecay }}</dd></div><div><dt>Stock</dt><dd>{{ grenadeInventoryItem(grenade.id)?.quantity ?? 0 }}</dd></div></dl></div>
+           </button>
+         </div>
+         <p v-else class="sheet-state">No hay granadas disponibles en el catálogo.</p>
+         <div class="modal-actions"><button class="button button-quiet" type="button" @click="sheetView='grenade-choice'">Volver</button></div>
+       </section>
 
-      <section v-else-if="sheetView === 'weapon-catalog'" class="sheet-content inventory-content"><div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO · ARMAS</p><h2>Lista de armas</h2><p class="modal-copy">Solo se muestran armas compatibles con {{ weaponSlots.find(slot=>slot.value===catalogSlot)?.label }}.</p></div></div><p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p><div class="inventory-form-grid"><label class="modal-field"><span>Buscar por nombre</span><input v-model="catalogSearch" @input="loadWeaponCatalog" autofocus></label><label class="modal-field"><span>Tipo</span><select v-model="catalogType" @change="loadWeaponCatalog"><option value="">Todos</option><option v-for="type in weaponTypes" :key="type.value" :value="type.value">{{ type.label }}</option></select></label></div><p v-if="catalogLoading" class="sheet-state">Cargando armas…</p><div v-else class="character-grid weapon-catalog-grid"><button v-for="item in catalogWeapons" :key="item.id" class="weapon-catalog-card character-card" type="button" @click="selectCatalogWeapon(item)"><div class="portrait weapon-portrait"><img v-if="item.imageUrl" :src="weaponCatalogImage(item)" :alt="item.name"><span v-else>⚔</span></div><div class="character-info weapon-catalog-info"><p class="eyebrow accent">ARMA</p><h3>{{ item.name }}</h3><small class="weapon-catalog-type">{{ weaponTypes.find(type=>type.value===item.weaponType)?.label || item.weaponType }}</small><dl class="weapon-catalog-stats"><div><dt>Puntería</dt><dd>{{ item.aim ?? '—' }}</dd></div><div><dt>Daño</dt><dd :title="`Vital / Normal / Leve / Muy leve: ${item.damageVital} / ${item.damageNormal} / ${item.damageLight} / ${item.damageVeryLight}`">{{ weaponDamage(item) }}</dd></div><div class="weapon-catalog-rate"><dd>{{ weaponRate(item.rate) }}</dd></div></dl></div></button></div><p v-if="!catalogLoading && !catalogWeapons.length" class="sheet-state">No hay armas compatibles.</p><div class="modal-actions"><button class="button button-quiet" type="button" @click="sheetView='weapon-choice'">Volver</button></div></section>
+      <section v-else-if="sheetView === 'grenade-custom-detail'" class="sheet-content inventory-content" aria-labelledby="grenade-custom-title">
+        <div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO · GRANADAS</p><h2 id="grenade-custom-title">Granada personalizada</h2><p class="modal-copy">Crea la granada y añádela directamente al inventario.</p></div></div>
+        <p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p>
+        <form class="inventory-form" @submit.prevent="saveCustomGrenade">
+          <div class="inventory-form-grid"><label class="modal-field"><span>Nombre</span><input v-model="grenadeCustomDraft.name" required maxlength="255" autofocus></label><label class="modal-field"><span>Tipo</span><select v-model="grenadeCustomDraft.launchType"><option value="Mano">Mano</option><option value="LG">LG</option><option value="LP">LP</option></select></label><label class="modal-field"><span>Cantidad</span><input v-model.number="grenadeCustomDraft.quantity" type="number" min="1" step="1" required></label></div>
+          <label class="modal-field"><span>Descripción</span><textarea v-model="grenadeCustomDraft.description" rows="3" maxlength="4000"></textarea></label>
+          <label class="modal-field"><span>Efecto adicional</span><textarea v-model="grenadeCustomDraft.additionalEffect" rows="4" maxlength="4000" required></textarea></label>
+          <div class="weapon-damage-grid grenade-damage-form-grid"><label class="modal-field"><span>Daño central</span><input v-model.number="grenadeCustomDraft.centralDamage" type="number" min="0" step="1" required></label><label class="modal-field"><span>Daño adyacente</span><input v-model.number="grenadeCustomDraft.adjacentDamage" type="number" min="0" step="1" required></label><label class="modal-field"><span>Decaimiento</span><input v-model.number="grenadeCustomDraft.damageDecay" type="number" min="0" step="1" required></label></div>
+          <div class="modal-actions"><button class="button button-primary" type="submit" :disabled="grenadeInventorySaving || !grenadeCustomDraft.name.trim() || !grenadeCustomDraft.additionalEffect.trim() || Number(grenadeCustomDraft.quantity) < 1">{{ grenadeInventorySaving ? 'Guardando…' : 'Guardar granada' }}</button><button class="button button-quiet" type="button" @click="sheetView='grenade-choice'">Volver</button></div>
+        </form>
+      </section>
+
+      <section v-else-if="sheetView === 'grenade-catalog'" class="sheet-content inventory-content" aria-labelledby="grenade-catalog-title">
+        <div class="sheet-heading"><div><p class="eyebrow accent">CATÁLOGO · GRANADAS</p><h2 id="grenade-catalog-title">Granadas</h2><p class="modal-copy">Las granadas no de mano muestran su tipo y quedan bloqueadas para lanzamiento directo.</p></div></div>
+        <p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p>
+        <form class="inventory-form" @submit.prevent="saveGrenadeCatalog">
+          <div class="inventory-form-grid"><label class="modal-field"><span>Nombre</span><input v-model="grenadeCatalogDraft.name" required maxlength="255" autofocus></label><label class="modal-field"><span>Tipo</span><input v-model="grenadeCatalogDraft.type" :disabled="grenadeCatalogDraft.handGrenade" placeholder="Ej. lanzagranadas"></label><label class="modal-field"><span>Granada de mano</span><select v-model="grenadeCatalogDraft.handGrenade"><option :value="true">Sí</option><option :value="false">No</option></select></label></div>
+           <label class="modal-field"><span>Descripción</span><textarea v-model="grenadeCatalogDraft.description" rows="3" maxlength="4000"></textarea></label>
+           <label class="modal-field"><span>Efecto adicional</span><textarea v-model="grenadeCatalogDraft.additionalEffect" rows="5" maxlength="4000" required></textarea></label>
+          <div class="weapon-damage-grid"><label class="modal-field"><span>Daño central</span><input v-model.number="grenadeCatalogDraft.centralDamage" type="number" min="0" step="1" required></label><label class="modal-field"><span>Daño adyacente</span><input v-model.number="grenadeCatalogDraft.adjacentDamage" type="number" min="0" step="1" required></label><label class="modal-field"><span>Decaimiento</span><input v-model.number="grenadeCatalogDraft.damageDecay" type="number" min="0" step="1" required></label></div>
+          <div class="modal-actions"><button class="button button-primary" type="submit" :disabled="grenadeCatalogSaving">{{ grenadeCatalogSaving ? 'Guardando…' : (selectedGrenadeCatalog ? 'Guardar cambios' : 'Crear granada') }}</button><button v-if="selectedGrenadeCatalog" class="button button-quiet" type="button" @click="selectedGrenadeCatalog=null; grenadeCatalogDraft=emptyGrenadeCatalogDraft()">Nueva</button><button class="button button-quiet" type="button" @click="sheetView='inventory'">Volver</button></div>
+        </form>
+        <section class="weapon-section"><div class="sheet-panel-heading"><h3>Catálogo disponible</h3></div><div class="inventory-list"><article v-for="item in grenadeCatalog" :key="item.id" class="inventory-item"><span><strong>{{ item.name }}</strong><small>{{ item.handGrenade ? 'De mano' : `Necesita arma${item.type ? ` · ${item.type}` : ''}` }} · {{ item.centralDamage }}/{{ item.adjacentDamage }}/{{ item.damageDecay }} daño</small><small class="weapon-card-stats">{{ item.additionalEffect || '—' }}</small></span><span class="ammunition-actions"><button class="button button-quiet" type="button" @click="editGrenadeCatalog(item)">Editar</button><button class="button button-danger" type="button" :disabled="grenadeCatalogDeleting || item.official" :title="item.official ? 'Las granadas oficiales no se pueden borrar' : undefined" @click="deleteGrenadeCatalog(item)">Borrar</button></span></article></div><p v-if="!grenadeCatalog.length" class="sheet-state">No hay granadas en el catálogo.</p></section>
+      </section>
+
+      <section v-else-if="sheetView === 'weapon-choice'" class="sheet-content inventory-content"><div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO · ARMAS</p><h2>Añadir arma</h2><p class="modal-copy">Elige un arma del catálogo estático o crea una plantilla personalizada.</p></div></div><div class="inventory-type-grid"><button class="inventory-type-card" type="button" @click="openWeaponCatalog"><strong>Lista</strong><span>Busca las armas oficiales del catálogo JSON estático.</span></button><button class="inventory-type-card" type="button" @click="sheetView='weapon-detail'"><strong>Personalizado</strong><span>Crea un arma reutilizable con su propia imagen.</span></button></div><div class="modal-actions"><button class="button button-quiet" type="button" @click="sheetView='inventory'">Cancelar</button></div></section>
+
+      <section v-else-if="sheetView === 'weapon-catalog'" class="sheet-content inventory-content"><div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO · ARMAS</p><h2>Lista de armas</h2><p class="modal-copy">Solo se muestran armas compatibles con {{ weaponSlots.find(slot=>slot.value===catalogSlot)?.label }}.</p></div></div><p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p><div class="inventory-form-grid"><label class="modal-field"><span>Buscar por nombre</span><input v-model="catalogSearch"  autofocus></label><label class="modal-field"><span>Tipo</span><select v-model="catalogType" @change="loadWeaponCatalog"><option value="">Todos</option><option v-for="type in weaponTypes" :key="type.value" :value="type.value">{{ type.label }}</option></select></label></div><p v-if="catalogLoading" class="sheet-state">Cargando armas…</p><div v-else class="character-grid weapon-catalog-grid"><button v-for="item in visibleCatalogWeapons" :key="item.id" class="weapon-catalog-card character-card" type="button" @click="selectCatalogWeapon(item)"><div class="portrait weapon-portrait"><img v-if="item.imageUrl" :src="weaponCatalogImage(item)" :alt="item.name"><span v-else>⚔</span></div><div class="character-info weapon-catalog-info"><p class="eyebrow accent">ARMA</p><h3>{{ item.name }}</h3><small class="weapon-catalog-type">{{ weaponTypes.find(type=>type.value===item.weaponType)?.label || item.weaponType }}</small><dl class="weapon-catalog-stats"><div><dt>Puntería</dt><dd>{{ item.aim ?? '—' }}</dd></div><div><dt>Daño</dt><dd :title="`Vital / Normal / Leve / Muy leve: ${item.damageVital} / ${item.damageNormal} / ${item.damageLight} / ${item.damageVeryLight}`">{{ weaponDamage(item) }}</dd></div><div class="weapon-catalog-rate"><dd>{{ weaponRate(item.rate) }}</dd></div></dl></div></button></div><p v-if="!catalogLoading && !catalogWeapons.length" class="sheet-state">No hay armas compatibles.</p><div class="modal-actions"><button class="button button-quiet" type="button" @click="sheetView='weapon-choice'">Volver</button></div></section>
 
       <section v-else-if="sheetView === 'weapon-detail'" class="sheet-content inventory-content" aria-labelledby="weapon-detail-title">
         <div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO · ARMAS</p><h2 id="weapon-detail-title">{{ selectedWeapon ? 'Editar arma' : 'Añadir arma' }}</h2><p class="modal-copy">Completa las características del arma.</p></div></div>
@@ -1826,21 +2471,40 @@ watch(() => route.name, async (name) => {
       </section>
 
       <section v-else-if="sheetView === 'abilities'" class="sheet-content abilities-content" aria-labelledby="abilities-title">
-        <div class="sheet-heading"><div><p class="eyebrow accent">HABILIDADES</p><h2 id="abilities-title">{{ character.name }}</h2><p class="modal-copy">Todas las habilidades obtenidas en la última versión cerrada.</p></div><strong class="ability-count">{{ obtainedAbilities.length }}</strong></div>
+        <div class="sheet-heading"><div><p class="eyebrow accent">HABILIDADES</p><h2 id="abilities-title">{{ character.name }}</h2><p class="modal-copy">Todas las habilidades obtenidas en la última versión cerrada.</p><p class="modal-copy">Requisitos cumplidos: {{ eligibleAbilityCount }}</p></div><strong class="ability-count">{{ obtainedAbilities.length }}</strong></div>
         <p v-if="abilityCatalogLoading" class="sheet-state">Cargando habilidades…</p>
         <p v-else-if="abilityCatalogError" class="error-banner" role="alert">{{ abilityCatalogError }}</p>
           <div v-else-if="obtainedAbilities.length" class="abilities-grid"><article v-for="ability in obtainedAbilities" :key="ability.name" class="ability-card"><button class="ability-card-main" type="button" @click="openAbilityDetail(ability)">{{ ability.name }}</button><button v-if="canRollAbility(ability)" class="ability-roll-trigger" type="button" :aria-label="`Tirar D10 para ${ability.name}`" @click="openAbilityRoll(ability)"><img src="/diceD10.png" alt="" aria-hidden="true" /></button></article></div>
         <p v-else class="sheet-state">No hay habilidades obtenidas en una versión cerrada.</p>
       </section>
 
-      <section v-else-if="sheetView === 'ammunition-detail'" class="sheet-content inventory-content" aria-labelledby="ammunition-detail-title">
+       <section v-else-if="sheetView === 'ammunition-catalog'" class="sheet-content inventory-content" aria-labelledby="ammunition-catalog-title">
+         <div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO · MUNICIÓN</p><h2 id="ammunition-catalog-title">Catálogo de munición</h2><p class="modal-copy">Selecciona un calibre para añadir munición al inventario.</p></div></div>
+         <p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p>
+         <div v-if="ammunitionCatalogEntries.length" class="ammunition-catalog-grid">
+           <article v-for="entry in ammunitionCatalogEntries" :key="entry.caliber" class="ammunition-catalog-card">
+             <button class="ammunition-catalog-card-main" type="button" @click="selectAmmunitionCaliber(entry.caliber)">
+               <span class="ammunition-card-image"><span class="ammunition-image-fallback" aria-hidden="true">▣</span><img :src="ammunitionImage(entry.caliber)" :alt="`Ilustración de munición de calibre ${entry.caliber}`" @error="hideBrokenAmmunitionImage"></span>
+               <span v-if="entry.compatibleWeapons.length" class="ammunition-compatible-tags" :title="`Compatible con: ${entry.compatibleWeapons.join(', ')}`"><span v-for="weaponName in entry.compatibleWeapons" :key="weaponName" class="ammunition-compatible-tag">{{ weaponName }}</span></span>
+               <span class="ammunition-catalog-info"><span class="eyebrow accent">CALIBRE</span><strong>{{ entry.caliber }}</strong><small>En inventario: {{ ammunitionCatalogStock(entry.caliber) }}</small></span>
+             </button>
+           </article>
+         </div>
+         <p v-else class="sheet-state">No hay calibres disponibles. Añade un arma con calibre para habilitar munición.</p>
+         <div class="modal-actions"><button class="button button-quiet" type="button" @click="sheetView='inventory'">Volver</button></div>
+       </section>
+
+       <section v-else-if="sheetView === 'ammunition-detail'" class="sheet-content inventory-content" aria-labelledby="ammunition-detail-title">
         <div class="sheet-heading"><div><p class="eyebrow accent">INVENTARIO · MUNICIÓN</p><h2 id="ammunition-detail-title">{{ selectedAmmunition ? 'Editar munición' : 'Añadir munición' }}</h2><p class="modal-copy">La munición se agrupa automáticamente por calibre.</p></div></div>
         <p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p>
         <form class="inventory-form" @submit.prevent="saveAmmunition">
-          <label class="modal-field"><span>Calibre</span><select v-model="ammunitionDraft.caliber" :disabled="!!selectedAmmunition" required><option value="" disabled>Selecciona un calibre</option><option v-for="caliber in ammunitionCalibers" :key="caliber" :value="caliber">{{ caliber }}</option></select></label>
+          <label class="modal-field"><span>Tipo</span><select v-model="ammunitionDraft.type" :disabled="!!selectedAmmunition"><option value="CALIBER">Calibre</option><option value="GRENADE">Granada</option></select></label>
+          <label v-if="ammunitionDraft.type === 'CALIBER'" class="modal-field"><span>Calibre</span><select v-model="ammunitionDraft.caliber" :disabled="!!selectedAmmunition" required><option value="" disabled>Selecciona un calibre</option><option v-for="caliber in ammunitionCalibers" :key="caliber" :value="caliber">{{ caliber }}</option></select></label>
+          <label v-else class="modal-field"><span>Granada del catálogo</span><select v-model="ammunitionDraft.grenadeCatalogId" required><option value="" disabled>Selecciona una granada</option><option v-for="grenade in grenadeCatalog" :key="grenade.id" :value="grenade.id">{{ grenade.name }}</option></select></label>
           <label class="modal-field"><span>Cantidad</span><input v-model.number="ammunitionDraft.quantity" type="number" min="1" step="1" required></label>
-          <p v-if="!ammunitionCalibers.length" class="sheet-state">No hay calibres disponibles. Añade un arma con calibre para habilitar munición.</p>
-          <div class="modal-actions"><button class="button button-primary" type="submit" :disabled="ammunitionSaving || !ammunitionDraft.caliber || Number(ammunitionDraft.quantity) < 1">{{ ammunitionSaving ? 'Guardando…' : 'Guardar munición' }}</button><button class="button button-quiet" type="button" @click="closeAmmunitionDetail">Cancelar</button></div>
+          <p v-if="ammunitionDraft.type === 'CALIBER' && !ammunitionCalibers.length" class="sheet-state">No hay calibres disponibles. Añade un arma con calibre para habilitar munición.</p>
+          <p v-if="ammunitionDraft.type === 'GRENADE' && !grenadeCatalog.length" class="sheet-state">No hay granadas en el catálogo.</p>
+          <div class="modal-actions"><button class="button button-primary" type="submit" :disabled="ammunitionSaving || (ammunitionDraft.type === 'CALIBER' ? !ammunitionDraft.caliber : !ammunitionDraft.grenadeCatalogId) || !Number.isInteger(Number(ammunitionDraft.quantity)) || Number(ammunitionDraft.quantity) < 1">{{ ammunitionSaving ? 'Guardando…' : 'Guardar munición' }}</button><button class="button button-quiet" type="button" @click="closeAmmunitionDetail">Cancelar</button></div>
         </form>
       </section>
 
@@ -1955,18 +2619,56 @@ watch(() => route.name, async (name) => {
         <header class="modal-header"><div><p class="eyebrow accent">AÑADIR ARMA</p><h2 id="catalog-weapon-detail-title">{{ selectedCatalogWeapon.name }}</h2><p class="modal-copy">{{ weaponTypes.find(type => type.value === selectedCatalogWeapon?.weaponType)?.label || selectedCatalogWeapon.weaponType }} · {{ weaponSizes.find(size => size.value === selectedCatalogWeapon?.size)?.label || selectedCatalogWeapon.size }}</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="showCatalogWeaponModal=false">×</button></header>
          <div class="modal-body weapon-detail-body"><div class="weapon-detail-hero"><div class="weapon-detail-image"><img v-if="weaponCatalogImage(selectedCatalogWeapon)" :src="weaponCatalogImage(selectedCatalogWeapon)" :alt="selectedCatalogWeapon.name"><span v-else>⚔</span></div><dl class="weapon-detail-stats"><div><dt>Daño</dt><dd>{{ weaponDamage(selectedCatalogWeapon) }}</dd></div><div><dt>Puntería</dt><dd>{{ selectedCatalogWeapon.aim ?? '—' }}</dd></div><div><dt>Alcance</dt><dd>{{ selectedCatalogWeapon.range }}</dd></div><div v-if="!isMeleeWeapon(selectedCatalogWeapon)"><dt>Recarga</dt><dd>{{ selectedCatalogWeapon.reload }}</dd></div><div><dt>Cadencia</dt><dd>{{ weaponRate(selectedCatalogWeapon.rate) }}</dd></div><div v-if="!isMeleeWeapon(selectedCatalogWeapon)"><dt>Capacidad</dt><dd>{{ selectedCatalogWeapon.capacity }}</dd></div><div v-if="!isMeleeWeapon(selectedCatalogWeapon)"><dt>Balas cargadas</dt><dd>{{ selectedCatalogWeapon.loadedBullets }}/{{ selectedCatalogWeapon.capacity }}</dd></div><div v-if="!isMeleeWeapon(selectedCatalogWeapon)"><dt>Calibre</dt><dd>{{ selectedCatalogWeapon.caliber || '—' }}</dd></div><div v-if="!isMeleeWeapon(selectedCatalogWeapon)"><dt>Fuego automático</dt><dd>{{ selectedCatalogWeapon.automaticFire || '—' }}</dd></div></dl></div><p v-if="selectedCatalogWeapon.extraRule" class="weapon-detail-rule"><strong>Regla extra:</strong> {{ selectedCatalogWeapon.extraRule }}</p><p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p></div>
         <footer class="modal-actions"><button class="button button-primary" type="button" :disabled="catalogLoading" @click="addSelectedCatalogWeapon">{{ catalogLoading ? 'Añadiendo…' : 'Añadir' }}</button><button class="button button-quiet" type="button" @click="showCatalogWeaponModal=false">Cancelar</button></footer>
+     </section>
+     </div>
+
+    <div v-if="showAmmunitionCatalogModal && selectedAmmunitionCatalogCaliber" class="modal-backdrop" @click.self="closeAmmunitionCatalogModal">
+      <section class="modal-card ammunition-catalog-detail-modal" role="dialog" aria-modal="true" aria-labelledby="ammunition-catalog-detail-title">
+        <header class="modal-header"><div><p class="eyebrow accent">AÑADIR MUNICIÓN</p><h2 id="ammunition-catalog-detail-title">{{ selectedAmmunitionCatalogCaliber }}</h2><p class="modal-copy">Confirma la cantidad que quieres añadir al inventario.</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="closeAmmunitionCatalogModal">×</button></header>
+        <div class="modal-body ammunition-catalog-detail-body"><div class="ammunition-catalog-detail-hero"><div class="ammunition-detail-image"><span class="ammunition-image-fallback" aria-hidden="true">▣</span><img :src="ammunitionImage(selectedAmmunitionCatalogCaliber)" :alt="`Ilustración de munición de calibre ${selectedAmmunitionCatalogCaliber}`" @error="hideBrokenAmmunitionImage"></div><dl class="weapon-detail-stats"><div><dt>Calibre</dt><dd>{{ selectedAmmunitionCatalogCaliber }}</dd></div><div><dt>En inventario</dt><dd>{{ ammunitionCatalogStock(selectedAmmunitionCatalogCaliber) }}</dd></div></dl></div><label class="modal-field ammunition-catalog-quantity"><span>Cantidad</span><input v-model.number="ammunitionDraft.quantity" type="number" min="1" step="1" required autofocus></label><p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p></div>
+        <footer class="modal-actions"><button class="button button-primary" type="button" :disabled="ammunitionSaving || !Number.isInteger(Number(ammunitionDraft.quantity)) || Number(ammunitionDraft.quantity) < 1" @click="addAmmunitionFromCatalog">{{ ammunitionSaving ? 'Añadiendo…' : 'Añadir munición' }}</button><button class="button button-quiet" type="button" @click="closeAmmunitionCatalogModal">Cancelar</button></footer>
       </section>
     </div>
 
-    <div v-if="showAttributeRoll && attributeRoll" class="modal-backdrop attribute-roll-backdrop" @click.self="closeAttributeRoll">
+    <div v-if="showGrenadeCatalogModal && selectedGrenadeInventory" class="modal-backdrop" @click.self="closeGrenadeCatalogModal">
+      <section class="modal-card grenade-catalog-detail-modal" role="dialog" aria-modal="true" aria-labelledby="grenade-catalog-detail-title">
+        <header class="modal-header"><div><p class="eyebrow accent">AÑADIR GRANADA</p><h2 id="grenade-catalog-detail-title">{{ selectedGrenadeInventory.name }}</h2><p class="modal-copy">Revisa sus datos y confirma la cantidad que quieres añadir.</p></div><button class="modal-close" type="button" aria-label="Cerrar ventana" @click="closeGrenadeCatalogModal">×</button></header>
+        <div class="modal-body grenade-catalog-detail-body">
+          <div class="grenade-catalog-detail-hero"><div class="grenade-illustration grenade-detail-illustration" :class="grenadeIllustration(selectedGrenadeInventory).tone"><span class="grenade-image-fallback" aria-hidden="true">{{ grenadeIllustration(selectedGrenadeInventory).glyph }}</span><img v-if="grenadeIllustration(selectedGrenadeInventory).asset" class="grenade-detail-image" :src="grenadeIllustration(selectedGrenadeInventory).asset" :alt="grenadeIllustration(selectedGrenadeInventory).alt" @error="hideBrokenGrenadeImage"></div><dl class="weapon-detail-stats"><div><dt>Tipo</dt><dd>{{ grenadeTypeLabel(selectedGrenadeInventory) }}</dd></div><div><dt>Daño</dt><dd>{{ selectedGrenadeInventory.centralDamage }}/{{ selectedGrenadeInventory.adjacentDamage }}/{{ selectedGrenadeInventory.damageDecay }}</dd></div><div><dt>En inventario</dt><dd>{{ grenadeInventoryItem(selectedGrenadeInventory.id)?.quantity ?? 0 }}</dd></div></dl></div>
+          <p v-if="selectedGrenadeInventory.description" class="weapon-detail-rule">{{ selectedGrenadeInventory.description }}</p>
+          <p class="grenade-effect-detail"><span>Efecto adicional</span>{{ selectedGrenadeInventory.additionalEffect || '—' }}</p>
+          <label class="modal-field grenade-selection-quantity"><span>Cantidad</span><input v-model.number="grenadeInventoryQuantity" type="number" min="1" step="1" required autofocus></label>
+          <p v-if="inventoryError" class="error-banner" role="alert">{{ inventoryError }}</p>
+        </div>
+         <footer class="modal-actions"><button class="button button-primary" type="button" :disabled="grenadeInventorySaving || !Number.isInteger(Number(grenadeInventoryQuantity)) || Number(grenadeInventoryQuantity) < 1" @click="addGrenadeFromCatalog">{{ grenadeInventorySaving ? 'Añadiendo…' : 'Añadir granada' }}</button><button class="button button-quiet" type="button" @click="closeGrenadeCatalogModal">Cancelar</button></footer>
+      </section>
+    </div>
+
+    <div v-if="showGrenadeDetailModal && selectedGrenadeAmmunition && grenadeFor(selectedGrenadeAmmunition)" class="modal-backdrop" @click.self="closeGrenadeDetail">
+      <section class="modal-card weapon-detail-modal grenade-detail-modal" role="dialog" aria-modal="true" aria-labelledby="grenade-detail-title">
+        <header class="modal-header"><div><p class="eyebrow accent">INVENTARIO · GRANADA</p><h2 id="grenade-detail-title">{{ grenadeFor(selectedGrenadeAmmunition)?.name }}</h2><p class="modal-copy">{{ selectedGrenadeAmmunition.quantity }} unidad{{ selectedGrenadeAmmunition.quantity === 1 ? '' : 'es' }} disponible{{ selectedGrenadeAmmunition.quantity === 1 ? '' : 's' }}</p></div><button id="grenade-detail-close" class="modal-close" type="button" aria-label="Cerrar detalle de granada" @click="closeGrenadeDetail">×</button></header>
+        <div class="modal-body weapon-detail-body"><p v-if="grenadeFor(selectedGrenadeAmmunition)?.description" class="weapon-detail-rule">{{ grenadeFor(selectedGrenadeAmmunition)?.description }}</p><p class="grenade-effect-detail"><strong>Efecto adicional</strong><span>{{ grenadeFor(selectedGrenadeAmmunition)?.additionalEffect || '—' }}</span></p><p class="grenade-launch-lock" :class="{ 'grenade-launch-lock-blocked': !grenadeFor(selectedGrenadeAmmunition)?.handGrenade }"><strong>{{ grenadeFor(selectedGrenadeAmmunition)?.handGrenade ? 'Granada de mano' : 'Necesita un arma' }}</strong><span v-if="!grenadeFor(selectedGrenadeAmmunition)?.handGrenade">El lanzamiento directo desde el inventario está bloqueado hasta definir el contrato del arma.</span><span v-if="grenadeFor(selectedGrenadeAmmunition)?.type">Tipo: {{ grenadeFor(selectedGrenadeAmmunition)?.type }}</span></p><dl class="weapon-detail-stats"><div><dt>Daño central</dt><dd>{{ grenadeFor(selectedGrenadeAmmunition)?.centralDamage }}</dd></div><div><dt>Daño adyacente</dt><dd>{{ grenadeFor(selectedGrenadeAmmunition)?.adjacentDamage }}</dd></div><div><dt>Decaimiento</dt><dd>{{ grenadeFor(selectedGrenadeAmmunition)?.damageDecay }}</dd></div></dl><section v-if="grenadeHasDamage(grenadeFor(selectedGrenadeAmmunition)!)" class="grenade-damage-section" aria-labelledby="grenade-damage-title"><h3 id="grenade-damage-title">Área de daño</h3><p class="sheet-muted">Distancia Chebyshev desde el centro de la explosión.</p><div class="grenade-damage-grid" role="grid" aria-label="Cuadrícula de daño de la granada" :style="{ gridTemplateColumns: `repeat(${grenadeDamageGridSide(grenadeFor(selectedGrenadeAmmunition)!)}, minmax(36px, 1fr))` }"><span v-for="cell in grenadeDamageGrid(grenadeFor(selectedGrenadeAmmunition)!)" :key="`${cell.x}-${cell.y}`" role="gridcell" :class="{ center: cell.center }" :aria-label="`${cell.center ? 'Centro' : `Distancia ${cell.distance}`}: ${cell.damage} daño`">{{ cell.damage }}</span></div></section></div>
+        <footer class="modal-actions"><button class="button button-quiet grenade-increase-button" type="button" :disabled="grenadeInventorySaving || selectedGrenadeAmmunition.quantity < 1" aria-label="Quitar una unidad de esta granada" title="Quitar una unidad" @click="decreaseGrenadeQuantity"><span aria-hidden="true">−</span><span>Quitar unidad</span></button><button class="button button-primary grenade-increase-button" type="button" :disabled="grenadeInventorySaving" aria-label="Añadir una unidad de esta granada" title="Añadir una unidad" @click="increaseGrenadeQuantity"><span aria-hidden="true">＋</span><span>Añadir unidad</span></button><button v-if="selectedGrenadeAmmunition.quantity > 0 && grenadeFor(selectedGrenadeAmmunition)?.handGrenade" class="button button-primary" type="button" @click="openGrenadeLaunch">Lanzar</button><button class="button button-quiet" type="button" @click="closeGrenadeDetail">Cerrar</button></footer>
+      </section>
+    </div>
+
+    <div v-if="grenadeLaunch?.phase === 'target'" class="modal-backdrop" @click.self="closeGrenadeLaunch">
+      <section class="modal-card grenade-launch-modal" role="dialog" aria-modal="true" aria-labelledby="grenade-distance-title">
+        <header class="modal-header"><div><p class="eyebrow accent">LANZAMIENTO · DISTANCIA</p><h2 id="grenade-distance-title">{{ grenadeLaunch.grenade.name }}</h2><p class="modal-copy">El resultado de Físico permite un alcance máximo de {{ grenadeLaunch.maximumRange }} casillas.</p></div><button class="modal-close" type="button" aria-label="Cancelar lanzamiento" @click="closeGrenadeLaunch">×</button></header>
+        <div class="modal-body grenade-launch-body"><label class="modal-field" for="grenade-distance"><span>Distancia objetivo (1–{{ grenadeLaunch.maximumRange }})</span><input id="grenade-distance" v-model.number="grenadeLaunch.targetDistance" type="number" min="1" :max="grenadeLaunch.maximumRange || undefined" step="1" required></label><p v-if="(grenadeLaunch.targetDistance || 0) >= 1 && (grenadeLaunch.targetDistance || 0) <= (grenadeLaunch.maximumRange || 0)" class="grenade-difficulty">Dificultad de Puntería: <strong>{{ 1 + Math.floor((grenadeLaunch.targetDistance || 0) / 2) }}</strong></p></div>
+        <footer class="modal-actions"><button class="button button-primary" type="button" :disabled="!Number.isInteger(grenadeLaunch.targetDistance || undefined) || (grenadeLaunch.targetDistance || 0) < 1 || (grenadeLaunch.targetDistance || 0) > (grenadeLaunch.maximumRange || 0)" @click="confirmGrenadeDistance">Continuar con Puntería</button><button class="button button-quiet" type="button" @click="closeGrenadeLaunch">Cancelar</button></footer>
+      </section>
+    </div>
+
+    <div v-if="showAttributeRoll && attributeRoll" class="modal-backdrop attribute-roll-backdrop" @click.self="attributeRoll.grenadePhase ? undefined : closeAttributeRoll()">
       <section class="modal-card attribute-roll-modal" role="dialog" aria-modal="true" aria-labelledby="attribute-roll-title">
         <header class="modal-header">
           <div>
-            <p class="eyebrow accent">{{ attributeRoll.abilityName ? `TIRADA · ${attributeRoll.abilityName}` : 'TIRADA DE ATRIBUTO' }}</p>
-            <h2 id="attribute-roll-title">{{ attributeRoll.name }}</h2>
-            <p class="modal-copy">{{ attributeRoll.score }} · +{{ attributeRoll.plusOne }} · +{{ attributeRoll.plusD6 }}D6</p>
+            <p class="eyebrow accent">{{ attributeRoll.grenadePhase === 'physical' ? 'LANZAMIENTO · FÍSICO' : attributeRoll.grenadePhase === 'aim' ? 'LANZAMIENTO · PUNTERÍA' : (attributeRoll.abilityName ? `TIRADA · ${attributeRoll.abilityName}` : 'TIRADA DE ATRIBUTO') }}</p>
+            <h2 id="attribute-roll-title">{{ attributeRoll.grenadePhase ? (attributeRoll.grenadePhase === 'physical' ? 'Alcance de la granada' : 'Precisión del lanzamiento') : attributeRoll.name }}</h2>
+            <p class="modal-copy">{{ attributeRoll.score }} · +{{ attributeRoll.plusOne }} · +{{ attributeRoll.plusD6 }}D6<span v-if="attributeRoll.grenadePhase === 'aim'"> · dificultad {{ attributeRoll.difficulty }}</span></p>
           </div>
-          <button id="attribute-roll-close" class="modal-close" type="button" aria-label="Cerrar tirada" @click="closeAttributeRoll">×</button>
+          <button id="attribute-roll-close" class="modal-close" type="button" aria-label="Cerrar tirada" @click="attributeRoll.grenadePhase ? closeGrenadeLaunch() : closeAttributeRoll()">×</button>
         </header>
         <div class="modal-body attribute-roll-body">
           <div class="attribute-roll-layout">
@@ -1988,15 +2690,21 @@ watch(() => route.name, async (name) => {
                 </button>
               </div>
             </section>
-          <div class="attribute-roll-result" :class="{ critical: attributeRollIsCritical, fumble: attributeRollIsFumble, success: abilityRollSuccess, failure: attributeRoll.abilityName && attributeRollHasValidSelection && !abilityRollSuccess, incomplete: !attributeRollHasValidSelection }" aria-live="polite">
-               <strong v-if="attributeRollHasValidSelection">{{ attributeRollResult }}<small v-if="attributeRoll.abilityName"> · dif {{ attributeRoll.difficulty }}+</small></strong>
+          <div class="attribute-roll-result" :class="{ critical: attributeRollIsCritical, fumble: attributeRollIsFumble, success: abilityRollSuccess || (attributeRoll.grenadePhase === 'aim' && grenadeLaunch?.phase === 'result' && (grenadeLaunch.aimResult || 0) >= (grenadeLaunch.difficulty || 0)), failure: (attributeRoll.abilityName && attributeRollHasValidSelection && !abilityRollSuccess) || (attributeRoll.grenadePhase === 'aim' && grenadeLaunch?.phase === 'result' && (grenadeLaunch.aimResult || 0) < (grenadeLaunch.difficulty || 0)), incomplete: !attributeRollHasValidSelection }" aria-live="polite">
+               <strong v-if="attributeRollHasValidSelection">{{ attributeRollResult }}<small v-if="attributeRoll.abilityName || attributeRoll.grenadePhase === 'aim'"> · dif {{ attributeRoll.difficulty }}+</small></strong>
               <strong v-else>Falta seleccionar {{ attributeRollMissingSelection }}</strong>
             </div>
           </div>
+          <p v-if="attributeRoll.grenadePhase === 'physical' && attributeRollHasValidSelection" class="grenade-roll-summary">Alcance máximo: <strong>{{ 10 + Math.floor((attributeRollResult || 0) / 3) }}</strong> casillas.</p>
+          <p v-if="attributeRoll.grenadePhase === 'aim' && grenadeLaunch?.phase === 'result'" class="grenade-roll-summary" :class="{ success: (grenadeLaunch.aimResult || 0) >= (grenadeLaunch.difficulty || 0), failure: (grenadeLaunch.aimResult || 0) < (grenadeLaunch.difficulty || 0) }">{{ (grenadeLaunch.aimResult || 0) >= (grenadeLaunch.difficulty || 0) ? 'Lanzamiento acertado.' : 'Lanzamiento fallido.' }} La granada se ha consumido.</p>
         </div>
         <footer class="modal-actions">
-          <button class="button button-primary" type="button" @click="rerollAttribute">Volver a tirar</button>
-          <button class="button button-quiet" type="button" @click="closeAttributeRoll">Cerrar</button>
+          <button v-if="attributeRoll.grenadePhase === 'physical' && attributeRollHasValidSelection" class="button button-primary" type="button" @click="continueGrenadePhysicalRoll">Continuar</button>
+          <button v-if="attributeRoll.grenadePhase === 'aim' && grenadeLaunch?.phase === 'aim' && attributeRollHasValidSelection" class="button button-primary" type="button" :disabled="grenadeLaunch.consumed" @click="confirmGrenadeLaunch">Confirmar lanzamiento</button>
+          <button v-if="attributeRoll.grenadePhase === 'aim' && grenadeLaunch?.phase === 'result'" class="button button-primary" type="button" @click="closeGrenadeLaunch">Cerrar resultado</button>
+           <button v-if="!attributeRoll.grenadePhase || grenadeLaunch?.phase !== 'result'" class="button button-primary" type="button" @click="rerollAttribute">Volver a tirar</button>
+          <button v-if="!attributeRoll.grenadePhase" class="button button-quiet" type="button" @click="closeAttributeRoll">Cerrar</button>
+          <button v-else-if="grenadeLaunch?.phase !== 'result'" class="button button-quiet" type="button" @click="closeGrenadeLaunch">Cancelar</button>
         </footer>
       </section>
     </div>

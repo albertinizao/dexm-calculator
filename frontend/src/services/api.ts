@@ -13,6 +13,7 @@ const request = async (path: string, options: RequestInit = {}) => {
     error.status = response.status;
     throw error;
   }
+  if (!path.endsWith('/keepalive')) window.dispatchEvent(new CustomEvent('dexm-api-activity'));
   if (response.status === 204) return null;
   return response.json();
 };
@@ -58,7 +59,14 @@ export type OtherInventoryItem = {
   quantity: number;
   unitValue?: number | null;
 };
-export type Ammunition = { id: string; caliber: string; quantity: number };
+export type AmmunitionType = 'CALIBER' | 'GRENADE';
+export type GrenadeCatalogItem = {
+  id: string; name: string; description?: string | null;
+  centralDamage: number; adjacentDamage: number; damageDecay: number;
+  additionalEffect?: string | null;
+  handGrenade: boolean; type?: string | null; official: boolean;
+};
+export type Ammunition = { id: string; type: AmmunitionType; caliber?: string | null; grenadeCatalogId?: string | null; grenade?: GrenadeCatalogItem | null; quantity: number };
 export type WeaponReloadResult = {
   weaponId: string;
   caliber: string;
@@ -137,6 +145,7 @@ removeCharacterEditor: (id: string, email: string) => request('/api/characters/'
   importCharacterArchive: (id: string, archive: unknown) => request('/api/characters/' + encodeURIComponent(id) + '/archive/import', { method: 'POST', body: JSON.stringify(archive) }),
   configureCreation: (id: string, body: CreationConfigurationPayload) => request('/api/characters/' + id + '/creation', { method: 'POST', body: JSON.stringify(body) }),
   training: (id: string) => request('/api/characters/' + id + '/training'),
+  inventory: (id: string) => request('/api/characters/' + id + '/inventory') as Promise<{ others: OtherInventoryItem[]; weapons: Weapon[]; ammunition: Ammunition[]; armors: Armor[]; shields: Shield[]; physicalShields: PhysicalShield[] }>,
   otherInventory: (id: string) => request('/api/characters/' + id + '/inventory/others') as Promise<OtherInventoryItem[]>,
   createOtherInventory: (id: string, body: Omit<OtherInventoryItem, 'id'>) => request('/api/characters/' + id + '/inventory/others', { method: 'POST', body: JSON.stringify(body) }) as Promise<OtherInventoryItem>,
   getOtherInventory: (id: string, itemId: string) => request('/api/characters/' + id + '/inventory/others/' + encodeURIComponent(itemId)) as Promise<OtherInventoryItem>,
@@ -151,9 +160,17 @@ removeCharacterEditor: (id: string, email: string) => request('/api/characters/'
   shootWeapon: (id: string, weaponId: string, shots: number, automatic = false) => request('/api/characters/' + id + '/inventory/weapons/' + encodeURIComponent(weaponId) + '/shoot', { method: 'POST', body: JSON.stringify({ mode: automatic ? 'automatic' : 'normal', shots }) }) as Promise<WeaponShootResult>,
   ammunition: (id: string) => request('/api/characters/' + id + '/inventory/ammunition') as Promise<Ammunition[]>,
   ammunitionCalibers: (id: string) => request('/api/characters/' + id + '/inventory/ammunition/calibers') as Promise<string[]>,
-  createAmmunition: (id: string, body: Omit<Ammunition, 'id'>) => request('/api/characters/' + id + '/inventory/ammunition', { method: 'POST', body: JSON.stringify(body) }) as Promise<Ammunition>,
-  updateAmmunition: (id: string, ammunitionId: string, body: Omit<Ammunition, 'id'>) => request('/api/characters/' + id + '/inventory/ammunition/' + encodeURIComponent(ammunitionId), { method: 'PUT', body: JSON.stringify(body) }) as Promise<Ammunition>,
+  createAmmunition: (id: string, body: Omit<Ammunition, 'id' | 'grenade'>) => request('/api/characters/' + id + '/inventory/ammunition', { method: 'POST', body: JSON.stringify(body) }) as Promise<Ammunition>,
+  updateAmmunition: (id: string, ammunitionId: string, body: Omit<Ammunition, 'id' | 'grenade'>) => request('/api/characters/' + id + '/inventory/ammunition/' + encodeURIComponent(ammunitionId), { method: 'PUT', body: JSON.stringify(body) }) as Promise<Ammunition>,
   decrementAmmunition: (id: string, ammunitionId: string, amount: -1 | -5 | -10) => request('/api/characters/' + id + '/inventory/ammunition/' + encodeURIComponent(ammunitionId) + '/decrement', { method: 'POST', body: JSON.stringify({ amount }) }),
+  consumeGrenade: (id: string, ammunitionId: string) => request('/api/characters/' + id + '/inventory/ammunition/' + encodeURIComponent(ammunitionId) + '/consume', { method: 'POST' }) as Promise<Ammunition>,
+  launchGrenade: (id: string, grenadeCatalogId: string) => request('/api/characters/' + id + '/inventory/grenades/' + encodeURIComponent(grenadeCatalogId) + '/launch', { method: 'POST' }) as Promise<Ammunition>,
+  grenadeCatalog: () => request('/api/grenade-catalog') as Promise<GrenadeCatalogItem[]>,
+  customGrenadeCatalog: () => request('/api/grenade-catalog/custom') as Promise<GrenadeCatalogItem[]>,
+  createCatalogGrenade: (body: Omit<GrenadeCatalogItem, 'id' | 'official'>) => request('/api/grenade-catalog', { method: 'POST', body: JSON.stringify(body) }) as Promise<GrenadeCatalogItem>,
+  updateCatalogGrenade: (id: string, body: Omit<GrenadeCatalogItem, 'id' | 'official'>) => request('/api/grenade-catalog/' + encodeURIComponent(id), { method: 'PUT', body: JSON.stringify(body) }) as Promise<GrenadeCatalogItem>,
+  deleteCatalogGrenade: (id: string) => request('/api/grenade-catalog/' + encodeURIComponent(id), { method: 'DELETE' }),
+  customWeaponCatalog: () => request('/api/weapon-catalog/custom') as Promise<WeaponCatalogItem[]>,
   weaponCatalog: (slot?: string, name?: string, type?: string) => request('/api/weapon-catalog?' + new URLSearchParams(Object.entries({ slot:slot || '', name:name || '', type:type || '' }).filter(([, value]) => value) as [string,string][])) as Promise<WeaponCatalogItem[]>,
   createCatalogWeapon: (body: Omit<WeaponCatalogItem, 'id' | 'official' | 'loadedBullets'>) => request('/api/weapon-catalog', { method: 'POST', body: JSON.stringify(body) }) as Promise<WeaponCatalogItem>,
   addCatalogWeaponToCharacter: (catalogId: string, characterId: string, slot: string) => request('/api/weapon-catalog/' + encodeURIComponent(catalogId) + '/characters/' + encodeURIComponent(characterId), { method: 'POST', body: JSON.stringify({ slot }) }) as Promise<Weapon>,
@@ -178,7 +195,6 @@ removeCharacterEditor: (id: string, email: string) => request('/api/characters/'
   physicalShieldCatalog: () => request('/api/physical-shield-catalog') as Promise<PhysicalShieldCatalogItem[]>,
   createCatalogPhysicalShield: (body: Omit<PhysicalShieldCatalogItem, 'id' | 'official'>) => request('/api/physical-shield-catalog', { method: 'POST', body: JSON.stringify(body) }) as Promise<PhysicalShieldCatalogItem>,
   addCatalogPhysicalShieldToCharacter: (catalogId: string, characterId: string) => request('/api/physical-shield-catalog/' + encodeURIComponent(catalogId) + '/characters/' + encodeURIComponent(characterId), { method: 'POST' }) as Promise<PhysicalShield>,
-  previewTraining: (id: string, body: unknown) => request('/api/characters/' + id + '/training/preview', { method: 'POST', body: JSON.stringify(body) }),
   reorderTraining: (id: string, activityIds: string[]) => request('/api/characters/' + id + '/training/reorder', { method: 'POST', body: JSON.stringify({ activityIds }) }),
   addTraining: (id: string, body: unknown) => request('/api/characters/' + id + '/training', { method: 'POST', body: JSON.stringify(body) }),
   updateTraining: (id: string, activityId: string, body: unknown) => request('/api/characters/' + id + '/training/' + encodeURIComponent(activityId), { method: 'PUT', body: JSON.stringify(body) }),
@@ -187,13 +203,13 @@ removeCharacterEditor: (id: string, email: string) => request('/api/characters/'
   create: (name: string) => request('/api/characters', { method: 'POST', body: JSON.stringify({ name }) }),
   get: (id: string) => request('/api/characters/' + id),
   deleteCharacter: (id: string) => request('/api/characters/' + id, { method: 'DELETE' }),
+  characterAbilities: (id: string) => request('/api/characters/' + id + '/abilities') as Promise<{ catalog: unknown[]; abilities: string[]; pendingUniqueAbilities: string[] }>,
   pendingUniqueAbilities: (id: string) => request('/api/characters/' + id + '/unique-abilities/pending'),
   decideUniqueAbility: (id: string, name: string, decision: 'accepted' | 'rejected') => request('/api/characters/' + id + '/unique-abilities/' + encodeURIComponent(name) + '/decision', { method: 'POST', body: JSON.stringify({ decision }) }),
   edit: (id: string) => request('/api/characters/' + id + '/edit', { method: 'POST' }),
   addExperience: (id: string, amount: number) => request('/api/characters/' + id + '/experience', { method: 'POST', body: JSON.stringify({ amount }) }),
   levelUp: (id: string, body: AllocationPayload) => request('/api/characters/' + id + '/level-up', { method: 'POST', body: JSON.stringify(body) }),
   levelUpAll: (id: string, body: AllocationPayload) => request('/api/characters/' + id + '/level-up-all', { method: 'POST', body: JSON.stringify(body) }),
-  attributeDetail: (characterId: string, key: string) => request('/api/characters/' + characterId + '/attributes/' + encodeURIComponent(key)),
   saveAttributeModifiers: (id: string, body: Record<string, { name: string; value: number }[]>) => request('/api/characters/' + id + '/attribute-modifiers', { method: 'PUT', body: JSON.stringify(body) }),
   save: (id: string, body: unknown) => request('/api/characters/' + id, { method: 'PUT', body: JSON.stringify(body) }),
   importLegacy: (id: string, code: string) => request('/api/characters/' + id + '/legacy/import', { method: 'POST', body: JSON.stringify({ code }) }),
@@ -202,7 +218,6 @@ removeCharacterEditor: (id: string, email: string) => request('/api/characters/'
     if (!response.ok) throw new Error((await response.text()) || response.statusText);
     return response.text();
   },
-  preview: (id: string, body: unknown) => request('/api/characters/' + id + '/preview', { method: 'POST', body: JSON.stringify(body) }),
   milestones: (id: string) => request('/api/characters/' + id + '/milestones'),
   cancelChanges: (id: string) => request('/api/characters/' + id + '/cancel-changes', { method: 'POST' }),
   recoverMilestone: (id: string, milestoneId: string) => request('/api/characters/' + id + '/history/' + encodeURIComponent(milestoneId) + '/recover', { method: 'POST' }),

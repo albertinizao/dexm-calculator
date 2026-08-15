@@ -3,6 +3,7 @@ package com.dexm.personajes;
 import com.dexm.personajes.adapter.out.persistence.*;
 import com.dexm.personajes.adapter.in.web.CharacterController;
 import com.dexm.personajes.application.CharacterService;
+import com.dexm.personajes.application.OfficialCatalogService;
 import com.dexm.personajes.domain.CharacterRules;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,6 +31,7 @@ class CharacterServiceAllocationTest {
     @Mock CharacterMinorAttributeValueRepository minorValues;
     @Mock MinorAttributeDefinitionRepository minorDefs;
     @Mock CharacterAttributeModifierRepository modifiers;
+    @Mock OfficialCatalogService officialCatalog;
 
     private CharacterService service;
     private CharacterEntity character;
@@ -48,9 +50,10 @@ class CharacterServiceAllocationTest {
         when(minorDefs.findByCampaignIdOrderByNameAsc("campaign")).thenReturn(List.of());
         when(modifiers.findByCharacterId("c1")).thenReturn(List.of());
         when(abilities.findAll()).thenReturn(List.of());
+        when(officialCatalog.abilities()).thenReturn(List.of());
         service = new CharacterService(characters, milestones, abilities, new ObjectMapper(),
                 new com.dexm.personajes.application.MinorAttributeService(minorDefs, minorValues, characters, modifiers),
-                minorValues, minorDefs, modifiers);
+                minorValues, minorDefs, modifiers, null, officialCatalog);
     }
 
     @Test
@@ -143,6 +146,19 @@ class CharacterServiceAllocationTest {
         assertThat(((Map<?, ?>) response.get("character")).get("closed")).isEqualTo(false);
         assertThat(character.isClosed()).isFalse();
         verify(milestones, never()).save(any(MilestoneEntity.class));
+    }
+
+    @Test
+    void beginningEditOnlyReturnsTheChangedEditState() {
+        character.setClosed(true);
+
+        var response = service.beginEdit("c1");
+
+        assertThat(response).containsExactlyEntriesOf(Map.of("closed", false));
+        assertThat(character.isClosed()).isFalse();
+        verify(characters).save(character);
+        verify(modifiers, never()).findByCharacterId("c1");
+        verify(minorValues, never()).findByCharacterId("c1");
     }
 
     @Test
@@ -347,6 +363,60 @@ class CharacterServiceAllocationTest {
         assertThat(changes).anyMatch(change -> change.get("name").equals("Armadura") && change.get("before").equals(1) && change.get("after").equals(3));
         assertThat(changes).anyMatch(change -> change.get("name").equals("Antiguo") && change.get("before").equals(4) && change.get("after") == null);
         assertThat(changes).anyMatch(change -> change.get("name").equals("Nuevo") && change.get("before") == null && change.get("after").equals(2));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void currentUpgradeReportsManualModifierAddedAfterLatestClosedVersion() throws Exception {
+        var mapper = new ObjectMapper();
+        var previousSnapshot = mapper.writeValueAsString(Map.of(
+                "attributes", attributes,
+                "genetics", genetics,
+                "minorAttributes", Map.of(),
+                "modifiers", Map.of(),
+                "abilities", List.of()));
+        when(milestones.findByCharacterIdAndVisibleTrueOrderByCreatedAtDesc("c1"))
+                .thenReturn(List.of(new MilestoneEntity("m1", "c1", 1, 0, previousSnapshot, "{}", "[]")));
+
+        character.setModifiers(List.of(new CharacterAttributeModifierEntity(
+                "manual-1", "c1", "enganno", "Pruebitas", 45)));
+
+        var result = service.currentUpgrade("c1");
+        var changes = (List<Map<String, Object>>) result.get("modifiers");
+
+        assertThat(changes).anyMatch(change -> change.get("key").equals("enganno")
+                && change.get("name").equals("Pruebitas")
+                && change.get("before") == null
+                && change.get("after").equals(45));
+        verify(modifiers, never()).findByCharacterId("c1");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void currentUpgradeIncludesAbilityUnlockedByEmbeddedModifier() throws Exception {
+        var mapper = new ObjectMapper();
+        var previousSnapshot = mapper.writeValueAsString(Map.of(
+                "attributes", attributes,
+                "genetics", genetics,
+                "minorAttributes", Map.of(),
+                "modifiers", Map.of(),
+                "abilities", List.of()));
+        when(milestones.findByCharacterIdAndVisibleTrueOrderByCreatedAtDesc("c1"))
+                .thenReturn(List.of(new MilestoneEntity("m1", "c1", 1, 0, previousSnapshot, "{}", "[]")));
+        when(officialCatalog.abilities()).thenReturn(List.of(
+                new AbilityEntity("a1", "Concentración Agilidad", "", "", 10, "No", "[{\"Agi\":5}]"),
+                new AbilityEntity("a2", "Concentración Físico", "", "", 10, "No", "[{\"Fis\":5}]")));
+
+        var currentAttributes = new LinkedHashMap<>(attributes);
+        currentAttributes.put("agilidad", 4);
+        currentAttributes.put("fisico", 4);
+        character.setAttributesJson(mapper.writeValueAsString(currentAttributes));
+        character.setModifiers(List.of(
+                new CharacterAttributeModifierEntity("manual-1", "c1", "agilidad", "dddd", 1),
+                new CharacterAttributeModifierEntity("manual-2", "c1", "fisico", "físico", 1)));
+        var result = service.currentUpgrade("c1");
+        assertThat((Set<String>) result.get("abilities"))
+                .contains("Concentración Agilidad", "Concentración Físico");
     }
 
     @Test
