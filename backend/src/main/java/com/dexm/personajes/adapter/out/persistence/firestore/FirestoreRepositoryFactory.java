@@ -161,7 +161,6 @@ public class FirestoreRepositoryFactory {
             if (characterId == null) return new ArrayList<>();
             CharacterEntity character = readCharacter(characterId);
             if (character == null) return new ArrayList<>();
-            if (character.getAggregateVersion() < 1) return legacyItems(characterId);
             Object value = aggregateField().endsWith("modifiers") ? character.getModifiers() : character.getMinorAttributeValues();
             List<Object> rows = new ArrayList<>(); for (Object row : (List<?>) value) rows.add(mapper.convertValue(row, type)); return rows;
         }
@@ -262,7 +261,7 @@ public class FirestoreRepositoryFactory {
             var ref = firestore.collection("characterInventories").document(characterId);
             if (collection.equals("trainingActivities")) ref = firestore.collection("characterActivities").document(characterId);
             var snapshot = ref.get().get();
-            if (!snapshot.exists()) return legacyItems(characterId);
+            if (!snapshot.exists()) return new ArrayList<>();
             Map<String, Object> document = snapshot.getData(); Object raw = document == null ? null : document.get(aggregateField());
             if (!(raw instanceof List<?> list)) return new ArrayList<>();
             List<Object> result = new ArrayList<>(); for (Object item : list) result.add(mapper.convertValue(item, type));
@@ -288,30 +287,15 @@ public class FirestoreRepositoryFactory {
             document.put("json", mapper.writeValueAsString(document)); ref.set(document).get();
         }
 
-        private List<Object> legacyItems(String requestedId) throws Exception {
-            List<Object> items = new ArrayList<>();
-            var documents = firestore.collection(collection).get().get().getDocuments();
-            for (DocumentSnapshot document : documents) decode(document).ifPresent(items::add);
-            if (requestedId != null) items = items.stream().filter(item -> { try { return requestedId.equals(String.valueOf(field(type, "characterId").get(item))); } catch (Exception e) { return false; } }).toList();
-            return new ArrayList<>(items);
-        }
-
-        private Optional<Object> legacyDocument(String entityId) throws Exception {
-            var document = firestore.collection(collection).document(entityId).get().get();
-            return decode(document);
-        }
-
         private Optional<Object> aggregateDocument(String entityId) throws Exception {
-            var legacy = legacyDocument(entityId);
-            if (legacy.isPresent()) return legacy;
             String aggregateCollection = collection.equals("trainingActivities") ? "characterActivities" : "characterInventories";
-            for (DocumentSnapshot document : firestore.collection(aggregateCollection).get().get().getDocuments()) {
-                Object raw = document.getData() == null ? null : document.getData().get(aggregateField());
-                if (!(raw instanceof List<?> list)) continue;
-                for (Object item : list) {
-                    Object decoded = mapper.convertValue(item, type);
-                    if (entityId.equals(String.valueOf(id.get(decoded)))) return Optional.of(decoded);
-                }
+            var document = firestore.collection(aggregateCollection).document(entityId).get().get();
+            if (!document.exists() || document.getData() == null) return Optional.empty();
+            Object raw = document.getData().get(aggregateField());
+            if (!(raw instanceof List<?> list)) return Optional.empty();
+            for (Object item : list) {
+                Object decoded = mapper.convertValue(item, type);
+                if (entityId.equals(String.valueOf(id.get(decoded)))) return Optional.of(decoded);
             }
             return Optional.empty();
         }

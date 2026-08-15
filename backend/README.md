@@ -109,7 +109,3 @@ Catalog seeding is disabled during normal application startup to avoid reading
 the complete Firestore catalogs whenever Cloud Run creates a new instance. Run
 the application as a controlled maintenance operation with
 `APP_CATALOG_SEED_ENABLED=true` only when catalog data must be synchronized.
-
-## Character aggregate backfill
-
-The migration is intentionally not executed during normal startup. Run the application once with `--app.maintenance.backfill-character-aggregates=true` against the target Firestore project, verify the reported counts, then restart without the flag. The new aggregate format is written by normal operations while legacy collections remain readable as a temporary fallback.
