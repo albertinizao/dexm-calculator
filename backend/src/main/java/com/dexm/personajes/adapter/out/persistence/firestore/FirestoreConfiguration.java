@@ -2,7 +2,6 @@ package com.dexm.personajes.adapter.out.persistence.firestore;
 
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.FirestoreOptions;
-import org.springframework.context.annotation.Bean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -27,11 +26,17 @@ public class FirestoreConfiguration {
 
     @Bean AbilityRepository abilityRepository(FirestoreRepositoryFactory f){ return f.create(AbilityRepository.class, AbilityEntity.class, "abilities"); }
     @Bean AmmunitionRepository ammunitionRepository(FirestoreRepositoryFactory f){ return f.create(AmmunitionRepository.class, AmmunitionEntity.class, "ammunition"); }
+    @Bean GrenadeCatalogRepository grenadeCatalogRepository(FirestoreRepositoryFactory f){ return f.create(GrenadeCatalogRepository.class, GrenadeCatalogEntity.class, "grenadeCatalog"); }
     @Bean ArmorCatalogRepository armorCatalogRepository(FirestoreRepositoryFactory f){ return f.create(ArmorCatalogRepository.class, ArmorCatalogEntity.class, "armorCatalog"); }
     @Bean ArmorRepository armorRepository(FirestoreRepositoryFactory f){ return f.create(ArmorRepository.class, ArmorEntity.class, "armors"); }
     @Bean CampaignRepository campaignRepository(FirestoreRepositoryFactory f){ return f.create(CampaignRepository.class, CampaignEntity.class, "campaigns"); }
     @Bean CampaignInvitationRepository campaignInvitationRepository(FirestoreRepositoryFactory f){ return f.create(CampaignInvitationRepository.class, CampaignInvitationEntity.class, "campaignInvitations"); }
     @Bean CharacterRepository characterRepository(FirestoreRepositoryFactory f){ return f.create(CharacterRepository.class, CharacterEntity.class, "characters"); }
+    @Bean CharacterInventoryAggregateRepository characterInventoryAggregateRepository(FirestoreRepositoryFactory f){ return f.create(CharacterInventoryAggregateRepository.class, CharacterInventoryAggregateEntity.class, "characterInventories"); }
+    @Bean CharacterActivityAggregateRepository characterActivityAggregateRepository(FirestoreRepositoryFactory f){ return f.create(CharacterActivityAggregateRepository.class, CharacterActivityAggregateEntity.class, "characterActivities"); }
+    @Bean CharacterAbilityStateRepository characterAbilityStateRepository(FirestoreRepositoryFactory f){ return f.create(CharacterAbilityStateRepository.class, CharacterAbilityStateEntity.class, "characterAbilities"); }
+    @Bean MilestoneInventorySnapshotRepository milestoneInventorySnapshotRepository(FirestoreRepositoryFactory f){ return f.create(MilestoneInventorySnapshotRepository.class, MilestoneInventorySnapshotEntity.class, "milestoneInventorySnapshots"); }
+    @Bean MilestoneActivitySnapshotRepository milestoneActivitySnapshotRepository(FirestoreRepositoryFactory f){ return f.create(MilestoneActivitySnapshotRepository.class, MilestoneActivitySnapshotEntity.class, "milestoneActivitySnapshots"); }
     @Bean CharacterAttributeModifierRepository modifierRepository(FirestoreRepositoryFactory f){ return f.create(CharacterAttributeModifierRepository.class, CharacterAttributeModifierEntity.class, "attributeModifiers"); }
     @Bean CharacterMinorAttributeValueRepository minorValueRepository(FirestoreRepositoryFactory f){ return f.create(CharacterMinorAttributeValueRepository.class, CharacterMinorAttributeValueEntity.class, "minorAttributeValues"); }
     @Bean MilestoneRepository milestoneRepository(FirestoreRepositoryFactory f){ return f.create(MilestoneRepository.class, MilestoneEntity.class, "milestones"); }

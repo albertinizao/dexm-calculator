@@ -10,7 +10,7 @@ import java.util.*;
 @Service
 public class WeaponInventoryService {
     public static final List<String> SLOTS = List.of("SMALL_1", "SMALL_2", "SMALL_3", "MEDIUM_1", "MEDIUM_2", "ANY");
-    public static final Set<String> TYPES = Set.of("PISTOLA", "SUBFUSIL", "FUSIL", "RIFLE_CAZA", "FUSIL_FRANCOTIRADOR", "AMETRALLADORA_LIGERA", "ESCOPETA", "CUERPO_PEQUENA", "CUERPO_MEDIANA", "CUERPO_PESADA");
+    public static final Set<String> TYPES = Set.of("PISTOLA", "SUBFUSIL", "FUSIL", "RIFLE_CAZA", "FUSIL_FRANCOTIRADOR", "AMETRALLADORA_LIGERA", "LANZAGRANADAS", "ESCOPETA", "CUERPO_PEQUENA", "CUERPO_MEDIANA", "CUERPO_PESADA");
     public static final Set<String> SIZES = Set.of("PEQUENA", "MEDIANA", "GRANDE", "ENORME");
     private final CharacterRepository characters; private final WeaponRepository weapons;
     public WeaponInventoryService(CharacterRepository characters, WeaponRepository weapons){this.characters=characters;this.weapons=weapons;}

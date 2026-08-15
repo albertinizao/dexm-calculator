@@ -14,6 +14,9 @@ export default defineConfig({
       '/api': apiProxyTarget,
       '/oauth2': apiProxyTarget,
       '/login': apiProxyTarget,
+      // Official catalog images are static resources served by Spring Boot.
+      // Proxy them in development too, otherwise Vite returns its own 404.
+      '/weapons': apiProxyTarget,
     },
   },
 });

@@ -8,6 +8,8 @@ import com.dexm.personajes.adapter.out.persistence.WeaponCatalogEntity;
 import com.dexm.personajes.adapter.out.persistence.WeaponCatalogRepository;
 import com.dexm.personajes.adapter.out.persistence.WeaponEntity;
 import com.dexm.personajes.adapter.out.persistence.WeaponRepository;
+import com.dexm.personajes.adapter.out.persistence.GrenadeCatalogEntity;
+import com.dexm.personajes.adapter.out.persistence.GrenadeCatalogRepository;
 import com.dexm.personajes.application.AmmunitionInventoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,12 +34,13 @@ class AmmunitionInventoryServiceTest {
     @Mock AmmunitionRepository ammunition;
     @Mock WeaponCatalogRepository weaponCatalog;
     @Mock WeaponRepository weapons;
+    @Mock GrenadeCatalogRepository grenades;
 
     private AmmunitionInventoryService service;
 
     @BeforeEach
     void setUp() {
-        service = new AmmunitionInventoryService(characters, ammunition, weaponCatalog, weapons);
+        service = new AmmunitionInventoryService(characters, ammunition, weaponCatalog, weapons, grenades);
         when(characters.existsById("character-1")).thenReturn(true);
     }
 
@@ -79,11 +82,49 @@ class AmmunitionInventoryServiceTest {
 
     @Test
     void create_should_reject_non_positive_quantity() {
-        stubAllowedCaliber();
 
         assertThatThrownBy(() -> service.create("character-1", new AmmunitionRequest(".45 ACP", 0)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("La cantidad debe ser positiva");
+    }
+
+    @Test
+    void decrement_should_remove_one_grenade_from_stack() {
+        var existing = new AmmunitionEntity("ammo-1", "character-1", "GRENADE", null, "basic-grenade", 4);
+        when(ammunition.findByIdAndCharacterIdForUpdate("ammo-1", "character-1")).thenReturn(Optional.of(existing));
+        when(ammunition.save(existing)).thenReturn(existing);
+
+        var result = service.decrement("character-1", "ammo-1", -1);
+
+        assertThat(result).containsEntry("quantity", 3);
+        verify(ammunition).save(existing);
+        verify(ammunition, never()).delete(existing);
+    }
+
+    @Test
+    void create_should_accumulate_grenade_stack_by_catalog() {
+        var grenade = new GrenadeCatalogEntity("basic-grenade", "Granada básica", "", 400, 100, 20, true);
+        when(grenades.findById("basic-grenade")).thenReturn(Optional.of(grenade));
+        when(ammunition.findByCharacterIdAndTypeAndGrenadeCatalogIdForUpdate("character-1", "GRENADE", "basic-grenade"))
+                .thenReturn(Optional.of(new AmmunitionEntity("ammo-1", "character-1", "GRENADE", null, "basic-grenade", 2)));
+        when(ammunition.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var result = service.create("character-1", new AmmunitionRequest(null, 3, "GRENADE", "basic-grenade"));
+
+        assertThat(result).containsEntry("type", "GRENADE").containsEntry("grenadeCatalogId", "basic-grenade").containsEntry("quantity", 5);
+    }
+
+    @Test
+    void consume_grenade_should_delete_last_unit_from_stack() {
+        var existing = new AmmunitionEntity("ammo-1", "character-1", "GRENADE", null, "basic-grenade", 1);
+        when(ammunition.findByIdAndCharacterIdForUpdate("ammo-1", "character-1")).thenReturn(Optional.of(existing));
+        when(grenades.findById("basic-grenade")).thenReturn(Optional.of(new GrenadeCatalogEntity("basic-grenade", "Básica", null, 400, 100, 20, true, null, true)));
+
+        var result = service.consumeGrenade("character-1", "ammo-1");
+
+        assertThat(result).containsEntry("type", "GRENADE").containsEntry("quantity", 0);
+        verify(ammunition).delete(existing);
+        verify(ammunition, never()).save(existing);
     }
 
     @Test
@@ -191,6 +232,21 @@ class AmmunitionInventoryServiceTest {
         verify(ammunition, never()).findByCharacterIdAndCaliberForUpdate(any(), any());
     }
 
+    @Test
+    void reload_should_find_weapon_in_character_inventory_when_derived_for_update_query_misses() {
+        var weapon = weaponWithCapacityAndCaliber(BigDecimal.TEN, ".45 ACP");
+        when(weapon.getId()).thenReturn("weapon-1");
+        when(weapons.findByIdAndCharacterIdForUpdate("weapon-1", "character-1")).thenReturn(Optional.empty());
+        when(weapons.findByCharacterIdOrderBySlotAsc("character-1")).thenReturn(List.of(weapon));
+        when(ammunition.findByCharacterIdAndCaliberForUpdate("character-1", ".45 ACP")).thenReturn(Optional.empty());
+
+        var result = service.reload("character-1", "weapon-1");
+
+        assertThat(result).containsEntry("weaponId", "weapon-1")
+                .containsEntry("requested", 10).containsEntry("consumed", 0)
+                .containsEntry("missing", 10).containsEntry("complete", false);
+    }
+
     private WeaponEntity weaponWithCapacity(BigDecimal capacity) {
         var weapon = org.mockito.Mockito.mock(WeaponEntity.class);
         when(weapon.getCapacity()).thenReturn(capacity);
@@ -211,8 +267,9 @@ class AmmunitionInventoryServiceTest {
     }
 
     private void stubAllowedCaliber() {
-        var catalogItem = catalogCaliber(".45 ACP");
-        when(weaponCatalog.findAll()).thenReturn(List.of(catalogItem));
-        when(weapons.findByCharacterIdOrderBySlotAsc("character-1")).thenReturn(List.of());
+        var weapon = org.mockito.Mockito.mock(WeaponEntity.class);
+        when(weapon.getCaliber()).thenReturn(".45 ACP");
+        when(weapons.findByCharacterIdOrderBySlotAsc("character-1")).thenReturn(List.of(weapon));
+        when(ammunition.findByCharacterIdOrderByCaliberAsc("character-1")).thenReturn(List.of());
     }
 }

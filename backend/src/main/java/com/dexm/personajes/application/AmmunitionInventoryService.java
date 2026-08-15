@@ -4,7 +4,10 @@ import com.dexm.personajes.adapter.in.web.CharacterController.AmmunitionRequest;
 import com.dexm.personajes.adapter.out.persistence.AmmunitionEntity;
 import com.dexm.personajes.adapter.out.persistence.AmmunitionRepository;
 import com.dexm.personajes.adapter.out.persistence.CharacterRepository;
+import com.dexm.personajes.adapter.out.persistence.GrenadeCatalogEntity;
+import com.dexm.personajes.adapter.out.persistence.GrenadeCatalogRepository;
 import com.dexm.personajes.adapter.out.persistence.WeaponCatalogRepository;
+import com.dexm.personajes.adapter.out.persistence.WeaponEntity;
 import com.dexm.personajes.adapter.out.persistence.WeaponRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -28,13 +32,29 @@ public class AmmunitionInventoryService {
     private final AmmunitionRepository ammunition;
     private final WeaponCatalogRepository weaponCatalog;
     private final WeaponRepository weapons;
+    private final GrenadeCatalogRepository grenades;
+    private final OfficialCatalogService officialCatalog;
 
     public AmmunitionInventoryService(CharacterRepository characters, AmmunitionRepository ammunition,
                                       WeaponCatalogRepository weaponCatalog, WeaponRepository weapons) {
+        this(characters, ammunition, weaponCatalog, weapons, null);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public AmmunitionInventoryService(CharacterRepository characters, AmmunitionRepository ammunition,
+                                      WeaponCatalogRepository weaponCatalog, WeaponRepository weapons,
+                            GrenadeCatalogRepository grenades) {
+        this(characters, ammunition, weaponCatalog, weapons, grenades, null);
+    }
+    public AmmunitionInventoryService(CharacterRepository characters, AmmunitionRepository ammunition,
+                                      WeaponCatalogRepository weaponCatalog, WeaponRepository weapons,
+                                      GrenadeCatalogRepository grenades, OfficialCatalogService officialCatalog) {
         this.characters = characters;
         this.ammunition = ammunition;
         this.weaponCatalog = weaponCatalog;
         this.weapons = weapons;
+        this.grenades = grenades;
+        this.officialCatalog = officialCatalog;
     }
 
     @Transactional(readOnly = true)
@@ -47,8 +67,7 @@ public class AmmunitionInventoryService {
     public List<String> calibers(String characterId) {
         ensureCharacter(characterId);
         var result = new TreeSet<String>(Comparator.comparing(value -> value.toLowerCase(Locale.ROOT)));
-        weaponCatalog.findAll().stream()
-                .filter(item -> item.isOfficial())
+        ammunition.findByCharacterIdOrderByCaliberAsc(characterId).stream()
                 .map(item -> item.getCaliber() == null ? "" : item.getCaliber().trim())
                 .filter(value -> !value.isBlank())
                 .forEach(result::add);
@@ -56,17 +75,28 @@ public class AmmunitionInventoryService {
                 .map(item -> item.getCaliber() == null ? "" : item.getCaliber().trim())
                 .filter(value -> !value.isBlank())
                 .forEach(result::add);
+        if (officialCatalog != null) {
+            officialCatalog.weapons().stream()
+                    .map(item -> item.getCaliber() == null ? "" : item.getCaliber().trim())
+                    .filter(value -> !value.isBlank())
+                    .forEach(result::add);
+        }
         return result.stream().toList();
     }
 
     @Transactional
     public Map<String, Object> create(String characterId, AmmunitionRequest request) {
         ensureCharacter(characterId);
-        String caliber = normalizeCaliber(request);
-        ensureAllowedCaliber(characterId, caliber);
+        String type = normalizeType(request);
+        String caliber = normalizeCaliber(request, type);
+        String grenadeCatalogId = normalizeGrenadeCatalogId(request, type);
         int quantity = positiveQuantity(request.quantity());
-        var existing = ammunition.findByCharacterIdAndCaliberForUpdate(characterId, caliber);
-        AmmunitionEntity entity = existing.orElseGet(() -> new AmmunitionEntity(UUID.randomUUID().toString(), characterId, caliber, 0));
+        ensureAllowed(characterId, type, caliber, grenadeCatalogId);
+        var existing = findForUpdate(characterId, type, caliber, grenadeCatalogId);
+        AmmunitionEntity entity = existing.orElseGet(() -> new AmmunitionEntity(UUID.randomUUID().toString(), characterId, type, caliber, grenadeCatalogId, 0));
+        entity.setType(type);
+        entity.setCaliber(caliber);
+        entity.setGrenadeCatalogId(grenadeCatalogId);
         entity.setQuantity(Math.addExact(entity.getQuantity(), quantity));
         return view(ammunition.save(entity));
     }
@@ -74,15 +104,19 @@ public class AmmunitionInventoryService {
     @Transactional
     public Map<String, Object> update(String characterId, String id, AmmunitionRequest request) {
         ensureCharacter(characterId);
-        String caliber = normalizeCaliber(request);
-        ensureAllowedCaliber(characterId, caliber);
+        String type = normalizeType(request);
+        String caliber = normalizeCaliber(request, type);
+        String grenadeCatalogId = normalizeGrenadeCatalogId(request, type);
+        ensureAllowed(characterId, type, caliber, grenadeCatalogId);
         int quantity = positiveQuantity(request.quantity());
         var entity = ammunition.findByIdAndCharacterIdForUpdate(id, characterId)
                 .orElseThrow(() -> new NoSuchElementException("Munición no encontrada"));
-        ammunition.findByCharacterIdAndCaliberForUpdate(characterId, caliber)
+        findForUpdate(characterId, type, caliber, grenadeCatalogId)
                 .filter(existing -> !existing.getId().equals(entity.getId()))
                 .ifPresent(existing -> { throw new IllegalArgumentException("Ya existe munición de ese calibre"); });
+        entity.setType(type);
         entity.setCaliber(caliber);
+        entity.setGrenadeCatalogId(grenadeCatalogId);
         entity.setQuantity(quantity);
         return view(ammunition.save(entity));
     }
@@ -108,9 +142,40 @@ public class AmmunitionInventoryService {
     }
 
     @Transactional
+    public Map<String, Object> consumeGrenade(String characterId, String ammunitionId) {
+        ensureCharacter(characterId);
+        var candidate = ammunition.findByIdAndCharacterIdForUpdate(ammunitionId, characterId)
+                .orElseThrow(() -> new NoSuchElementException("Granada no encontrada"));
+        if (!"GRENADE".equals(candidate.getType())) throw new IllegalArgumentException("La munición no es una granada");
+        ensureHandGrenade(candidate.getGrenadeCatalogId());
+        var consumedAtomically = ammunition.consumeOneGrenade(ammunitionId, characterId);
+        if (consumedAtomically != null) return view(consumedAtomically);
+        var entity = ammunition.findByIdAndCharacterIdForUpdate(ammunitionId, characterId)
+                .orElseThrow(() -> new NoSuchElementException("Granada no encontrada"));
+        if (!"GRENADE".equals(entity.getType())) throw new IllegalArgumentException("La munición no es una granada");
+        ensureHandGrenade(entity.getGrenadeCatalogId());
+        if (entity.getQuantity() < 1) throw new IllegalArgumentException("No quedan granadas disponibles");
+        entity.setQuantity(entity.getQuantity() - 1);
+        if (entity.getQuantity() == 0) {
+            ammunition.delete(entity);
+            return view(entity);
+        }
+        return view(ammunition.save(entity));
+    }
+
+    @Transactional
+    public Map<String, Object> consumeGrenadeByCatalog(String characterId, String grenadeCatalogId) {
+        ensureCharacter(characterId);
+        ensureHandGrenade(grenadeCatalogId);
+        var entity = ammunition.findByCharacterIdAndTypeAndGrenadeCatalogIdForUpdate(characterId, "GRENADE", grenadeCatalogId)
+                .orElseThrow(() -> new NoSuchElementException("Granada no encontrada en el inventario"));
+        return consumeGrenade(characterId, entity.getId());
+    }
+
+    @Transactional
     public Map<String, Object> reload(String characterId, String weaponId) {
         ensureCharacter(characterId);
-        var weapon = weapons.findByIdAndCharacterIdForUpdate(weaponId, characterId)
+        var weapon = weaponForCharacter(characterId, weaponId)
                 .orElseThrow(() -> new NoSuchElementException("Arma no encontrada"));
         int capacity = integralPositiveCapacity(weapon.getCapacity());
         String caliber = normalizeWeaponCaliber(weapon.getCaliber());
@@ -167,11 +232,22 @@ public class AmmunitionInventoryService {
         return caliber.trim();
     }
 
-    private String normalizeCaliber(AmmunitionRequest request) {
-        if (request == null || request.caliber() == null || request.caliber().isBlank()) {
-            throw new IllegalArgumentException("Calibre obligatorio");
-        }
+    private String normalizeType(AmmunitionRequest request) {
+        String value = request == null || request.type() == null || request.type().isBlank() ? "CALIBER" : request.type().trim().toUpperCase(Locale.ROOT);
+        if (!Set.of("CALIBER", "GRENADE").contains(value)) throw new IllegalArgumentException("Tipo de munición no válido");
+        return value;
+    }
+
+    private String normalizeCaliber(AmmunitionRequest request, String type) {
+        if ("GRENADE".equals(type)) return null;
+        if (request == null || request.caliber() == null || request.caliber().isBlank()) throw new IllegalArgumentException("Calibre obligatorio");
         return request.caliber().trim();
+    }
+
+    private String normalizeGrenadeCatalogId(AmmunitionRequest request, String type) {
+        if (!"GRENADE".equals(type)) return null;
+        if (request == null || request.grenadeCatalogId() == null || request.grenadeCatalogId().isBlank()) throw new IllegalArgumentException("Granada de catálogo obligatoria");
+        return request.grenadeCatalogId().trim();
     }
 
     private int positiveQuantity(Integer quantity) {
@@ -179,10 +255,25 @@ public class AmmunitionInventoryService {
         return quantity;
     }
 
-    private void ensureAllowedCaliber(String characterId, String caliber) {
-        if (!calibers(characterId).contains(caliber)) {
-            throw new IllegalArgumentException("Calibre no disponible para este personaje");
+    private void ensureAllowed(String characterId, String type, String caliber, String grenadeCatalogId) {
+        if ("GRENADE".equals(type)) {
+            if (grenades == null) throw new IllegalStateException("El catálogo de granadas no está disponible");
+            if (officialCatalog == null || officialCatalog.grenade(grenadeCatalogId).isEmpty()) {
+                if (grenades == null) throw new NoSuchElementException("Granada de catálogo no encontrada");
+                grenades.findById(grenadeCatalogId).orElseThrow(() -> new NoSuchElementException("Granada de catálogo no encontrada"));
+            }
+            return;
         }
+        // Carrying ammunition is independent from owning a compatible weapon.
+        // The character may keep any valid caliber in their inventory for
+        // future use, trade, or another character; weapon compatibility is
+        // only relevant when reloading or shooting.
+    }
+
+    private java.util.Optional<AmmunitionEntity> findForUpdate(String characterId, String type, String caliber, String grenadeCatalogId) {
+        return "GRENADE".equals(type)
+                ? ammunition.findByCharacterIdAndTypeAndGrenadeCatalogIdForUpdate(characterId, type, grenadeCatalogId)
+                : ammunition.findByCharacterIdAndCaliberForUpdate(characterId, caliber);
     }
 
     private void ensureCharacter(String id) {
@@ -192,8 +283,62 @@ public class AmmunitionInventoryService {
     private Map<String, Object> view(AmmunitionEntity item) {
         var result = new LinkedHashMap<String, Object>();
         result.put("id", item.getId());
+        result.put("type", item.getType() == null ? "CALIBER" : item.getType());
         result.put("caliber", item.getCaliber());
+        result.put("grenadeCatalogId", item.getGrenadeCatalogId());
+        if (item.getGrenadeCatalogId() != null) {
+            var official = officialCatalog == null ? Optional.<com.fasterxml.jackson.databind.JsonNode>empty() : officialCatalog.grenade(item.getGrenadeCatalogId());
+            if (official.isPresent()) result.put("grenade", officialGrenadeView(official.get()));
+            else if (grenades != null) grenades.findById(item.getGrenadeCatalogId()).ifPresent(grenade -> result.put("grenade", grenadeView(grenade)));
+        }
         result.put("quantity", item.getQuantity());
         return result;
+    }
+
+    private Map<String, Object> grenadeView(GrenadeCatalogEntity item) {
+        var result = new LinkedHashMap<String, Object>();
+        result.put("id", item.getId());
+        result.put("name", item.getName());
+        result.put("description", item.getDescription() == null ? "" : item.getDescription());
+        result.put("centralDamage", item.getCentralDamage());
+        result.put("adjacentDamage", item.getAdjacentDamage());
+        result.put("damageDecay", item.getDamageDecay());
+        result.put("additionalEffect", item.getAdditionalEffect());
+        result.put("handGrenade", item.isHandGrenade());
+        result.put("type", item.getType());
+        result.put("official", item.isOfficial());
+        return result;
+    }
+
+    private void ensureHandGrenade(String grenadeCatalogId) {
+        if (grenades == null) throw new IllegalStateException("El catálogo de granadas no está disponible");
+        if (grenadeCatalogId == null || grenadeCatalogId.isBlank()) throw new IllegalArgumentException("La granada no tiene catálogo asociado");
+        var official = officialCatalog == null ? Optional.<com.fasterxml.jackson.databind.JsonNode>empty() : officialCatalog.grenade(grenadeCatalogId);
+        if (official.isPresent()) { if (!official.get().path("handGrenade").asBoolean()) throw new IllegalArgumentException("Esta granada necesita un arma y no admite lanzamiento directo"); return; }
+        var grenade = grenades.findById(grenadeCatalogId).orElseThrow(() -> new NoSuchElementException("Granada de catálogo no encontrada"));
+        if (!grenade.isHandGrenade()) throw new IllegalArgumentException("Esta granada necesita un arma y no admite lanzamiento directo");
+    }
+
+    /**
+     * Inventory aggregates are filtered in memory after reading the single
+     * character document. Keep the direct derived query as the fast path, but
+     * fall back to the already-supported character inventory listing while
+     * older aggregate documents are being migrated. This also covers weapons
+     * whose aggregate representation predates the ForUpdate repository method.
+     */
+    private Optional<WeaponEntity> weaponForCharacter(String characterId, String weaponId) {
+        var direct = weapons.findByIdAndCharacterIdForUpdate(weaponId, characterId);
+        if (direct.isPresent()) return direct;
+        return weapons.findByCharacterIdOrderBySlotAsc(characterId).stream()
+                .filter(weapon -> weaponId.equals(weapon.getId()))
+                .findFirst();
+    }
+
+    private Map<String,Object> officialGrenadeView(com.fasterxml.jackson.databind.JsonNode n) {
+        var result = new LinkedHashMap<String,Object>(); result.put("id", n.path("id").asText()); result.put("name", n.path("name").asText());
+        result.put("description", n.path("description").asText(null)); result.put("centralDamage", n.path("centralDamage").asInt());
+        result.put("adjacentDamage", n.path("adjacentDamage").asInt()); result.put("damageDecay", n.path("damageDecay").asInt());
+        result.put("additionalEffect", n.path("additionalEffect").asText(null)); result.put("handGrenade", n.path("handGrenade").asBoolean());
+        result.put("type", n.path("type").asText(null)); result.put("official", true); return result;
     }
 }

@@ -9,22 +9,27 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
     private final SecurityIdentityService identities;
     private final AuthorizationService authorization;
+    private final com.dexm.personajes.security.ApplicationSessionService sessions;
 
-    public AuthController(SecurityIdentityService identities, AuthorizationService authorization) {
-        this.identities = identities;
-        this.authorization = authorization;
+    @Autowired
+    public AuthController(SecurityIdentityService identities, AuthorizationService authorization, com.dexm.personajes.security.ApplicationSessionService sessions) {
+        this.identities = identities; this.authorization = authorization; this.sessions = sessions;
     }
+    public AuthController(SecurityIdentityService identities, AuthorizationService authorization) { this(identities, authorization, null); }
 
     @GetMapping("/me")
-    public Map<String, Object> me(Authentication authentication) {
+    public Map<String, Object> me(Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
         var identity = identities.current(authentication);
-        authorization.requireApplicationAccess(authentication);
+        if (!sessions.isValid(request, authentication)) sessions.issue(authentication, response);
         var user = identities.provision(authentication);
         return Map.of("id", user.getId(), "email", identity.email(), "name", identity.name(),
                 "admin", identities.isAdmin(identity), "authMode", identities.authMode());
@@ -32,12 +37,13 @@ public class AuthController {
 
     /** Kept for the SPA contract; neither local nor IAP owns an OAuth refresh token. */
     @PostMapping("/keepalive")
-    public ResponseEntity<Void> keepalive(Authentication authentication) {
-        authorization.requireApplicationAccess(authentication);
+    public ResponseEntity<Void> keepalive() {
         return ResponseEntity.noContent().build();
     }
+    public ResponseEntity<Void> keepalive(Authentication authentication) { authorization.requireApplicationAccess(authentication); return ResponseEntity.noContent().build(); }
 
     /** IAP owns sign-out upstream and local mode has no session to invalidate. */
     @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletResponse response) { if (sessions != null) sessions.clear(response); return ResponseEntity.noContent().build(); }
     public ResponseEntity<Void> logout() { return ResponseEntity.noContent().build(); }
 }

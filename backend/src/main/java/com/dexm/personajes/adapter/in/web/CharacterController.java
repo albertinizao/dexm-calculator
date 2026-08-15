@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashMap;
 import java.math.BigDecimal;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
@@ -45,7 +46,6 @@ public class CharacterController {
     public record TrainingActivityRequest(@NotBlank String type, @NotBlank String name, @NotNull @Min(0) Integer startAge,
                                           @NotNull @Min(1) Integer endAge, @Min(0) Integer priority, String primaryAttribute,
                                           String secondaryAttribute, String tertiaryAttribute, Boolean concurrent) {}
-    public record TrainingPreviewRequest(@NotNull @Valid TrainingActivityRequest activity, String replacingActivityId) {}
     public record TrainingReorderRequest(@NotNull List<String> activityIds) {}
 
     public record AllocationRequest(
@@ -80,7 +80,6 @@ public class CharacterController {
 
     public record ModifierRequest(@NotBlank String name, @NotNull Integer value) {}
 
-    public record PreviewRequest(@Min(0) int experience, Map<String, Integer> attributes, Map<String, Integer> genetics) {}
     public record ExperienceRequest(@NotNull @Min(1) Integer amount) {}
     public record UniqueAbilityDecisionRequest(@NotBlank String decision) {}
     public record OtherInventoryItemRequest(@NotBlank String name, String description, String location,
@@ -105,7 +104,9 @@ public class CharacterController {
     public record ArmorRequest(@NotBlank String name, String description, @NotNull Map<String, Map<String, Integer>> slots, String imageUrl) {}
     public record ShieldRequest(@NotBlank String name, String description, @NotNull @Min(0) Integer hitPoints, String imageUrl) {}
     public record PhysicalShieldRequest(@NotBlank String name, String description, @NotNull @Min(0) Integer rd, @NotNull @Min(0) Integer armor, @NotNull Integer defense, String otherEffects, String imageUrl) {}
-    public record AmmunitionRequest(@NotBlank String caliber, @NotNull @Min(1) Integer quantity) {}
+    public record AmmunitionRequest(String caliber, @NotNull @Min(1) Integer quantity, String type, String grenadeCatalogId) {
+        public AmmunitionRequest(String caliber, Integer quantity) { this(caliber, quantity, "CALIBER", null); }
+    }
     public record AmmunitionDecrementRequest(Integer amount) {}
 
     @GetMapping
@@ -127,6 +128,17 @@ public class CharacterController {
     @GetMapping("/{id}/training")
     public Object training(@PathVariable String id) { return service.training(id); }
 
+    @GetMapping("/{id}/inventory")
+    public Object inventory(@PathVariable String id) {
+        var result = new LinkedHashMap<String, Object>();
+        result.put("others", otherInventory.list(id));
+        result.put("weapons", weaponInventory.list(id));
+        result.put("ammunition", ammunition.list(id));
+        result.put("armors", protective.listArmors(id));
+        result.put("shields", protective.listShields(id));
+        result.put("physicalShields", protective.listPhysicalShields(id));
+        return result;
+    }
     @GetMapping("/{id}/inventory/others")
     public Object otherInventory(@PathVariable String id) { return otherInventory.list(id); }
 
@@ -197,6 +209,10 @@ public class CharacterController {
         var result = ammunition.decrement(id, ammunitionId, request == null ? null : request.amount());
         return result == null ? ResponseEntity.noContent().build() : ResponseEntity.ok(result);
     }
+    @PostMapping("/{id}/inventory/ammunition/{ammunitionId}/consume")
+    public Object consumeGrenade(@PathVariable String id, @PathVariable String ammunitionId) { return ammunition.consumeGrenade(id, ammunitionId); }
+    @PostMapping("/{id}/inventory/grenades/{grenadeCatalogId}/launch")
+    public Object launchGrenade(@PathVariable String id, @PathVariable String grenadeCatalogId) { return ammunition.consumeGrenadeByCatalog(id, grenadeCatalogId); }
 
     @GetMapping("/{id}/inventory/armors") public Object armors(@PathVariable String id){return protective.listArmors(id);}
     @PostMapping("/{id}/inventory/armors") public ResponseEntity<?> createArmor(@PathVariable String id,@Valid @RequestBody ArmorRequest r){return ResponseEntity.status(HttpStatus.CREATED).body(protective.createArmor(id,r));}
@@ -210,11 +226,6 @@ public class CharacterController {
     @PostMapping("/{id}/inventory/physical-shields") public ResponseEntity<?> createPhysicalShield(@PathVariable String id,@Valid @RequestBody PhysicalShieldRequest r){return ResponseEntity.status(HttpStatus.CREATED).body(protective.createPhysicalShield(id,r));}
     @PutMapping("/{id}/inventory/physical-shields/{shieldId}") public Object updatePhysicalShield(@PathVariable String id,@PathVariable String shieldId,@Valid @RequestBody PhysicalShieldRequest r){return protective.updatePhysicalShield(id,shieldId,r);}
     @DeleteMapping("/{id}/inventory/physical-shields/{shieldId}") @ResponseStatus(HttpStatus.NO_CONTENT) public void deletePhysicalShield(@PathVariable String id,@PathVariable String shieldId){protective.deletePhysicalShield(id,shieldId);}
-
-    @PostMapping("/{id}/training/preview")
-    public Object previewTraining(@PathVariable String id, @Valid @RequestBody TrainingPreviewRequest request) {
-        return service.previewTraining(id, request.activity(), request.replacingActivityId());
-    }
 
     @PostMapping("/{id}/training")
     public Object addTraining(@PathVariable String id, @Valid @RequestBody TrainingActivityRequest request) {
@@ -242,11 +253,17 @@ public class CharacterController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable String id) { service.delete(id); }
 
+    @GetMapping("/{id}/abilities")
+    public Object abilities(@PathVariable String id) { return service.abilityState(id); }
     @GetMapping("/{id}/unique-abilities/pending")
-    public Object pendingUniqueAbilities(@PathVariable String id) { return service.pendingUniqueAbilities(id); }
+    public Object pendingUniqueAbilities(@PathVariable String id) {
+        authorization.requireAdmin(SecurityContextHolder.getContext().getAuthentication());
+        return service.pendingUniqueAbilities(id);
+    }
 
     @PostMapping("/{id}/unique-abilities/{name}/decision")
     public Object decideUniqueAbility(@PathVariable String id, @PathVariable String name, @Valid @RequestBody UniqueAbilityDecisionRequest request) {
+        authorization.requireAdmin(SecurityContextHolder.getContext().getAuthentication());
         return service.decideUniqueAbility(id, name, request.decision());
     }
 
@@ -270,11 +287,6 @@ public class CharacterController {
         return service.levelUpAll(id, request.level(), request.experience(), values(request.attributes()),
                 values(request.genetics()), values(request.minorAttributes()),
                 Boolean.TRUE.equals(request.visible()), Boolean.TRUE.equals(request.finalStep()));
-    }
-
-    @GetMapping("/{id}/attributes/{key}")
-    public AttributeDetailDto attributeDetail(@PathVariable String id, @PathVariable String key) {
-        return service.attributeDetail(id, key);
     }
 
     @PutMapping("/{id}/attribute-modifiers")
@@ -314,12 +326,6 @@ public class CharacterController {
 
     @GetMapping("/{id}/legacy/export")
     public String exportLegacy(@PathVariable String id) { return service.exportLegacy(id); }
-
-    @PostMapping("/{id}/preview")
-    public Object preview(@PathVariable String id, @Valid @RequestBody PreviewRequest request) {
-        service.get(id);
-        return service.preview(request.experience(), values(request.attributes()), values(request.genetics()));
-    }
 
     @GetMapping("/{id}/milestones")
     public Object milestones(@PathVariable String id) { return service.milestones(id); }

@@ -1,0 +1,15 @@
+{
+  "indexes": [
+    { "collectionGroup": "characters", "queryScope": "COLLECTION", "fields": [{"fieldPath":"campaignId","order":"ASCENDING"},{"fieldPath":"name","order":"ASCENDING"}] },
+    { "collectionGroup": "campaignInvitations", "queryScope": "COLLECTION", "fields": [{"fieldPath":"campaignId","order":"ASCENDING"},{"fieldPath":"email","order":"ASCENDING"}] },
+    { "collectionGroup": "minorAttributeDefinitions", "queryScope": "COLLECTION", "fields": [{"fieldPath":"campaignId","order":"ASCENDING"},{"fieldPath":"name","order":"ASCENDING"}] },
+    { "collectionGroup": "trainingActivities", "queryScope": "COLLECTION", "fields": [{"fieldPath":"characterId","order":"ASCENDING"},{"fieldPath":"startAge","order":"ASCENDING"},{"fieldPath":"priority","order":"ASCENDING"}] },
+    { "collectionGroup": "otherInventoryItems", "queryScope": "COLLECTION", "fields": [{"fieldPath":"characterId","order":"ASCENDING"},{"fieldPath":"name","order":"ASCENDING"}] },
+    { "collectionGroup": "weapons", "queryScope": "COLLECTION", "fields": [{"fieldPath":"characterId","order":"ASCENDING"},{"fieldPath":"slot","order":"ASCENDING"}] },
+    { "collectionGroup": "armors", "queryScope": "COLLECTION", "fields": [{"fieldPath":"characterId","order":"ASCENDING"},{"fieldPath":"name","order":"ASCENDING"}] },
+    { "collectionGroup": "shields", "queryScope": "COLLECTION", "fields": [{"fieldPath":"characterId","order":"ASCENDING"},{"fieldPath":"name","order":"ASCENDING"}] },
+    { "collectionGroup": "physicalShields", "queryScope": "COLLECTION", "fields": [{"fieldPath":"characterId","order":"ASCENDING"},{"fieldPath":"name","order":"ASCENDING"}] },
+    { "collectionGroup": "milestones", "queryScope": "COLLECTION", "fields": [{"fieldPath":"characterId","order":"ASCENDING"},{"fieldPath":"visible","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}] }
+  ],
+  "fieldOverrides": []
+}

@@ -1,0 +1,11 @@
+{
+  "training": [
+    { "type": "FORMATION", "startAge": 0, "endAge": 4, "humanYears": 4, "bonuses": [4, 2, 1] },
+    { "type": "PROFESSION", "startAge": 0, "endAge": 5, "humanYears": 5, "bonuses": [3, 1, 0] },
+    { "type": "OCCUPATION", "startAge": 0, "endAge": 6, "humanYears": 4, "concurrent": true, "bonuses": [2, 1, 0] }
+  ],
+  "ability": [
+    { "alternatives": [{ "Fisico": 5, "Agilidad": 2 }], "values": { "fisico": 5, "agilidad": 2 }, "genetics": {}, "eligible": true },
+    { "alternatives": [{ "Fisico": 6 }, { "Mente": 3 }], "values": { "fisico": 4, "mente": 3 }, "genetics": {}, "eligible": true }
+  ]
+}
