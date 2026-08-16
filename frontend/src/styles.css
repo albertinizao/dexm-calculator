@@ -301,3 +301,4 @@
 /* Compatibility marker for ammunition calibers supported by equipped weapons. */
 .ammunition-compatible-tags{position:absolute;top:5px;left:5px;right:5px;z-index:3;display:flex;flex-wrap:wrap;gap:3px;max-width:calc(100% - 10px);pointer-events:none}
 .ammunition-compatible-tag{display:block;width:max-content;max-width:100%;overflow:hidden;padding:2px 4px;background:rgba(0,0,0,.72);color:var(--gold-soft);font-size:8px;letter-spacing:.04em;line-height:1.1;text-overflow:ellipsis;text-transform:none;white-space:nowrap}
+.ability-requirements{margin-top:18px;padding-top:15px;border-top:1px solid rgba(255,216,0,.18)}.ability-requirements h3{margin:0 0 10px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:.12em}

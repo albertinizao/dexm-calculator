@@ -140,6 +140,21 @@ public class CharacterController {
         result.put("physicalShields", protective.listPhysicalShields(id));
         return result;
     }
+
+    /**
+     * Loads the character working set in one request. The Firestore adapter
+     * keeps a request-scoped cache, so this endpoint reads each character
+     * aggregate at most once (sheet, inventory, training and abilities).
+     */
+    @GetMapping("/{id}/workspace")
+    public Object workspace(@PathVariable String id) {
+        var result = new LinkedHashMap<String, Object>();
+        result.put("character", service.view(id));
+        result.put("inventory", inventory(id));
+        result.put("training", service.training(id));
+        result.put("abilities", service.abilityState(id));
+        return result;
+    }
     @GetMapping("/{id}/inventory/others")
     public Object otherInventory(@PathVariable String id) { return otherInventory.list(id); }
 
@@ -244,8 +259,7 @@ public class CharacterController {
     }
 
     @DeleteMapping("/{id}/training/{activityId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteTraining(@PathVariable String id, @PathVariable String activityId) { service.deleteTraining(id, activityId); }
+    public Object deleteTraining(@PathVariable String id, @PathVariable String activityId) { return service.deleteTraining(id, activityId); }
 
     @GetMapping("/{id}")
     public Object get(@PathVariable String id) { return service.view(id); }
@@ -342,6 +356,9 @@ public class CharacterController {
 
     @GetMapping("/{id}/current-upgrade")
     public Object currentUpgrade(@PathVariable String id) { return service.currentUpgrade(id); }
+
+    @GetMapping("/{id}/upgrade-context")
+    public Object upgradeContext(@PathVariable String id) { return service.upgradeContext(id); }
 
     @GetMapping("/{id}/editors")
     public List<String> editors(@PathVariable String id) {

@@ -68,6 +68,15 @@ public class ApplicationSessionService {
         Cookie cookie = new Cookie(COOKIE_NAME, ""); cookie.setHttpOnly(true); cookie.setSecure(properties.mode() == AppAuthMode.IAP); cookie.setPath("/"); cookie.setMaxAge(0); response.addCookie(cookie);
     }
 
+    /**
+     * Returns the signed application-session token used as the key for
+     * session-scoped character grants. The token is never trusted by itself;
+     * callers must validate it through {@link #isValid} first.
+     */
+    String cacheKey(HttpServletRequest request, Authentication authentication) {
+        return isValid(request, authentication) ? cookie(request) : null;
+    }
+
     private String cookie(HttpServletRequest request) { if (request.getCookies() == null) return null; for (Cookie cookie : request.getCookies()) if (COOKIE_NAME.equals(cookie.getName())) return cookie.getValue(); return null; }
     private String encode(String value) { return Base64.getUrlEncoder().withoutPadding().encodeToString(value.getBytes(StandardCharsets.UTF_8)); }
     private String sign(String value) { try { Mac mac = Mac.getInstance("HmacSHA256"); mac.init(new SecretKeySpec(properties.getSessionSecret().getBytes(StandardCharsets.UTF_8), "HmacSHA256")); return Base64.getUrlEncoder().withoutPadding().encodeToString(mac.doFinal(value.getBytes(StandardCharsets.UTF_8))); } catch (Exception error) { throw new IllegalStateException(error); } }

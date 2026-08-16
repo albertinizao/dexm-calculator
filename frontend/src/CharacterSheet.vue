@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue';
 
 import { useRoute, useRouter } from 'vue-router';
 
@@ -958,17 +958,26 @@ async function load() {
   try {
     // Defensive values depend on the equipped protective equipment. Load the
     // inventory together with the character so the sheet is correct on entry.
-    const [loadedCharacter] = await Promise.all([reloadCharacterDocument(), loadInventory()]);
+    const workspace = await api.workspace(String(route.params.id));
+    const loadedCharacter = workspace.character as Character;
+    character.value = loadedCharacter;
+    const inventory = workspace.inventory;
+    otherInventory.value = inventory.others;
+    weapons.value = inventory.weapons;
+    ammunition.value = inventory.ammunition;
+    armors.value = inventory.armors;
+    shields.value = inventory.shields;
+    physicalShields.value = inventory.physicalShields;
+    applyTrainingResponse(workspace.training as TrainingData);
+    if (character.value) character.value = { ...character.value, abilities: workspace.abilities.abilities };
     const staticObjects = await loadStaticObjects();
     ammunitionCatalogWeapons.value = staticObjects.weapons;
     // The route watcher can load the inventory in parallel on first mount.
     // Rebuild the list once the static catalog is available as well.
     refreshAmmunitionCalibers();
-    await loadPendingUniqueAbilities();
     if (route.query.mode === 'edit' && loadedCharacter.closed && (loadedCharacter.canEdit || props.isDirector)) {
       try {
-        await api.edit(String(route.params.id));
-        await reloadCharacterDocument();
+        applyEditState(await api.edit(String(route.params.id)) as { closed: boolean });
       } catch (e: any) {
         closeError.value = e?.message || 'No se pudo abrir la ficha para edición.';
         await router.replace({ query: queryWithEditMode(false) });
@@ -1060,7 +1069,7 @@ function openArmorChoice(slot?:ArmorSlot){selectedArmor.value=null;armorDraft.va
 async function loadArmorCatalog(){armorCatalogLoading.value=true;inventoryError.value='';try{catalogArmors.value=await api.armorCatalog();}catch(e:any){catalogArmors.value=[];inventoryError.value=e?.message||'No se pudo cargar el catálogo de armaduras.';}finally{armorCatalogLoading.value=false;}}
 function openArmorCatalog(){sheetView.value='armor-catalog';loadArmorCatalog();}
 function selectCatalogArmor(item:ArmorCatalogItem){selectedCatalogArmor.value=item;showCatalogArmorModal.value=true;}
-async function addSelectedCatalogArmor(){if(!route.params.id||!selectedCatalogArmor.value)return;armorCatalogLoading.value=true;inventoryError.value='';try{await api.addCatalogArmorToCharacter(selectedCatalogArmor.value.id,String(route.params.id));await reloadInventoryDocument();showCatalogArmorModal.value=false;selectedCatalogArmor.value=null;sheetView.value='inventory';}catch(e:any){inventoryError.value=e?.message||'No se pudo añadir la armadura seleccionada.';}finally{armorCatalogLoading.value=false;}}
+async function addSelectedCatalogArmor(){if(!route.params.id||!selectedCatalogArmor.value)return;armorCatalogLoading.value=true;inventoryError.value='';try{const saved=await api.addCatalogArmorToCharacter(selectedCatalogArmor.value.id,String(route.params.id));upsertInventoryItem(armors,saved as Armor);showCatalogArmorModal.value=false;selectedCatalogArmor.value=null;sheetView.value='inventory';}catch(e:any){inventoryError.value=e?.message||'No se pudo añadir la armadura seleccionada.';}finally{armorCatalogLoading.value=false;}}
 function closeArmorDetailModal(){showArmorDetailModal.value=false;selectedArmor.value=null;sheetView.value='inventory';}
 function editSelectedArmor(){if(!selectedArmor.value)return;showArmorDetailModal.value=false;sheetView.value='armor-detail';}
 function openShieldDetail(s?:Shield){ selectedShield.value=s||null; shieldDraft.value=s?{...s}:{name:'',description:'',hitPoints:0,imageUrl:null}; if(s){showShieldDetailModal.value=true;sheetView.value='inventory';}else{sheetView.value='shield-detail';} }
@@ -1072,7 +1081,7 @@ function openPhysicalShieldChoice(){selectedPhysicalShield.value=null;physicalSh
 async function loadPhysicalShieldCatalog(){shieldCatalogLoading.value=true;inventoryError.value='';try{catalogPhysicalShields.value=await api.physicalShieldCatalog();}catch(e:any){catalogPhysicalShields.value=[];inventoryError.value=e?.message||'No se pudo cargar el catálogo de escudos físicos.';}finally{shieldCatalogLoading.value=false;}}
 function openPhysicalShieldCatalog(){sheetView.value='shield-catalog';loadPhysicalShieldCatalog();}
 function selectCatalogPhysicalShield(item:PhysicalShieldCatalogItem){selectedCatalogPhysicalShield.value=item;showCatalogPhysicalShieldModal.value=true;}
-async function addSelectedCatalogPhysicalShield(){if(!route.params.id||!selectedCatalogPhysicalShield.value)return;shieldCatalogLoading.value=true;inventoryError.value='';try{await api.addCatalogPhysicalShieldToCharacter(selectedCatalogPhysicalShield.value.id,String(route.params.id));await reloadInventoryDocument();showCatalogPhysicalShieldModal.value=false;selectedCatalogPhysicalShield.value=null;sheetView.value='inventory';}catch(e:any){inventoryError.value=e?.message||'No se pudo añadir el escudo físico seleccionado.';}finally{shieldCatalogLoading.value=false;}}
+async function addSelectedCatalogPhysicalShield(){if(!route.params.id||!selectedCatalogPhysicalShield.value)return;shieldCatalogLoading.value=true;inventoryError.value='';try{const saved=await api.addCatalogPhysicalShieldToCharacter(selectedCatalogPhysicalShield.value.id,String(route.params.id));upsertInventoryItem(physicalShields,saved as PhysicalShield);showCatalogPhysicalShieldModal.value=false;selectedCatalogPhysicalShield.value=null;sheetView.value='inventory';}catch(e:any){inventoryError.value=e?.message||'No se pudo añadir el escudo físico seleccionado.';}finally{shieldCatalogLoading.value=false;}}
 function closePhysicalShieldDetailModal(){showPhysicalShieldDetailModal.value=false;selectedPhysicalShield.value=null;sheetView.value='inventory';}
 function editSelectedPhysicalShield(){if(!selectedPhysicalShield.value)return;showPhysicalShieldDetailModal.value=false;sheetView.value='physical-shield-detail';}
 function armorValue(item:Armor|ArmorCatalogItem, slot:ArmorSlot){ return item.slots.includes(slot) ? (item.armorBySlot[slot] ?? 0) : 0; }
@@ -1081,12 +1090,12 @@ function armorPenaltyText(item:Armor|ArmorCatalogItem){ const parts:string[]=[];
 function armorSlotUnavailable(slot:ArmorSlot){ return occupiedArmorSlots.value.has(slot) && !armorDraft.value.slots.includes(slot); }
 function toggleArmorSlot(slot:ArmorSlot){ if(armorSlotUnavailable(slot)) return; const slots=armorDraft.value.slots; armorDraft.value.slots=slots.includes(slot)?slots.filter(x=>x!==slot):[...slots,slot]; }
 async function onProtectiveImage(event:Event,target:'armor'|'shield'|'physicalShield'){const file=(event.target as HTMLInputElement).files?.[0];if(!file)return;if(!file.type.startsWith('image/')||file.size>5_000_000){inventoryError.value='Selecciona una imagen de hasta 5 MB.';return;}const url=await new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=reject;reader.readAsDataURL(file);});if(target==='armor')armorDraft.value.imageUrl=url;else if(target==='shield')shieldDraft.value.imageUrl=url;else physicalShieldDraft.value.imageUrl=url;}
-async function saveArmor(){ if(!route.params.id||!armorDraft.value.name.trim()||!armorDraft.value.slots.length)return; armorSaving.value=true;inventoryError.value='';try{const b={...armorDraft.value,name:armorDraft.value.name.trim(),slots:Object.fromEntries(armorDraft.value.slots.map(s=>[s,{rd:Number(armorDraft.value.rdBySlot[s]||0),armor:Number(armorDraft.value.armorBySlot[s]||0)}]))};if(selectedArmor.value)await api.updateArmor(String(route.params.id),selectedArmor.value.id,b);else await api.createArmorInventory(String(route.params.id),b);await reloadInventoryDocument();sheetView.value='inventory';}catch(e:any){inventoryError.value=e?.message||'No se pudo guardar la armadura.';}finally{armorSaving.value=false;}}
-async function saveShield(){if(!route.params.id||!shieldDraft.value.name.trim())return;shieldSaving.value=true;inventoryError.value='';try{const b={...shieldDraft.value,name:shieldDraft.value.name.trim(),hitPoints:Number(shieldDraft.value.hitPoints)};if(selectedShield.value)await api.updateShield(String(route.params.id),selectedShield.value.id,b);else await api.createShieldInventory(String(route.params.id),b);await reloadInventoryDocument();sheetView.value='inventory';}catch(e:any){inventoryError.value=e?.message||'No se pudo guardar el escudo.';}finally{shieldSaving.value=false;}}
-async function savePhysicalShield(){if(!route.params.id||!physicalShieldDraft.value.name.trim())return;shieldSaving.value=true;inventoryError.value='';try{const b={...physicalShieldDraft.value,name:physicalShieldDraft.value.name.trim(),rd:Number(physicalShieldDraft.value.rd),armor:Number(physicalShieldDraft.value.armor),defense:Number(physicalShieldDraft.value.defense),movement:Number(physicalShieldDraft.value.movement),size:physicalShieldDraft.value.size||null};if(selectedPhysicalShield.value)await api.updatePhysicalShield(String(route.params.id),selectedPhysicalShield.value.id,b);else await api.createPhysicalShieldInventory(String(route.params.id),b);await reloadInventoryDocument();sheetView.value='inventory';}catch(e:any){inventoryError.value=e?.message||'No se pudo guardar el escudo.';}finally{shieldSaving.value=false;}}
-async function deleteArmor(){if(!route.params.id||!selectedArmor.value||!confirm(`¿Eliminar ${selectedArmor.value.name}?`))return;await api.deleteArmor(String(route.params.id),selectedArmor.value.id);await reloadInventoryDocument();closeArmorDetailModal();}
-async function deleteShield(){if(!route.params.id||!selectedShield.value||!confirm(`¿Eliminar ${selectedShield.value.name}?`))return;await api.deleteShield(String(route.params.id),selectedShield.value.id);await reloadInventoryDocument();closeShieldDetailModal();}
-async function deletePhysicalShield(){if(!route.params.id||!selectedPhysicalShield.value||!confirm(`¿Eliminar ${selectedPhysicalShield.value.name}?`))return;await api.deletePhysicalShield(String(route.params.id),selectedPhysicalShield.value.id);await reloadInventoryDocument();closePhysicalShieldDetailModal();}
+async function saveArmor(){ if(!route.params.id||!armorDraft.value.name.trim()||!armorDraft.value.slots.length)return; armorSaving.value=true;inventoryError.value='';try{const b={...armorDraft.value,name:armorDraft.value.name.trim(),slots:Object.fromEntries(armorDraft.value.slots.map(s=>[s,{rd:Number(armorDraft.value.rdBySlot[s]||0),armor:Number(armorDraft.value.armorBySlot[s]||0)}]))};const saved=selectedArmor.value?await api.updateArmor(String(route.params.id),selectedArmor.value.id,b):await api.createArmorInventory(String(route.params.id),b);upsertInventoryItem(armors,saved as Armor);sheetView.value='inventory';}catch(e:any){inventoryError.value=e?.message||'No se pudo guardar la armadura.';}finally{armorSaving.value=false;}}
+async function saveShield(){if(!route.params.id||!shieldDraft.value.name.trim())return;shieldSaving.value=true;inventoryError.value='';try{const b={...shieldDraft.value,name:shieldDraft.value.name.trim(),hitPoints:Number(shieldDraft.value.hitPoints)};const saved=selectedShield.value?await api.updateShield(String(route.params.id),selectedShield.value.id,b):await api.createShieldInventory(String(route.params.id),b);upsertInventoryItem(shields,saved as Shield);sheetView.value='inventory';}catch(e:any){inventoryError.value=e?.message||'No se pudo guardar el escudo.';}finally{shieldSaving.value=false;}}
+async function savePhysicalShield(){if(!route.params.id||!physicalShieldDraft.value.name.trim())return;shieldSaving.value=true;inventoryError.value='';try{const b={...physicalShieldDraft.value,name:physicalShieldDraft.value.name.trim(),rd:Number(physicalShieldDraft.value.rd),armor:Number(physicalShieldDraft.value.armor),defense:Number(physicalShieldDraft.value.defense),movement:Number(physicalShieldDraft.value.movement),size:physicalShieldDraft.value.size||null};const saved=selectedPhysicalShield.value?await api.updatePhysicalShield(String(route.params.id),selectedPhysicalShield.value.id,b):await api.createPhysicalShieldInventory(String(route.params.id),b);upsertInventoryItem(physicalShields,saved as PhysicalShield);sheetView.value='inventory';}catch(e:any){inventoryError.value=e?.message||'No se pudo guardar el escudo.';}finally{shieldSaving.value=false;}}
+async function deleteArmor(){if(!route.params.id||!selectedArmor.value||!confirm(`¿Eliminar ${selectedArmor.value.name}?`))return;await api.deleteArmor(String(route.params.id),selectedArmor.value.id);removeInventoryItem(armors,selectedArmor.value.id);closeArmorDetailModal();}
+async function deleteShield(){if(!route.params.id||!selectedShield.value||!confirm(`¿Eliminar ${selectedShield.value.name}?`))return;await api.deleteShield(String(route.params.id),selectedShield.value.id);removeInventoryItem(shields,selectedShield.value.id);closeShieldDetailModal();}
+async function deletePhysicalShield(){if(!route.params.id||!selectedPhysicalShield.value||!confirm(`¿Eliminar ${selectedPhysicalShield.value.name}?`))return;await api.deletePhysicalShield(String(route.params.id),selectedPhysicalShield.value.id);removeInventoryItem(physicalShields,selectedPhysicalShield.value.id);closePhysicalShieldDetailModal();}
 function weaponAt(slot:string){ return weapons.value.find(w => w.slot === slot); }
 function weaponImage(weapon: Weapon | WeaponCatalogItem){ return weapon.imageUrl || undefined; }
 function weaponCatalogImage(weapon: WeaponCatalogItem){ return weapon.imageUrl || undefined; }
@@ -1112,7 +1121,7 @@ function openNewWeapon(slot?:string){ selectedWeapon.value=null; weaponSlotLocke
 async function loadWeaponCatalog(){ catalogLoading.value=true; inventoryError.value=''; try { const catalog=await loadStaticObjects(); const sizes=catalogSlot.value.startsWith('SMALL')?['PEQUENA']:catalogSlot.value.startsWith('MEDIUM')?['PEQUENA','MEDIANA']:['GRANDE','ENORME']; catalogWeapons.value=catalog.weapons.filter(item=>sizes.includes(item.size) && (!catalogType.value || item.weaponType===catalogType.value)); } catch(e:any) { catalogWeapons.value=[]; inventoryError.value=e?.message || 'No se pudo cargar el catálogo estático de armas.'; } finally { catalogLoading.value=false; } }
 function openWeaponCatalog(){ sheetView.value='weapon-catalog'; loadWeaponCatalog(); }
 async function selectCatalogWeapon(item:WeaponCatalogItem){ selectedCatalogWeapon.value=item; showCatalogWeaponModal.value=true; }
-async function addSelectedCatalogWeapon(){ if(!route.params.id || !selectedCatalogWeapon.value) return; catalogLoading.value=true; inventoryError.value=''; try { await api.addCatalogWeaponToCharacter(selectedCatalogWeapon.value.id,String(route.params.id),catalogSlot.value); await reloadInventoryDocument(); showCatalogWeaponModal.value=false; selectedCatalogWeapon.value=null; sheetView.value='inventory'; } catch(e:any) { inventoryError.value=e?.message || 'No se pudo añadir el arma seleccionada.'; } finally { catalogLoading.value=false; } }
+async function addSelectedCatalogWeapon(){ if(!route.params.id || !selectedCatalogWeapon.value) return; catalogLoading.value=true; inventoryError.value=''; try { const saved=await api.addCatalogWeaponToCharacter(selectedCatalogWeapon.value.id,String(route.params.id),catalogSlot.value); upsertInventoryItem(weapons,saved as Weapon); showCatalogWeaponModal.value=false; selectedCatalogWeapon.value=null; sheetView.value='inventory'; } catch(e:any) { inventoryError.value=e?.message || 'No se pudo añadir el arma seleccionada.'; } finally { catalogLoading.value=false; } }
 async function onCustomWeaponImage(event:Event){ const file=(event.target as HTMLInputElement).files?.[0]; if(!file) return; if(!file.type.startsWith('image/') || file.size>5_000_000){ inventoryError.value='Selecciona una imagen de hasta 5 MB.'; return; } customImageUrl.value=await new Promise<string>((resolve,reject)=>{ const reader=new FileReader(); reader.onload=()=>resolve(String(reader.result)); reader.onerror=reject; reader.readAsDataURL(file); }); }
 function openInventoryType(){ sheetView.value='inventory-type'; }
 function openWeapon(w:Weapon){ selectedWeapon.value=w; weaponSlotLocked.value=true; weaponEditMode.value=false; weaponDraft.value={...w}; showWeaponDetailModal.value=true; }
@@ -1124,7 +1133,8 @@ async function reloadWeapon(weapon: Weapon){
   weaponReloading.value=true; inventoryError.value='';
   try {
     const result = await api.reloadWeapon(String(route.params.id), weapon.id);
-    await reloadInventoryDocument();
+    const updated = weapons.value.find(item => item.id === result.weaponId);
+    if (updated) upsertInventoryItem(weapons, { ...updated, loadedBullets: updated.loadedBullets + result.consumed });
     inventoryError.value = result.missing > 0
       ? `Recarga parcial: se consumieron ${result.consumed} balas y faltan ${result.missing} balas.`
       : '';
@@ -1137,7 +1147,7 @@ function closeShoot(){ showShootModal.value=false; shootWeaponTarget.value=null;
 async function shootWeapon(weapon: Weapon, shots: number, automatic=false){
   if(!route.params.id || weaponShooting.value) return;
   weaponShooting.value=true; inventoryError.value='';
-  try { await api.shootWeapon(String(route.params.id), weapon.id, shots, automatic); await reloadInventoryDocument(); closeShoot(); openWeaponAimRolls(weapon, automatic ? weaponCadence(weapon) : shots); }
+  try { const result = await api.shootWeapon(String(route.params.id), weapon.id, shots, automatic); const updated = weapons.value.find(item => item.id === result.weaponId); if (updated) upsertInventoryItem(weapons, { ...updated, loadedBullets: result.remaining }); closeShoot(); openWeaponAimRolls(weapon, automatic ? weaponCadence(weapon) : shots); }
   catch(e:any){ inventoryError.value=e?.message||(isMeleeWeapon(weapon) ? 'No se pudo atacar con el arma.' : 'No se pudo disparar el arma.'); }
   finally { weaponShooting.value=false; }
 }
@@ -1189,9 +1199,9 @@ function ammunitionImage(caliber: string | null | undefined) {
   return ammunitionImageByCaliber[normalizeAmmunitionCaliber(caliber)] || '/ammunition/special.png';
 }
 function hideBrokenAmmunitionImage(event: Event) { (event.currentTarget as HTMLImageElement).hidden = true; }
-async function saveWeapon(){ if(!route.params.id || !weaponDraft.value.name.trim() || (!isMeleeWeapon(weaponDraft.value as Weapon) && !weaponDraft.value.caliber?.trim()) || !weaponDraft.value.rate.trim()) return; weaponSaving.value=true; inventoryError.value=''; try { const body={...weaponDraft.value,name:weaponDraft.value.name.trim(),caliber:isMeleeWeapon(weaponDraft.value as Weapon) ? null : weaponDraft.value.caliber?.trim(),rate:weaponDraft.value.rate.trim(),range:Number(weaponDraft.value.range),reload:Number(weaponDraft.value.reload),damageVital:Number(weaponDraft.value.damageVital),damageNormal:Number(weaponDraft.value.damageNormal),damageLight:Number(weaponDraft.value.damageLight),damageVeryLight:Number(weaponDraft.value.damageVeryLight),aim:weaponDraft.value.aim==null?null:Number(weaponDraft.value.aim),capacity:Number(weaponDraft.value.capacity),loadedBullets:Number(weaponDraft.value.loadedBullets)}; if(selectedWeapon.value) await api.updateWeapon(String(route.params.id),selectedWeapon.value.id,body); else { const { loadedBullets: _loadedBullets, ...catalogBody } = body; const catalog=await api.createCatalogWeapon({...catalogBody,imageUrl:customImageUrl.value}); customWeaponCatalog.value = await api.customWeaponCatalog(); await api.addCatalogWeaponToCharacter(catalog.id,String(route.params.id),weaponDraft.value.slot); } await reloadInventoryDocument(); closeWeaponDetail(); } catch(e:any){inventoryError.value=e?.message||'No se pudo guardar el arma.';} finally{weaponSaving.value=false;} }
-async function deleteWeapon(){if(!route.params.id||!selectedWeapon.value||!confirm(`¿Eliminar ${selectedWeapon.value.name}?`))return;weaponDeleting.value=true;try{await api.deleteWeapon(String(route.params.id),selectedWeapon.value.id);await reloadInventoryDocument();closeWeaponDetail();}catch(e:any){inventoryError.value=e?.message||'No se pudo eliminar el arma.';}finally{weaponDeleting.value=false;}}
-async function moveWeapon(w:Weapon,slot:string){if(slot===w.slot||!route.params.id)return;if(!weaponMoveTargets(w).includes(slot)){inventoryError.value='El intercambio no es válido: ambas armas deben poder entrar en el hueco de la otra.';return;}weaponMoving.value=true;try{const moved=await api.moveWeapon(String(route.params.id),w.id,slot);if(selectedWeapon.value?.id===w.id){selectedWeapon.value=moved;weaponDraft.value={...moved};}await reloadInventoryDocument();}catch(e:any){inventoryError.value=e?.message||'El arma no cabe en ese hueco.';}finally{weaponMoving.value=false;}}
+async function saveWeapon(){ if(!route.params.id || !weaponDraft.value.name.trim() || (!isMeleeWeapon(weaponDraft.value as Weapon) && !weaponDraft.value.caliber?.trim()) || !weaponDraft.value.rate.trim()) return; weaponSaving.value=true; inventoryError.value=''; try { const body={...weaponDraft.value,name:weaponDraft.value.name.trim(),caliber:isMeleeWeapon(weaponDraft.value as Weapon) ? null : weaponDraft.value.caliber?.trim(),rate:weaponDraft.value.rate.trim(),range:Number(weaponDraft.value.range),reload:Number(weaponDraft.value.reload),damageVital:Number(weaponDraft.value.damageVital),damageNormal:Number(weaponDraft.value.damageNormal),damageLight:Number(weaponDraft.value.damageLight),damageVeryLight:Number(weaponDraft.value.damageVeryLight),aim:weaponDraft.value.aim==null?null:Number(weaponDraft.value.aim),capacity:Number(weaponDraft.value.capacity),loadedBullets:Number(weaponDraft.value.loadedBullets)}; if(selectedWeapon.value) { const saved=await api.updateWeapon(String(route.params.id),selectedWeapon.value.id,body); upsertInventoryItem(weapons,saved as Weapon); } else { const { loadedBullets: _loadedBullets, ...catalogBody } = body; const catalog=await api.createCatalogWeapon({...catalogBody,imageUrl:customImageUrl.value}); customWeaponCatalog.value = await api.customWeaponCatalog(); const saved=await api.addCatalogWeaponToCharacter(catalog.id,String(route.params.id),weaponDraft.value.slot); upsertInventoryItem(weapons,saved as Weapon); } closeWeaponDetail(); } catch(e:any){inventoryError.value=e?.message||'No se pudo guardar el arma.';} finally{weaponSaving.value=false;} }
+async function deleteWeapon(){if(!route.params.id||!selectedWeapon.value||!confirm(`¿Eliminar ${selectedWeapon.value.name}?`))return;weaponDeleting.value=true;try{await api.deleteWeapon(String(route.params.id),selectedWeapon.value.id);removeInventoryItem(weapons,selectedWeapon.value.id);closeWeaponDetail();}catch(e:any){inventoryError.value=e?.message||'No se pudo eliminar el arma.';}finally{weaponDeleting.value=false;}}
+async function moveWeapon(w:Weapon,slot:string){if(slot===w.slot||!route.params.id)return;if(!weaponMoveTargets(w).includes(slot)){inventoryError.value='El intercambio no es válido: ambas armas deben poder entrar en el hueco de la otra.';return;}weaponMoving.value=true;try{const moved=await api.moveWeapon(String(route.params.id),w.id,slot);upsertInventoryItem(weapons,moved as Weapon);if(selectedWeapon.value?.id===w.id){selectedWeapon.value=moved;weaponDraft.value={...moved};}}catch(e:any){inventoryError.value=e?.message||'El arma no cabe en ese hueco.';}finally{weaponMoving.value=false;}}
 function emptyInventoryDraft(): Omit<OtherInventoryItem, 'id'> { return { name: '', description: '', location: '', quantity: 1, unitValue: 0 }; }
 function openInventory() { navigateToSection('inventory'); }
 function emptyAmmunitionDraft(): AmmunitionDraft { return { type:'CALIBER', caliber: ammunitionCalibers.value[0] || '', grenadeCatalogId: grenadeCatalog.value[0]?.id || '', quantity: 1 }; }
@@ -1205,8 +1215,8 @@ async function addAmmunitionFromCatalog() {
   if (!route.params.id || !caliber || !Number.isInteger(quantity) || quantity < 1 || ammunitionSaving.value) return;
   ammunitionSaving.value = true; inventoryError.value = '';
   try {
-    await api.createAmmunition(String(route.params.id), { type:'CALIBER', caliber, grenadeCatalogId:null, quantity });
-    await reloadInventoryDocument();
+    const saved = await api.createAmmunition(String(route.params.id), { type:'CALIBER', caliber, grenadeCatalogId:null, quantity });
+    upsertInventoryItem(ammunition, saved as Ammunition);
     closeAmmunitionCatalogModal();
     sheetView.value = 'inventory';
   } catch (e: any) { inventoryError.value = e?.message || 'No se pudo añadir la munición.'; }
@@ -1265,9 +1275,8 @@ async function saveAmmunition() {
   ammunitionSaving.value = true; inventoryError.value = '';
   try {
     const body = { type: ammunitionDraft.value.type, caliber: ammunitionDraft.value.type === 'CALIBER' ? ammunitionDraft.value.caliber : null, grenadeCatalogId: ammunitionDraft.value.type === 'GRENADE' ? ammunitionDraft.value.grenadeCatalogId : null, quantity: Number(ammunitionDraft.value.quantity) };
-    if (selectedAmmunition.value) await api.updateAmmunition(String(route.params.id), selectedAmmunition.value.id, body);
-    else await api.createAmmunition(String(route.params.id), body);
-    await reloadInventoryDocument(); closeAmmunitionDetail();
+    const saved = selectedAmmunition.value ? await api.updateAmmunition(String(route.params.id), selectedAmmunition.value.id, body) : await api.createAmmunition(String(route.params.id), body);
+    upsertInventoryItem(ammunition, saved as Ammunition); closeAmmunitionDetail();
   } catch (e: any) { inventoryError.value = e?.message || 'No se pudo guardar la munición.'; }
   finally { ammunitionSaving.value = false; }
 }
@@ -1322,8 +1331,8 @@ async function addGrenadeFromCatalog() {
   const catalogId = selectedGrenadeInventory.value.id;
   grenadeInventorySaving.value = true; inventoryError.value = '';
   try {
-    await api.createAmmunition(String(route.params.id), { type:'GRENADE', caliber:null, grenadeCatalogId:catalogId, quantity });
-    await reloadInventoryDocument();
+    const saved = await api.createAmmunition(String(route.params.id), { type:'GRENADE', caliber:null, grenadeCatalogId:catalogId, quantity });
+    upsertInventoryItem(ammunition, saved as Ammunition);
     const item = grenadeInventoryItem(catalogId);
     closeGrenadeCatalogModal();
     if (item) { sheetView.value = 'inventory'; openGrenadeDetail(item); }
@@ -1347,8 +1356,8 @@ async function saveCustomGrenade() {
        handGrenade:draft.launchType === 'Mano', type:draft.launchType === 'Mano' ? null : draft.launchType,
      });
      await reloadGrenadeCatalog();
-     await api.createAmmunition(String(route.params.id), { type:'GRENADE', caliber:null, grenadeCatalogId:catalogGrenade.id, quantity:Number(draft.quantity) });
-    await reloadInventoryDocument();
+     const saved = await api.createAmmunition(String(route.params.id), { type:'GRENADE', caliber:null, grenadeCatalogId:catalogGrenade.id, quantity:Number(draft.quantity) });
+    upsertInventoryItem(ammunition, saved as Ammunition);
     const item = grenadeInventoryItem(catalogGrenade.id);
     if (item) { sheetView.value = 'inventory'; openGrenadeDetail(item); }
   } catch (e:any) { inventoryError.value = e?.message || 'No se pudo guardar la granada personalizada.'; }
@@ -1370,8 +1379,8 @@ async function increaseGrenadeQuantity() {
   if (!route.params.id || !item || !grenade || grenadeInventorySaving.value) return;
   grenadeInventorySaving.value = true; inventoryError.value = '';
   try {
-    await api.createAmmunition(String(route.params.id), { type:'GRENADE', caliber:null, grenadeCatalogId:grenade.id, quantity:1 });
-    await reloadInventoryDocument();
+    const saved = await api.createAmmunition(String(route.params.id), { type:'GRENADE', caliber:null, grenadeCatalogId:grenade.id, quantity:1 });
+    upsertInventoryItem(ammunition, saved as Ammunition);
     selectedGrenadeAmmunition.value = grenadeInventoryItem(grenade.id) || item;
   } catch (e:any) { inventoryError.value = e?.message || 'No se pudo añadir una unidad.'; }
   finally { grenadeInventorySaving.value = false; }
@@ -1381,8 +1390,8 @@ async function decreaseGrenadeQuantity() {
   if (!route.params.id || !item || item.quantity < 1 || grenadeInventorySaving.value) return;
   grenadeInventorySaving.value = true; inventoryError.value = '';
   try {
-    await api.decrementAmmunition(String(route.params.id), item.id, -1);
-    await reloadInventoryDocument();
+    const saved = await api.decrementAmmunition(String(route.params.id), item.id, -1);
+    if (saved) upsertInventoryItem(ammunition, saved as Ammunition); else removeInventoryItem(ammunition, item.id);
     const updated = grenadeInventoryItem(item.grenadeCatalogId || '');
     if (updated) selectedGrenadeAmmunition.value = updated;
     else closeGrenadeDetail();
@@ -1443,17 +1452,21 @@ async function confirmGrenadeLaunch() {
   if (!route.params.id || !state || state.phase !== 'aim' || !attributeRollHasValidSelection.value || attributeRollResult.value === null || state.consumed) return;
   const aimResult = attributeRollResult.value;
   try {
-    await api.launchGrenade(String(route.params.id), state.grenade.id);
+    const saved = await api.launchGrenade(String(route.params.id), state.grenade.id);
+    if (saved) {
+      const ammunitionItem = saved as Ammunition;
+      if (ammunitionItem.quantity > 0) upsertInventoryItem(ammunition, ammunitionItem);
+      else removeInventoryItem(ammunition, ammunitionItem.id);
+    }
     grenadeLaunch.value = { ...state, phase:'result', aimResult, consumed:true };
     attributeRoll.value = { ...attributeRoll.value!, grenadePhase:'aim' };
-    try { await reloadInventoryDocument(); } catch (reloadError: any) { inventoryError.value = reloadError?.message || 'No se pudo actualizar el inventario.'; }
   } catch (e: any) { inventoryError.value = e?.message || 'No se pudo consumir la granada.'; }
 }
 function closeGrenadeLaunch() { showAttributeRoll.value = false; attributeRoll.value = null; grenadeLaunch.value = null; selectedGrenadeAmmunition.value = null; }
 async function decrementAmmunition(item: Ammunition, amount: -1 | -5 | -10) {
   if (!route.params.id || item.quantity < Math.abs(amount)) return;
   ammunitionDeleting.value = true; inventoryError.value = '';
-  try { await api.decrementAmmunition(String(route.params.id), item.id, amount); await reloadInventoryDocument(); }
+  try { const saved = await api.decrementAmmunition(String(route.params.id), item.id, amount); if (saved) upsertInventoryItem(ammunition, saved as Ammunition); else removeInventoryItem(ammunition, item.id); }
   catch (e: any) { inventoryError.value = e?.message || 'No se pudo descontar la munición.'; }
   finally { ammunitionDeleting.value = false; }
 }
@@ -1465,16 +1478,15 @@ async function saveOtherItem() {
   inventorySaving.value = true; inventoryError.value = '';
   try {
     const body = { ...inventoryDraft.value, name: inventoryDraft.value.name.trim(), quantity: Number(inventoryDraft.value.quantity), unitValue: inventoryDraft.value.unitValue == null ? 0 : Number(inventoryDraft.value.unitValue) };
-    if (selectedOtherItem.value) await api.updateOtherInventory(String(route.params.id), selectedOtherItem.value.id, body);
-    else await api.createOtherInventory(String(route.params.id), body);
-    await reloadInventoryDocument(); closeInventoryDetail();
+    const saved = selectedOtherItem.value ? await api.updateOtherInventory(String(route.params.id), selectedOtherItem.value.id, body) : await api.createOtherInventory(String(route.params.id), body);
+    upsertInventoryItem(otherInventory, saved as OtherInventoryItem); closeInventoryDetail();
   } catch (e: any) { inventoryError.value = e?.message || 'No se pudo guardar el objeto.'; }
   finally { inventorySaving.value = false; }
 }
 async function deleteOtherItem() {
   if (!route.params.id || !selectedOtherItem.value || !window.confirm(`¿Eliminar ${selectedOtherItem.value.name}?`)) return;
   inventoryDeleting.value = true; inventoryError.value = '';
-  try { await api.deleteOtherInventory(String(route.params.id), selectedOtherItem.value.id); await reloadInventoryDocument(); closeInventoryDetail(); }
+  try { await api.deleteOtherInventory(String(route.params.id), selectedOtherItem.value.id); removeInventoryItem(otherInventory, selectedOtherItem.value.id); closeInventoryDetail(); }
   catch (e: any) { inventoryError.value = e?.message || 'No se pudo eliminar el objeto.'; }
   finally { inventoryDeleting.value = false; }
 }
@@ -1484,7 +1496,8 @@ async function reloadTrainingDocument() {
   trainingLoading.value = true; trainingError.value = '';
   try {
     applyTrainingResponse(await api.training(String(route.params.id)) as TrainingData);
-    await reloadCharacterDocument();
+    // Training responses already contain the complete recalculated training state;
+    // avoid a second character request for the same user action.
   } catch (e: any) { trainingError.value = e?.message || 'No se pudo cargar la trayectoria'; throw e; }
   finally { trainingLoading.value = false; }
 }
@@ -1525,15 +1538,15 @@ function resetTrainingDraft(){trainingEditingId.value=null;trainingPreview.value
     showTrainingModal.value = false;
   }
 function editTraining(a:TrainingActivity){trainingPreview.value=null;trainingEditingId.value=a.id;trainingDraft.value={...a};showTrainingForm.value=true;}
-async function saveTraining(){if(!route.params.id||!trainingDraft.value.name)return;try{const b=trainingPayload();await (trainingEditingId.value?api.updateTraining(String(route.params.id),trainingEditingId.value,b):api.addTraining(String(route.params.id),b));await reloadTrainingDocument();resetTrainingDraft();showTrainingForm.value=false;}catch(e:any){trainingError.value=e?.message||'No se pudo guardar';}}
-async function removeTraining(a:TrainingActivity){if(!route.params.id||!window.confirm(`¿Eliminar ${a.name}?`))return;try{await api.deleteTraining(String(route.params.id),a.id);await reloadTrainingDocument();}catch(e:any){trainingError.value=e?.message||'No se pudo eliminar';}}
+async function saveTraining(){if(!route.params.id||!trainingDraft.value.name)return;try{const b=trainingPayload();const result=await (trainingEditingId.value?api.updateTraining(String(route.params.id),trainingEditingId.value,b):api.addTraining(String(route.params.id),b));applyTrainingResponse(result as TrainingData);resetTrainingDraft();showTrainingForm.value=false;}catch(e:any){trainingError.value=e?.message||'No se pudo guardar';}}
+async function removeTraining(a:TrainingActivity){if(!route.params.id||!window.confirm(`¿Eliminar ${a.name}?`))return;try{const result=await api.deleteTraining(String(route.params.id),a.id);applyTrainingResponse(result as TrainingData);}catch(e:any){trainingError.value=e?.message||'No se pudo eliminar';}}
 function trainingTypeLabel(t:string){return ({FORMATION:'Formación',PROFESSION:'Profesión',OCCUPATION:'Ocupación',COURSE:'Curso'} as Record<string,string>)[t]||t;}
 function trainingEndAgeLabel(age:number){return age === trainingData.value.sheetAge + 1 ? 'Actual' : `${age} años`;}
 function trainingBarStyle(a:TrainingActivity){const span=Math.max(1,trainingData.value.sheetAge-trainingData.value.startingAge);return{left:`${((a.startAge-trainingData.value.startingAge)/span)*100}%`,width:`${((a.endAge-a.startAge)/span)*100}%`};}
 function trainingAttributeDisabled(key:string, slot:'primary'|'secondary'|'tertiary'){const duplicate=[trainingDraft.value.primaryAttribute,trainingDraft.value.secondaryAttribute,trainingDraft.value.tertiaryAttribute].some((selected, index) => selected===key && ['primary','secondary','tertiary'][index]!==slot); const trajectoryTotal=(character.value?.attributeModifiers?.[key]??[]).filter(modifier=>modifier.source?.startsWith('TRAINING:')).reduce((sum,modifier)=>sum+Number(modifier.value||0),0); return duplicate || (trainingDraft.value.type==='COURSE' && trajectoryTotal>=5 && trainingDraft.value.primaryAttribute!==key);}
 function trainingGroup(a:TrainingActivity){return trainingData.value.activities.filter(item=>item.startAge===a.startAge);}
 function canMoveTraining(a:TrainingActivity, direction:number){const group=trainingGroup(a);const index=group.findIndex(item=>item.id===a.id);return index>=0 && index+direction>=0 && index+direction<group.length;}
-async function moveTraining(a:TrainingActivity, direction:number){if(!route.params.id||!canMoveTraining(a,direction))return;const group=trainingGroup(a);const index=group.findIndex(item=>item.id===a.id);const reordered=[...group];const [moved]=reordered.splice(index,1);reordered.splice(index+direction,0,moved);trainingReordering.value=a.id;trainingError.value='';try{await api.reorderTraining(String(route.params.id),reordered.map(item=>item.id));await reloadTrainingDocument();}catch(e:any){trainingError.value=e?.message||'No se pudo reordenar';}finally{trainingReordering.value=null;}}
+async function moveTraining(a:TrainingActivity, direction:number){if(!route.params.id||!canMoveTraining(a,direction))return;const group=trainingGroup(a);const index=group.findIndex(item=>item.id===a.id);const reordered=[...group];const [moved]=reordered.splice(index,1);reordered.splice(index+direction,0,moved);trainingReordering.value=a.id;trainingError.value='';try{const result=await api.reorderTraining(String(route.params.id),reordered.map(item=>item.id));applyTrainingResponse(result as TrainingData);}catch(e:any){trainingError.value=e?.message||'No se pudo reordenar';}finally{trainingReordering.value=null;}}
 
 const showProfileModal=ref(false); const showEditorsModal=ref(false); const showMinorModal=ref(false); const minorKind=ref('GALDR'); const customName=ref(''); const customFormula=ref(''); const customSource=ref('informatica'); const minorBusy=ref(false); const minorError=ref('');
 const profileImageInput = ref<HTMLInputElement | null>(null);
@@ -1573,8 +1586,7 @@ function modifiersDirty() {
 async function startEdit() {
   if (!character.value || editing.value || !canEdit.value) return;
   try {
-    await api.edit(String(route.params.id));
-    await reloadCharacterDocument();
+    applyEditState(await api.edit(String(route.params.id)) as { closed: boolean });
     legacyDraft.value = false; legacyEvolutionPoints.value = null;
     editing.value = true;
     startModifierDraft();
@@ -1676,7 +1688,7 @@ async function addExperience() {
   const amount = Number(experienceAmount.value);
   if (!Number.isInteger(amount) || amount < 1) { experienceError.value = 'Introduce una cantidad entera positiva.'; return; }
   experienceBusy.value = true; experienceError.value = '';
-  try { await api.addExperience(String(route.params.id), amount); await reloadCharacterDocument(); experienceAmount.value = null; showExperienceModal.value = false; }
+  try { character.value = await api.addExperience(String(route.params.id), amount) as Character; refreshAbilityEligibility(); experienceAmount.value = null; showExperienceModal.value = false; }
   catch (e: any) { experienceError.value = e?.message || 'No se pudo añadir experiencia.'; }
   finally { experienceBusy.value = false; }
 }
@@ -1721,6 +1733,14 @@ function detailBonus(kind: 'plusOne' | 'plusD6'): number {
   return kind === 'plusOne'
     ? oneBonus(attributeDetail.value.key, total, majorKeys.includes(attributeDetail.value.key))
     : d6Bonus(attributeDetail.value.key, total, majorKeys.includes(attributeDetail.value.key));
+}
+function upsertInventoryItem<T extends { id: string }>(items: Ref<T[]>, item: T) {
+  const index = items.value.findIndex(existing => existing.id === item.id);
+  if (index < 0) items.value = [...items.value, item];
+  else items.value = items.value.map((existing, current) => current === index ? item : existing);
+}
+function removeInventoryItem<T extends { id: string }>(items: Ref<T[]>, id: string) {
+  items.value = items.value.filter(item => item.id !== id);
 }
 
 function defenseDodgeBonus(): number {
@@ -1843,8 +1863,8 @@ async function saveModifiers(): Promise<boolean> {
   }
   modifierSaveBusy.value = true;
   try {
-     await api.saveAttributeModifiers(String(route.params.id), body);
-     if (!legacyDraft.value) await reloadCharacterDocument();
+     const result = await api.saveAttributeModifiers(String(route.params.id), body) as { character?: Character };
+     if (!legacyDraft.value && result.character) character.value = result.character;
     closeAttributeDetail();
     return true;
   } catch (e: any) { modifierError.value = e?.message || 'No se pudieron guardar los modificadores.'; return false; }
@@ -1897,7 +1917,7 @@ async function closeDraft() {
   try {
     if (!await saveModifiers()) { closeBusy.value = false; return; }
     const source = character.value;
-     await api.save(String(route.params.id), {
+     const saved = await api.save(String(route.params.id), {
       name: source.name,
       level: source.level,
       experience: source.experience,
@@ -1914,9 +1934,9 @@ async function closeDraft() {
        awakeningAge: source.awakened ? (source.awakeningAge ?? null) : null,
        sheetAge: source.sheetAge ?? null,
        imageUrl: profileImageChanged.value ? profileImageDraft.value : undefined,
-      });
+      }) as { character?: Character };
+      if (saved.character) character.value = saved.character;
       editing.value = false;
-      await reloadCharacterDocument();
      showProfileModal.value = false;
      profileImageChanged.value = false;
       profileImageDraft.value = character.value?.imageUrl ?? null;
@@ -1931,7 +1951,8 @@ async function cancelChanges() {
   if (!editing.value || cancelChangesBusy.value || profileImageProcessing.value || !confirm('¿Cancelar todos los cambios y volver a la última versión cerrada?')) return;
   cancelChangesBusy.value = true; closeError.value = '';
   try {
-    await api.cancelChanges(String(route.params.id)); editing.value = false; await reloadCharacterDocument(); showProfileModal.value = false; profileImageChanged.value = false; profileImageDraft.value = character.value?.imageUrl ?? null; profileError.value = ''; legacyDraft.value = false; legacyEvolutionPoints.value = null; startModifierDraft();
+    const result = await api.cancelChanges(String(route.params.id)) as { character?: Character };
+    editing.value = false; if (result.character) character.value = result.character; else await reloadCharacterDocument(); showProfileModal.value = false; profileImageChanged.value = false; profileImageDraft.value = character.value?.imageUrl ?? null; profileError.value = ''; legacyDraft.value = false; legacyEvolutionPoints.value = null; startModifierDraft();
     await router.replace({ query: queryWithEditMode(false) });
   } catch (e: any) { closeError.value = e?.message || 'No se pudieron cancelar los cambios.'; }
   finally { cancelChangesBusy.value = false; }
@@ -1952,8 +1973,10 @@ async function recoverHistory(version: HistoryVersion) {
   if (historyRecovering.value || !confirm(`¿Recuperar la versión de nivel ${version.level} del ${new Date(version.createdAt).toLocaleString('es-ES')}?`)) return;
   historyRecovering.value = version.id; historyError.value = '';
   try {
-    await api.recoverMilestone(String(route.params.id), version.id); editing.value = false; await reloadCharacterDocument(); legacyDraft.value = false; legacyEvolutionPoints.value = null; startModifierDraft();
-    history.value = await api.milestones(String(route.params.id)) as HistoryVersion[]; selectedHistory.value = history.value[0] ?? null;
+    const result = await api.recoverMilestone(String(route.params.id), version.id) as { character?: Character; milestone?: HistoryVersion };
+    editing.value = false; if (result.character) character.value = result.character; else await reloadCharacterDocument(); legacyDraft.value = false; legacyEvolutionPoints.value = null; startModifierDraft();
+    if (result.milestone) history.value = [result.milestone, ...history.value.filter(item => item.id !== result.milestone!.id)];
+    selectedHistory.value = result.milestone ?? history.value[0] ?? null;
   } catch (e: any) { historyError.value = e?.message || 'No se pudo recuperar la versión.'; }
   finally { historyRecovering.value = ''; }
 }
@@ -1965,22 +1988,11 @@ async function openCurrentUpgrade() {
   showLastUpgrade.value = true; currentUpgradeMode.value = true; lastUpgrade.value = null;
   lastUpgradeError.value = ''; lastUpgradeLoading.value = true;
   try {
-    const [serverUpgrade, closedVersions] = await Promise.all([
-      api.currentUpgrade(String(route.params.id)) as Promise<LastUpgrade>,
-      api.milestones(String(route.params.id)) as Promise<HistoryVersion[]>,
-    ]);
-    await ensureAbilityCatalogLoaded();
-    const latestClosed = closedVersions[0];
-    const knownAbilities = new Set<string>(latestClosed?.snapshot?.abilities ?? []);
-    // The ability preview is deliberately computed from the open draft in the frontend.
-    // The server response remains canonical for scores, modifiers and bonuses only.
-    const currentAbilities = frontendCurrentAbilityNames();
-    lastUpgrade.value = {
-      ...serverUpgrade,
-      abilities: serverUpgrade.available
-        ? currentAbilities.filter(name => !knownAbilities.has(name))
-        : [],
-    };
+    const context = await api.upgradeContext(String(route.params.id)) as { upgrade: LastUpgrade; milestones: HistoryVersion[] };
+    const serverUpgrade = context.upgrade;
+    // The server reconstructs both sides from their snapshots, including
+    // modifiers, so historical ability arrays cannot create false positives.
+    lastUpgrade.value = serverUpgrade;
   } catch (e: any) { lastUpgradeError.value = e?.message || 'No se pudo comparar la subida actual.'; }
   finally { lastUpgradeLoading.value = false; }
 }
@@ -2031,8 +2043,11 @@ async function submitAllocation() {
      const saveRequest = allocationMode.value === 'single'
        ? api.levelUp(String(route.params.id), payload)
        : api.levelUpAll(String(route.params.id), payload);
-     await saveRequest;
-     const updatedCharacter = await reloadCharacterDocument();
+     const levelUpResult = await saveRequest as { character?: Character };
+     const updatedCharacter = levelUpResult.character;
+     if (!updatedCharacter) throw new Error('El servidor no devolvió el personaje actualizado.');
+     character.value = updatedCharacter;
+     refreshAbilityEligibility();
     savedFinalStep = finalStep;
      if (!finalStep) {
       allocationStep.value += 1;
@@ -2073,10 +2088,10 @@ async function openUniqueReview() {
 async function decideUniqueAbility(ability: PendingUniqueAbility, decision: 'accepted' | 'rejected') {
   uniqueReviewBusy.value = ability.name; uniqueReviewError.value = '';
   try {
-    await api.decideUniqueAbility(String(route.params.id), ability.name, decision);
-    await reloadCharacterDocument();
-    await loadAbilities();
-    await loadPendingUniqueAbilities(true);
+    const result = await api.decideUniqueAbility(String(route.params.id), ability.name, decision) as Character;
+    character.value = result;
+    if (Array.isArray(result.pendingUniqueAbilities)) pendingUniqueAbilities.value = result.pendingUniqueAbilities as unknown as PendingUniqueAbility[];
+    refreshAbilityEligibility();
     if (!pendingUniqueAbilities.value.length) showUniqueReview.value = false;
   } catch (e: any) { uniqueReviewError.value = e?.message || 'No se pudo guardar la decisión.'; }
   finally { uniqueReviewBusy.value = ''; }
@@ -2087,7 +2102,7 @@ async function deleteCharacter() {
 }
 function requirementLines(requirements: unknown) {
   const labels: Record<string, string> = {
-    EvolutivoCurva: 'Evolución curva', EvoluccionCurva: 'Evolución curva', CruzarBifrost: 'Cruzar Bifrost', FisicaQuimica: 'Física/Química', Enganno: 'Engaño', SentirYggdrasil: 'Sentir Yggdrasil', Astronavegar: 'Astronavegar', Atractivo: 'Atractivo', Buscar: 'Buscar', Conduccion: 'Conducción', Deporte: 'Deporte', Destreza: 'Destreza', Diplomacia: 'Diplomacia', Einherjer: 'Einherjer', Esconderse: 'Esconderse', Esquiva: 'Esquiva', Fuerza: 'Fuerza', Informatica: 'Informática', Intimidar: 'Intimidar', Labia: 'Labia', Liderazgo: 'Liderazgo', Medicina: 'Medicina', Provocar: 'Provocar', Punteria: 'Puntería', Resistencia: 'Resistencia', Heroe: 'Héroe', Norna: 'Norna', Alfar: 'Alfar', Valkiria: 'Valkiria', Risa: 'Risa', Dvergr: 'Dvergr'
+    Fis: 'Físico', Agi: 'Agilidad', Pcn: 'Percepción', Mnt: 'Mente', Est: 'Estudio', Car: 'Carisma', EvolutivoCurva: 'Evolución curva', EvoluccionCurva: 'Evolución curva', CruzarBifrost: 'Cruzar Bifrost', FisicaQuimica: 'Física/Química', Enganno: 'Engaño', SentirYggdrasil: 'Sentir Yggdrasil', Astronavegar: 'Astronavegar', Atractivo: 'Atractivo', Buscar: 'Buscar', Conduccion: 'Conducción', Deporte: 'Deporte', Destreza: 'Destreza', Diplomacia: 'Diplomacia', Einherjer: 'Einherjer', Esconderse: 'Esconderse', Esquiva: 'Esquiva', Fuerza: 'Fuerza', Informatica: 'Informática', Intimidar: 'Intimidar', Labia: 'Labia', Liderazgo: 'Liderazgo', Medicina: 'Medicina', Provocar: 'Provocar', Punteria: 'Puntería', Resistencia: 'Resistencia', Heroe: 'Héroe', Norna: 'Norna', Alfar: 'Alfar', Valkiria: 'Valkiria', Risa: 'Risa', Dvergr: 'Dvergr'
   };
   const ignored = new Set(['Nombre', 'Descripcion', 'Lanzamiento', 'Coste', 'Prueba', 'Unica']);
   const alternatives = Array.isArray(requirements) ? requirements : [requirements];
@@ -2097,6 +2112,11 @@ function requirementLines(requirements: unknown) {
     const items = Object.entries(record).filter(([key, value]) => !ignored.has(key) && typeof value === 'number').map(([key, value]) => ({ label: labels[key] || key, value: String(value) }));
     return { title: alternatives.length > 1 ? `Alternativa ${index + 1}` : 'Requisitos', items };
   }).filter(group => group.items.length);
+}
+function abilityRequirementLines(ability: Ability | null) {
+  if (!ability?.alternativesJson) return [];
+  try { return requirementLines(JSON.parse(ability.alternativesJson)); }
+  catch { return []; }
 }
 function back() { if (profileImageProcessing.value) return; campaign.value?.id ? router.push({ path: '/', query: { campaign: campaign.value.id } }) : router.push('/'); }
 
@@ -2236,13 +2256,6 @@ function isUniqueAbility(ability: Ability): boolean {
   return value === 'si' || value === 'sí' || value === 'true' || value === '1';
 }
 
-function frontendCurrentAbilityNames(): string[] {
-  refreshAbilityEligibility();
-  return abilityCatalog.value
-    .filter(ability => ability.eligible && !isUniqueAbility(ability))
-    .map(ability => ability.name);
-}
-
 async function ensureAbilityCatalogLoaded() {
   if (abilityCatalog.value.length) return;
   const catalog = await loadStaticAbilities();
@@ -2292,7 +2305,7 @@ watch(() => route.name, async (name, previousName) => {
   showHistory.value = false;
    if (name === 'character-abilities') { sheetView.value = 'abilities'; await loadAbilities(); }
    else if (name === 'character-inventory') { sheetView.value = 'inventory'; await loadInventory(); }
-   else if (name === 'character-sheet') { sheetView.value = 'sheet'; await reloadCharacterDocument(); if (previousName !== undefined) await loadInventory(); await loadPendingUniqueAbilities(); }
+   else if (name === 'character-sheet') { sheetView.value = 'sheet'; if (previousName !== undefined) await load(); }
 }, { immediate: true });
 
 </script>
@@ -2497,6 +2510,7 @@ watch(() => route.name, async (name, previousName) => {
           <div class="modal-body ability-detail-body">
             <p class="ability-description">{{ selectedAbility.description || 'Sin descripción disponible.' }}</p>
             <dl class="ability-meta"><div><dt>Lanzamiento</dt><dd>{{ selectedAbility.launchType || '—' }}</dd></div><div><dt>Coste</dt><dd>{{ selectedAbility.cost ?? '—' }}</dd></div><div><dt>Prueba de activación</dt><dd v-if="abilityActivationTest">{{ abilityActivationTest.difficulty ? abilityActivationTest.testName + ' ' + abilityActivationTest.difficulty : abilityActivationTest.rawTest }}<template v-if="abilityActivationTest.score !== null"> (+{{ abilityActivationTest.plusOne }} +{{ abilityActivationTest.plusD6 }}D6)</template></dd><dd v-else>—</dd></div></dl>
+            <section v-if="props.isDirector" class="ability-requirements"><h3>Requisitos para obtenerla</h3><template v-if="abilityRequirementLines(selectedAbility).length"><div v-for="group in abilityRequirementLines(selectedAbility)" :key="group.title" class="requirement-group"><span class="requirement-group-title">{{ group.title }}</span><div class="requirement-chips"><span v-for="item in group.items" :key="item.label" class="requirement-chip"><strong>{{ item.label }}</strong><em>{{ item.value }}</em></span></div></div></template><p v-else class="sheet-muted">Sin requisitos registrados.</p></section>
           </div>
           <footer class="modal-actions"><button class="button button-quiet" type="button" @click="closeAbilityDetail">Cerrar</button></footer>
         </section>

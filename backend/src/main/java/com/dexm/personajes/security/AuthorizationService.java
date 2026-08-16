@@ -9,6 +9,8 @@ import java.util.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @Service
 public class AuthorizationService {
@@ -17,6 +19,7 @@ public class AuthorizationService {
     private final CharacterRepository characters;
     private final SecurityIdentityService identities;
     private final ApplicationSessionService sessions;
+    private final ConcurrentMap<String, ConcurrentMap<String, Boolean>> characterGrants = new ConcurrentHashMap<>();
     @Autowired
     public AuthorizationService(CampaignRepository campaigns, CampaignInvitationRepository invitations, CharacterRepository characters, SecurityIdentityService identities, ApplicationSessionService sessions){this.campaigns=campaigns;this.invitations=invitations;this.characters=characters;this.identities=identities;this.sessions=sessions;}
     public AuthorizationService(CampaignRepository campaigns, CampaignInvitationRepository invitations, CharacterRepository characters, SecurityIdentityService identities){this(campaigns, invitations, characters, identities, null);}
@@ -40,12 +43,24 @@ public class AuthorizationService {
     }
     public void requireCampaign(Authentication auth,String campaignId){if(!canAccessCampaign(campaignId,auth)) throw new AccessDeniedException("Campaign access denied");}
     public void requireCharacter(Authentication auth,String characterId, boolean write){
+        HttpServletRequest request = currentRequest();
+        String sessionKey = sessions == null || request == null ? null : sessions.cacheKey(request, auth);
+        if (sessionKey != null) {
+            var grants = characterGrants.get(sessionKey);
+            Boolean writable = grants == null ? null : grants.get(characterId);
+            if (writable != null) {
+                if (!write || writable) return;
+                throw new AccessDeniedException("Character edit access denied");
+            }
+        }
+
         var character=characters.findById(characterId).orElseThrow(()->new NoSuchElementException("Character not found"));
-        var id=identity(auth); if(identities.isAdmin(id)) return;
+        var id=identity(auth); boolean writable = identities.isAdmin(id);
         if (character.getCampaignId() != null && !canAccessCampaign(character.getCampaignId(), auth))
             throw new AccessDeniedException("Campaign access denied");
-        if (!write) return;
-        if (!canEdit(character, auth, id)) throw new AccessDeniedException("Character edit access denied");
+        if (write && !writable && !canEdit(character, auth, id)) throw new AccessDeniedException("Character edit access denied");
+        writable = writable || canEdit(character, auth, id);
+        if (sessionKey != null) characterGrants.computeIfAbsent(sessionKey, ignored -> new ConcurrentHashMap<>()).put(characterId, writable);
     }
     public boolean canEditCharacter(Authentication auth, CharacterEntity character) {
         var id = identity(auth);
@@ -60,4 +75,16 @@ public class AuthorizationService {
                 && character.getOwnerUserId().equals(identities.requireCurrentUser(auth).getId());
     }
     public void requireCharacter(Authentication auth,String characterId){requireCharacter(auth,characterId,false);}
+
+    public void clearCharacterGrants(HttpServletRequest request, Authentication authentication) {
+        if (sessions != null) {
+            String sessionKey = sessions.cacheKey(request, authentication);
+            if (sessionKey != null) characterGrants.remove(sessionKey);
+        }
+    }
+
+    private HttpServletRequest currentRequest() {
+        var attributes = RequestContextHolder.getRequestAttributes();
+        return attributes instanceof ServletRequestAttributes servlet ? servlet.getRequest() : null;
+    }
 }

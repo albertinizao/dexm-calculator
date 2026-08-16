@@ -331,6 +331,9 @@ class CharacterServiceAllocationTest {
         var current = new MilestoneEntity("m2", "c1", 2, 50, currentSnapshot, "{}", "[\"Reflejos\"]");
         var previous = new MilestoneEntity("m1", "c1", 1, 50, previousSnapshot, "{}", "[\"Vigía\"]");
         when(milestones.findByCharacterIdAndVisibleTrueOrderByCreatedAtDesc("c1")).thenReturn(List.of(current, previous));
+        when(officialCatalog.abilities()).thenReturn(List.of(
+                new AbilityEntity("a1", "Vigía", "", "", 10, "No", "[{\"Fis\":1}]"),
+                new AbilityEntity("a2", "Reflejos", "", "", 10, "No", "[{\"Fis\":5}]")));
 
         var result = service.lastUpgrade("c1");
 
@@ -417,6 +420,52 @@ class CharacterServiceAllocationTest {
         var result = service.currentUpgrade("c1");
         assertThat((Set<String>) result.get("abilities"))
                 .contains("Concentración Agilidad", "Concentración Físico");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void currentUpgradeDoesNotReportAbilityAlreadyEligibleInHistoricalSnapshot() throws Exception {
+        var mapper = new ObjectMapper();
+        var historicalAttributes = new LinkedHashMap<>(attributes);
+        historicalAttributes.put("fisico", 5);
+        var previousSnapshot = mapper.writeValueAsString(Map.of(
+                "attributes", historicalAttributes, "genetics", genetics,
+                "minorAttributes", Map.of(), "modifiers", Map.of(), "abilities", List.of()));
+        when(milestones.findByCharacterIdAndVisibleTrueOrderByCreatedAtDesc("c1"))
+                .thenReturn(List.of(new MilestoneEntity("m1", "c1", 1, 0, previousSnapshot, "{}", "[]")));
+        when(officialCatalog.abilities()).thenReturn(List.of(
+                new AbilityEntity("a1", "Concentración Físico", "", "", 10, "No", "[{\"Fis\":5}]")));
+        character.setAttributesJson(mapper.writeValueAsString(historicalAttributes));
+
+        var result = service.currentUpgrade("c1");
+
+        assertThat((Set<String>) result.get("abilities")).doesNotContain("Concentración Físico");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void lastUpgradeCalculatesBonusesUsingSnapshotModifiers() throws Exception {
+        var mapper = new ObjectMapper();
+        var previousAttributes = new LinkedHashMap<>(attributes);
+        previousAttributes.put("intimidar", 6);
+        var currentAttributes = new LinkedHashMap<>(previousAttributes);
+        var previousSnapshot = mapper.writeValueAsString(Map.of(
+                "attributes", previousAttributes, "genetics", genetics,
+                "minorAttributes", Map.of(), "modifiers", Map.of(), "abilities", List.of()));
+        var currentSnapshot = mapper.writeValueAsString(Map.of(
+                "attributes", currentAttributes, "genetics", genetics,
+                "minorAttributes", Map.of(),
+                "modifiers", Map.of("intimidar", List.of(Map.of("name", "Prueba", "value", 2))),
+                "abilities", List.of()));
+        when(milestones.findByCharacterIdAndVisibleTrueOrderByCreatedAtDesc("c1")).thenReturn(List.of(
+                new MilestoneEntity("m2", "c1", 2, 0, currentSnapshot, "{}", "[]"),
+                new MilestoneEntity("m1", "c1", 1, 0, previousSnapshot, "{}", "[]")));
+
+        var result = service.lastUpgrade("c1");
+        var bonuses = (List<Map<String, Object>>) result.get("bonuses");
+
+        assertThat(bonuses).anyMatch(bonus -> bonus.get("key").equals("intimidar")
+                && bonus.get("plusOne").equals(1) && bonus.get("plusD6").equals(1));
     }
 
     @Test

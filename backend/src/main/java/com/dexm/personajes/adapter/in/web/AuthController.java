@@ -44,6 +44,10 @@ public class AuthController {
 
     /** IAP owns sign-out upstream and local mode has no session to invalidate. */
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletResponse response) { if (sessions != null) sessions.clear(response); return ResponseEntity.noContent().build(); }
+    public ResponseEntity<Void> logout(Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
+        authorization.clearCharacterGrants(request, authentication);
+        if (sessions != null) sessions.clear(response);
+        return ResponseEntity.noContent().build();
+    }
     public ResponseEntity<Void> logout() { return ResponseEntity.noContent().build(); }
 }

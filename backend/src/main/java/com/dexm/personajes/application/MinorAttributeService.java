@@ -119,7 +119,13 @@ public class MinorAttributeService {
         var value = vals.findByCharacterIdAndDefinitionId(characterId, definitionId)
                 .orElseThrow(() -> new NoSuchElementException("Minor attribute not found"));
         vals.delete(value);
-        if (vals.findByDefinitionId(definitionId).isEmpty()) defs.delete(definition);
+        // Campaign-scoped definitions are materialized for every character. Do
+        // not scan every character document just to decide whether to remove
+        // the definition: keeping an unused definition is safe and avoids an
+        // O(number-of-characters) Firestore read burst. Character-owned
+        // definitions can be removed directly because their ownership is
+        // unambiguous.
+        if (Objects.equals(characterId, definition.getOwnerCharacterId())) defs.delete(definition);
     }
 
     private boolean dependsOn(String campaign, String current, String target, Set<String> seen) {

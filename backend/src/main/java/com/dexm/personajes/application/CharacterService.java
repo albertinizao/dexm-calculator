@@ -502,7 +502,7 @@ public class CharacterService {
     }
 
     @Transactional
-    public void deleteTraining(String id, String activityId) { var character = ensureTrainingAvailable(id); var all = new ArrayList<>(trainingActivities.findByCharacterIdOrderByStartAgeAscPriorityAsc(id)); var entity=all.stream().filter(activity -> activityId.equals(activity.getId())).findFirst().orElseThrow(() -> new NoSuchElementException("Training activity not found")); trainingActivities.delete(entity); all.remove(entity); recalculateTraining(character, all); }
+    public Map<String,Object> deleteTraining(String id, String activityId) { var character = ensureTrainingAvailable(id); var all = new ArrayList<>(trainingActivities.findByCharacterIdOrderByStartAgeAscPriorityAsc(id)); var entity=all.stream().filter(activity -> activityId.equals(activity.getId())).findFirst().orElseThrow(() -> new NoSuchElementException("Training activity not found")); trainingActivities.delete(entity); all.remove(entity); var trainingModifiers = recalculateTraining(character, all); return training(character, all, trainingModifiers); }
 
     private CharacterEntity ensureTrainingAvailable(String id) { if (trainingActivities==null) throw new IllegalStateException("Training is unavailable in this context"); var c=get(id); if(c.getStartingAge()==null||c.getSheetAge()==null||!"guided".equals(c.getCreationMode())) throw new IllegalStateException("Training is only available for guided characters"); if(c.isClosed()) throw new IllegalStateException("La ficha está cerrada; ábrela para modificar la trayectoria"); return c; }
     private void validateTrainingRequest(CharacterEntity c, CharacterController.TrainingActivityRequest r, String ignoredId, List<TrainingActivityEntity> all) {
@@ -1542,10 +1542,21 @@ public class CharacterService {
                 character.getUpdatedAt(), previous.getLevel(), previous.getExperience(), previous.getCreatedAt(), previousAbilities);
     }
 
+    @Transactional(readOnly = true)
+    public Map<String, Object> upgradeContext(String id) {
+        var upgrade = currentUpgrade(id);
+        var visible = milestones(id);
+        return Map.of("upgrade", upgrade, "milestones", visible);
+    }
+
     private Map<String, Object> compareUpgrade(JsonNode currentSnapshot, JsonNode previousSnapshot,
                                                int currentLevel, int currentExperience, Set<String> currentAbilities,
                                                Object currentClosedAt, int previousLevel, int previousExperience, Object previousClosedAt,
                                                Set<String> previousAbilities) {
+        // Rebuild both sides from their snapshots. The persisted ability list is
+        // archival data and may predate the current eligibility calculation.
+        currentAbilities = snapshotEligibleAbilities(currentSnapshot);
+        previousAbilities = snapshotEligibleAbilities(previousSnapshot);
         var currentAttributes = snapshotRanks(currentSnapshot, "attributes"); var previousAttributes = snapshotRanks(previousSnapshot, "attributes");
         var currentGenetics = snapshotRanks(currentSnapshot, "genetics"); var previousGenetics = snapshotRanks(previousSnapshot, "genetics");
         var currentMinors = snapshotRanks(currentSnapshot, "minorAttributes"); var previousMinors = snapshotRanks(previousSnapshot, "minorAttributes");
@@ -1553,8 +1564,8 @@ public class CharacterService {
         appendScoreChanges(scores, "attribute", currentAttributes, previousAttributes);
         appendScoreChanges(scores, "genetic", currentGenetics, previousGenetics);
         appendScoreChanges(scores, "minorAttribute", currentMinors, previousMinors);
-        var currentBonuses = CharacterRules.projectAtLevel(currentLevel, currentExperience, currentAttributes, currentGenetics, Map.of()).bonuses();
-        var previousBonuses = CharacterRules.projectAtLevel(previousLevel, previousExperience, previousAttributes, previousGenetics, Map.of()).bonuses();
+        var currentBonuses = CharacterRules.projectAtLevel(currentLevel, currentExperience, currentAttributes, currentGenetics, snapshotModifierTotals(currentSnapshot)).bonuses();
+        var previousBonuses = CharacterRules.projectAtLevel(previousLevel, previousExperience, previousAttributes, previousGenetics, snapshotModifierTotals(previousSnapshot)).bonuses();
         var bonuses = new ArrayList<Map<String, Object>>(); var keys = new LinkedHashSet<String>(); keys.addAll(currentBonuses.keySet()); keys.addAll(previousBonuses.keySet());
         for (var key : keys) { var after = currentBonuses.getOrDefault(key, new CharacterRules.Bonus(0, 0)); var before = previousBonuses.getOrDefault(key, new CharacterRules.Bonus(0, 0)); int plusOne = after.plusOne() - before.plusOne(), plusD6 = after.plusD6() - before.plusD6(); if (plusOne > 0 || plusD6 > 0) bonuses.add(Map.of("key", key, "plusOne", plusOne, "plusD6", plusD6)); }
         var abilities = new LinkedHashSet<>(currentAbilities); abilities.removeAll(previousAbilities);
@@ -1562,6 +1573,24 @@ public class CharacterService {
     }
 
     private JsonNode snapshot(MilestoneEntity milestone) { try { return json.readTree(milestone.getSnapshotJson()); } catch (Exception e) { throw new IllegalStateException("Closed version snapshot is invalid", e); } }
+    private Set<String> snapshotEligibleAbilities(JsonNode snapshot) {
+        var modifiers = snapshotModifierTotals(snapshot);
+        var attrs = withModifiers(snapshotRanks(snapshot, "attributes"), modifiers);
+        var genetics = withModifiers(snapshotRanks(snapshot, "genetics"), modifiers);
+        var minors = withModifiers(snapshotRanks(snapshot, "minorAttributes"), modifiers);
+        var decisions = new LinkedHashMap<String, String>();
+        snapshot.path("uniqueAbilityDecisions").fields().forEachRemaining(entry -> decisions.put(entry.getKey(), entry.getValue().asText()));
+        return eligibleAbilities(attrs, genetics, minors, decisions, abilityCatalog()).obtained();
+    }
+    private Map<String, Integer> snapshotModifierTotals(JsonNode snapshot) {
+        var result = new LinkedHashMap<String, Integer>();
+        snapshot.path("modifiers").fields().forEachRemaining(attribute -> {
+            int total = 0;
+            for (var modifier : attribute.getValue()) total += modifier.path("value").asInt();
+            result.put(attribute.getKey(), total);
+        });
+        return result;
+    }
     private Map<String, List<Map<String, Object>>> modifierSnapshot(String characterId) {
         return modifierSnapshot(modifiers.findByCharacterId(characterId));
     }

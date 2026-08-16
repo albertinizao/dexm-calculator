@@ -125,6 +125,12 @@ export type Shield = {
 export type ShieldCatalogItem = Omit<Shield, 'id'> & { id: string; official: boolean };
 export type PhysicalShield = { id: string; name: string; description?: string | null; rd: number; armor: number; defense: number; movement: number; size?: string | null; otherEffects?: string | null; imageUrl?: string | null; };
 export type PhysicalShieldCatalogItem = Omit<PhysicalShield, 'id'> & { id: string; official: boolean };
+export type CharacterWorkspace = {
+  character: unknown;
+  inventory: { others: OtherInventoryItem[]; weapons: Weapon[]; ammunition: Ammunition[]; armors: Armor[]; shields: Shield[]; physicalShields: PhysicalShield[] };
+  training: unknown;
+  abilities: { catalog: unknown[]; abilities: string[]; pendingUniqueAbilities: string[] };
+};
 
 export const api = {
   me: () => request('/api/auth/me'),
@@ -206,6 +212,7 @@ removeCharacterEditor: (id: string, email: string) => request('/api/characters/'
   list: () => request('/api/characters'),
   create: (name: string) => request('/api/characters', { method: 'POST', body: JSON.stringify({ name }) }),
   get: (id: string) => request('/api/characters/' + id),
+  workspace: (id: string) => request('/api/characters/' + encodeURIComponent(id) + '/workspace') as Promise<CharacterWorkspace>,
   deleteCharacter: (id: string) => request('/api/characters/' + id, { method: 'DELETE' }),
   characterAbilities: (id: string) => request('/api/characters/' + id + '/abilities') as Promise<{ catalog: unknown[]; abilities: string[]; pendingUniqueAbilities: string[] }>,
   pendingUniqueAbilities: (id: string) => request('/api/characters/' + id + '/unique-abilities/pending'),
@@ -230,6 +237,7 @@ removeCharacterEditor: (id: string, email: string) => request('/api/characters/'
   recoverMilestone: (id: string, milestoneId: string) => request('/api/characters/' + id + '/history/' + encodeURIComponent(milestoneId) + '/recover', { method: 'POST' }),
   lastUpgrade: (id: string) => request('/api/characters/' + id + '/last-upgrade'),
   currentUpgrade: (id: string) => request('/api/characters/' + id + '/current-upgrade'),
+  upgradeContext: (id: string) => request('/api/characters/' + id + '/upgrade-context'),
   abilities: () => request('/api/abilities'),
   importAbilities: (body: unknown) => request('/api/abilities/import', { method: 'POST', body: JSON.stringify(body) }),
 };

@@ -46,7 +46,6 @@ class AmmunitionInventoryServiceTest {
 
     @Test
     void create_should_accumulate_existing_caliber() {
-        stubAllowedCaliber();
         when(ammunition.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         var existing = new AmmunitionEntity("ammo-1", "character-1", ".45 ACP", 4);
         when(ammunition.findByCharacterIdAndCaliberForUpdate("character-1", ".45 ACP")).thenReturn(Optional.of(existing));
