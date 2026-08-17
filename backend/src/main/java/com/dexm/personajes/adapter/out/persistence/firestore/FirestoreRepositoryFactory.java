@@ -343,7 +343,11 @@ public class FirestoreRepositoryFactory {
             }
             document.put("id", characterId);
             document.put("characterId", characterId);
-            document.put(aggregateField(), items);
+            // Firestore accepts maps/lists of supported values here, but not
+            // arbitrary entity instances nested inside a list. Reads decode
+            // aggregate items into entities, so convert them back before the
+            // write (otherwise delete/update can fail with gRPC INVALID_ARGUMENT).
+            document.put(aggregateField(), mapper.convertValue(items, List.class));
             document.put("json", mapper.writeValueAsString(document)); ref.set(document).get();
             recordWrite(aggregateCollection, characterId, 1);
             cacheAggregate(cacheKey, document);
