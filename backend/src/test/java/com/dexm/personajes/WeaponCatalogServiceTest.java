@@ -48,5 +48,26 @@ class WeaponCatalogServiceTest {
         });
     }
 
+    @Test void universalSlotSearchIncludesEveryWeaponSize() {
+        var repository = mock(WeaponCatalogRepository.class);
+        var small = catalogWeapon("small", "PEQUENA");
+        var medium = catalogWeapon("medium", "MEDIANA");
+        var large = catalogWeapon("large", "GRANDE");
+        var enormous = catalogWeapon("enormous", "ENORME");
+        when(repository.findBySize("PEQUENA")).thenReturn(List.of(small));
+        when(repository.findBySize("MEDIANA")).thenReturn(List.of(medium));
+        when(repository.findBySize("GRANDE")).thenReturn(List.of(large));
+        when(repository.findBySize("ENORME")).thenReturn(List.of(enormous));
+
+        var result = new WeaponCatalogService(repository).search("ANY", "", "");
+
+        assertThat(result).extracting(row -> row.get("id"))
+                .containsExactly("enormous", "large", "medium", "small");
+    }
+
+    private WeaponCatalogEntity catalogWeapon(String id, String size) {
+        return new WeaponCatalogEntity(id, id, "PISTOLA", size, bd(10), bd(1), "1", bd(4), bd(3), bd(2), bd(1), bd(1), null, bd(8), "9mm", null, null, true);
+    }
+
     private BigDecimal bd(int value) { return BigDecimal.valueOf(value); }
 }

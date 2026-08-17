@@ -162,7 +162,11 @@ public class ArchiveService {
                 armor.findByCharacterIdOrderByNameAsc(character.getId()).stream().map(a -> new ArmorData(a.getName(), a.getDescription(), a.getSlotsJson())).toList(),
                 shields.findByCharacterIdOrderByNameAsc(character.getId()).stream().map(s -> new ShieldData(s.getName(), s.getDescription(), s.getHitPoints())).toList(),
                 physicalShields.findByCharacterIdOrderByNameAsc(character.getId()).stream().map(s -> new PhysicalShieldData(s.getName(), s.getDescription(), s.getRd(), s.getArmor(), s.getDefense(), s.getOtherEffects())).toList(),
-                milestones.findByCharacterIdOrderByCreatedAtDesc(character.getId()).stream().map(m -> new MilestoneData(m.getLevel(), m.getExperience(), m.getSnapshotJson(), m.getNewBonusesJson(), m.getNewAbilitiesJson(), m.isVisible())).toList());
+                // Export needs every milestone; sorting in memory avoids requiring
+                // the characterId + createdAt composite Firestore index.
+                milestones.findByCharacterId(character.getId()).stream()
+                        .sorted(Comparator.comparing(MilestoneEntity::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                        .map(m -> new MilestoneData(m.getLevel(), m.getExperience(), m.getSnapshotJson(), m.getNewBonusesJson(), m.getNewAbilitiesJson(), m.isVisible())).toList());
     }
 
     private AmmoData ammo(AmmunitionEntity item) {
