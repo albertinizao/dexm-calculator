@@ -91,6 +91,12 @@ public class FirestoreRepositoryFactory {
         }
 
         private Object invokeAggregateRoot(String name, Object[] args) throws Exception {
+            if (name.equals("save") || name.equals("saveAndFlush")) return aggregateRootSave(args[0]);
+            if (name.equals("saveAll")) {
+                List<Object> saved = new ArrayList<>();
+                for (Object item : (Iterable<?>) args[0]) saved.add(aggregateRootSave(item));
+                return saved;
+            }
             if (name.equals("findById") || name.equals("existsById")) {
                 var result = aggregateRootDocument(String.valueOf(args[0]));
                 return name.equals("existsById") ? result.isPresent() : result;
@@ -98,6 +104,21 @@ public class FirestoreRepositoryFactory {
             if (name.equals("findAll")) return aggregateRootDocuments();
             if (name.equals("count")) return (long) aggregateRootDocuments().size();
             throw new UnsupportedOperationException("Aggregate root repository method not supported: " + name);
+        }
+
+        private Object aggregateRootSave(Object entity) throws Exception {
+            String entityId = String.valueOf(id.get(entity));
+            String characterId = String.valueOf(field(type, "characterId").get(entity));
+            if (!entityId.equals(characterId)) throw new IllegalArgumentException("El agregado requiere id y characterId coincidentes");
+
+            String cacheKey = "aggregate-document:" + collection + ":" + characterId;
+            Map<String, Object> document = mapper.convertValue(entity, Map.class);
+            document.put("id", characterId);
+            document.put("characterId", characterId);
+            firestore.collection(collection).document(characterId).set(document).get();
+            recordWrite(collection, characterId, 1);
+            cacheAggregate(cacheKey, document);
+            return entity;
         }
 
         private Optional<Object> aggregateRootDocument(String entityId) throws Exception {

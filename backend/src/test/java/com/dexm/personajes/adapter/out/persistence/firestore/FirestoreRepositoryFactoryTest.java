@@ -2,6 +2,8 @@ package com.dexm.personajes.adapter.out.persistence.firestore;
 
 import com.dexm.personajes.adapter.out.persistence.CharacterAttributeModifierEntity;
 import com.dexm.personajes.adapter.out.persistence.CharacterAttributeModifierRepository;
+import com.dexm.personajes.adapter.out.persistence.CharacterInventoryAggregateEntity;
+import com.dexm.personajes.adapter.out.persistence.CharacterInventoryAggregateRepository;
 import com.dexm.personajes.adapter.out.persistence.TrainingActivityEntity;
 import com.dexm.personajes.adapter.out.persistence.TrainingActivityRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -57,6 +59,25 @@ class FirestoreRepositoryFactoryTest {
 
         assertThatCode(repository::flush).doesNotThrowAnyException();
         verifyNoInteractions(firestore);
+    }
+
+    @Test
+    void aggregateRootRepositorySupportsSave() throws Exception {
+        Firestore firestore = mock(Firestore.class);
+        CollectionReference collection = mock(CollectionReference.class);
+        DocumentReference document = mock(DocumentReference.class);
+        ApiFuture<WriteResult> write = mock(ApiFuture.class);
+        when(firestore.collection("characterInventories")).thenReturn(collection);
+        when(collection.document("c1")).thenReturn(document);
+        when(document.set(any())).thenReturn(write);
+        when(write.get()).thenReturn(null);
+
+        var repository = new FirestoreRepositoryFactory(firestore, new ObjectMapper())
+                .create(CharacterInventoryAggregateRepository.class, CharacterInventoryAggregateEntity.class, "characterInventories");
+        var entity = new CharacterInventoryAggregateEntity("c1");
+
+        assertThat(repository.save(entity)).isSameAs(entity);
+        verify(document).set(any());
     }
 
     @Test
