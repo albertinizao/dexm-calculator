@@ -646,7 +646,7 @@ public class CharacterService {
 
     @Transactional
     public Map<String, Object> addExperience(String id, int amount) {
-        if (amount < 1) throw new IllegalArgumentException("Experience amount must be positive");
+        if (amount == 0) throw new IllegalArgumentException("Experience amount cannot be zero");
         var c = get(id);
         c.setExperience(Math.addExact(c.getExperience(), amount));
         c.setClosed(false);

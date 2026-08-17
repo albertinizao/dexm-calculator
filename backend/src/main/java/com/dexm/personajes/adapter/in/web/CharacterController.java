@@ -80,7 +80,7 @@ public class CharacterController {
 
     public record ModifierRequest(@NotBlank String name, @NotNull Integer value) {}
 
-    public record ExperienceRequest(@NotNull @Min(1) Integer amount) {}
+    public record ExperienceRequest(@NotNull Integer amount) {}
     public record UniqueAbilityDecisionRequest(@NotBlank String decision) {}
     public record OtherInventoryItemRequest(@NotBlank String name, String description, String location,
                                              @NotNull @Min(1) Integer quantity,
@@ -287,6 +287,9 @@ public class CharacterController {
 
     @PostMapping("/{id}/experience")
     public Object addExperience(@PathVariable String id, @Valid @RequestBody ExperienceRequest request) {
+        if (request.amount() < 0) {
+            authorization.requireAdmin(SecurityContextHolder.getContext().getAuthentication());
+        }
         return service.addExperience(id, request.amount());
     }
 

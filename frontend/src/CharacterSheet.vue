@@ -85,6 +85,7 @@ const modifierSaveBusy = ref(false);
 const modifierError = ref('');
 const showExperienceModal = ref(false);
 const experienceAmount = ref<number | null>(null);
+const experienceMode = ref<'add' | 'subtract'>('add');
 const experienceBusy = ref(false);
 const experienceError = ref('');
 const levelBusy = ref(false);
@@ -1134,7 +1135,14 @@ async function reloadWeapon(weapon: Weapon){
   try {
     const result = await api.reloadWeapon(String(route.params.id), weapon.id);
     const updated = weapons.value.find(item => item.id === result.weaponId);
-    if (updated) upsertInventoryItem(weapons, { ...updated, loadedBullets: updated.loadedBullets + result.consumed });
+    if (updated) upsertInventoryItem(weapons, { ...updated, loadedBullets: result.loadedBullets });
+    if (result.consumed > 0) {
+      const ammo = ammunition.value.find(item => item.type === 'CALIBER' && item.caliber?.trim() === result.caliber);
+      if (ammo) {
+        if (result.remaining > 0) upsertInventoryItem(ammunition, { ...ammo, quantity: result.remaining });
+        else removeInventoryItem(ammunition, ammo.id);
+      }
+    }
     inventoryError.value = result.missing > 0
       ? `Recarga parcial: se consumieron ${result.consumed} balas y faltan ${result.missing} balas.`
       : '';
@@ -1688,8 +1696,9 @@ async function addExperience() {
   const amount = Number(experienceAmount.value);
   if (!Number.isInteger(amount) || amount < 1) { experienceError.value = 'Introduce una cantidad entera positiva.'; return; }
   experienceBusy.value = true; experienceError.value = '';
-  try { character.value = await api.addExperience(String(route.params.id), amount) as Character; refreshAbilityEligibility(); experienceAmount.value = null; showExperienceModal.value = false; }
-  catch (e: any) { experienceError.value = e?.message || 'No se pudo añadir experiencia.'; }
+  const signedAmount = experienceMode.value === 'subtract' ? -amount : amount;
+  try { character.value = await api.addExperience(String(route.params.id), signedAmount) as Character; refreshAbilityEligibility(); experienceAmount.value = null; showExperienceModal.value = false; }
+  catch (e: any) { experienceError.value = e?.message || (experienceMode.value === 'subtract' ? 'No se pudo restar experiencia.' : 'No se pudo añadir experiencia.'); }
   finally { experienceBusy.value = false; }
 }
 
@@ -2456,9 +2465,9 @@ watch(() => route.name, async (name, previousName) => {
 
         <div v-if="showExperienceModal" class="modal-backdrop" @click.self="showExperienceModal=false">
         <div class="modal-card experience-modal" role="dialog" aria-modal="true" aria-labelledby="experience-modal-title">
-          <header class="modal-header"><div><p class="eyebrow accent">PERSONAJE · PROGRESIÓN</p><h2 id="experience-modal-title">Añadir experiencia</h2><p class="modal-copy">La experiencia se suma a la cantidad actual del personaje.</p></div><button type="button" class="modal-close" aria-label="Cerrar ventana" @click="showExperienceModal=false">×</button></header>
-          <div class="modal-body"><label class="modal-field"><span>Experiencia a añadir</span><input v-model.number="experienceAmount" type="number" min="1" step="1" autofocus @keyup.enter="addExperience"></label><p v-if="experienceError" class="error-banner" role="alert">{{ experienceError }}</p></div>
-          <footer class="modal-actions"><button class="button button-quiet" type="button" @click="showExperienceModal=false">Cancelar</button><button class="button button-primary" type="button" :disabled="experienceBusy" @click="addExperience">{{ experienceBusy ? 'Añadiendo…' : 'Añadir experiencia' }}</button></footer>
+          <header class="modal-header"><div><p class="eyebrow accent">PERSONAJE · PROGRESIÓN</p><h2 id="experience-modal-title">{{ experienceMode === 'subtract' ? 'Restar experiencia' : 'Añadir experiencia' }}</h2><p class="modal-copy">{{ experienceMode === 'subtract' ? 'La experiencia puede quedar por debajo de 0.' : 'La experiencia se suma a la cantidad actual del personaje.' }}</p></div><button type="button" class="modal-close" aria-label="Cerrar ventana" @click="showExperienceModal=false">×</button></header>
+          <div class="modal-body"><label class="modal-field"><span>Experiencia a {{ experienceMode === 'subtract' ? 'restar' : 'añadir' }}</span><input v-model.number="experienceAmount" type="number" min="1" step="1" autofocus @keyup.enter="addExperience"></label><p v-if="experienceError" class="error-banner" role="alert">{{ experienceError }}</p></div>
+          <footer class="modal-actions"><button class="button button-quiet" type="button" @click="showExperienceModal=false">Cancelar</button><button class="button button-primary" type="button" :disabled="experienceBusy" @click="addExperience">{{ experienceBusy ? (experienceMode === 'subtract' ? 'Restando…' : 'Añadiendo…') : (experienceMode === 'subtract' ? 'Restar experiencia' : 'Añadir experiencia') }}</button></footer>
         </div>
       </div>
 
@@ -2524,7 +2533,7 @@ watch(() => route.name, async (name, previousName) => {
 
        <section v-if="sheetView === 'sheet'" class="sheet-content" aria-labelledby="sheet-title">
 
-  <div class="sheet-heading"><div><h2 id="sheet-title">Hoja de personaje</h2><p v-if="levelError" class="error-banner" role="alert">{{ levelError }}</p></div><div class="sheet-level"><span>Nivel</span><strong>{{ level }}</strong><small @dblclick="editing && (showExperienceModal=true, experienceError='')" title="Doble clic para añadir experiencia">{{ character.experience }} PX</small><div class="level-actions"><template v-if="editing"><button class="button button-quiet" type="button" @click="openTraining">Formación</button><button class="button button-quiet" type="button" :disabled="!canLevelUp || levelBusy" @click="openLevelUp()">Subir nivel</button><button class="button button-quiet" type="button" :disabled="!canLevelUpAll || levelBusy" @click="openLevelUp(true)">Subir varios niveles</button><button class="button button-quiet" type="button" @click="showExperienceModal=true; experienceError=''">Añadir experiencia</button></template></div></div></div>
+<div class="sheet-heading"><div><h2 id="sheet-title">Hoja de personaje</h2><p v-if="levelError" class="error-banner" role="alert">{{ levelError }}</p></div><div class="sheet-level"><span>Nivel</span><strong>{{ level }}</strong><small @dblclick="editing && (experienceMode='add', showExperienceModal=true, experienceError='')" title="Doble clic para añadir experiencia">{{ character.experience }} PX</small><div class="level-actions"><template v-if="editing"><button class="button button-quiet" type="button" @click="openTraining">Formación</button><button class="button button-quiet" type="button" :disabled="!canLevelUp || levelBusy" @click="openLevelUp()">Subir nivel</button><button class="button button-quiet" type="button" :disabled="!canLevelUpAll || levelBusy" @click="openLevelUp(true)">Subir varios niveles</button><button class="button button-quiet" type="button" @click="experienceMode='add'; showExperienceModal=true; experienceError=''">Añadir experiencia</button><button v-if="props.isDirector" class="button button-danger" type="button" @click="experienceMode='subtract'; showExperienceModal=true; experienceError=''">Restar experiencia</button></template></div></div></div>
 <section class="sheet-panel"><h3>Atributos Mayores</h3><div class="value-grid attributes-grid major-attributes-grid"><div v-for="[key, value] in majorAttributes" :key="key" class="attribute-card"><button class="value-row attribute-row attribute-clickable attribute-detail-trigger" type="button" @click="openAttributeDetail(key)"><span>{{ attributeLabels[key] || key }}</span><strong>{{ displayedAttributeTotal(key, value) }}</strong></button><div class="attribute-card-footer"><button class="attribute-roll-trigger" type="button" :aria-label="`Tirar D10 de ${attributeLabels[key] || key}`" @click="openAttributeRoll(key, value, true)"><span class="attribute-roll-icon" aria-hidden="true"><img src="/diceD10.png" alt=""></span></button><small class="attribute-bonus">+{{ oneBonus(key, displayedAttributeTotal(key, value), true) }} · +{{ d6Bonus(key, displayedAttributeTotal(key, value), true) }}D6</small></div></div><p v-if="!Object.keys(attributes).length" class="sheet-muted">Sin atributos registrados.</p></div></section>
 
         <section class="sheet-panel"><div class="sheet-panel-heading"><h3>Atributos Menores</h3><button v-if="editing" class="button button-quiet" type="button" @click="showMinorModal=true">Añadir atributo menor</button></div><div class="value-grid attributes-grid"><div v-for="[key, value] in minorAttributes" :key="key" class="attribute-card"><button class="value-row attribute-row attribute-clickable attribute-detail-trigger" type="button" @click="openAttributeDetail(key)"><span>{{ attributeLabels[key] || customMinor(key)?.name || key }}</span><strong>{{ displayedAttributeTotal(key, customMinor(key)?.total ?? value) }}</strong></button><div class="attribute-card-footer"><button class="attribute-roll-trigger" type="button" :aria-label="`Tirar D10 de ${attributeLabels[key] || customMinor(key)?.name || key}`" @click="openAttributeRoll(key, value, false)"><span class="attribute-roll-icon" aria-hidden="true"><img src="/diceD10.png" alt=""></span></button><small class="attribute-bonus">+{{ maxBonus(key, displayedAttributeTotal(key, customMinor(key)?.total ?? value), false) }} · +{{ maxD6(key, displayedAttributeTotal(key, customMinor(key)?.total ?? value), false) }}D6</small></div></div></div></section>
