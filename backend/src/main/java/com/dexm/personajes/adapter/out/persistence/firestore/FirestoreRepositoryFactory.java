@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.Query;
+import com.google.cloud.firestore.SetOptions;
 import com.dexm.personajes.adapter.out.persistence.*;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -348,7 +349,14 @@ public class FirestoreRepositoryFactory {
             // aggregate items into entities, so convert them back before the
             // write (otherwise delete/update can fail with gRPC INVALID_ARGUMENT).
             document.put(aggregateField(), mapper.convertValue(items, List.class));
-            document.put("json", mapper.writeValueAsString(document)); ref.set(document).get();
+            // Only merge the canonical aggregate fields. Rewriting the entire
+            // legacy document also re-sends its redundant `json` snapshot and
+            // can make Firestore reject an otherwise valid activity deletion.
+            Map<String, Object> payload = Map.of(
+                    "id", characterId,
+                    "characterId", characterId,
+                    aggregateField(), document.get(aggregateField()));
+            ref.set(payload, SetOptions.merge()).get();
             recordWrite(aggregateCollection, characterId, 1);
             cacheAggregate(cacheKey, document);
         }
