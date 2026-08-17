@@ -60,6 +60,7 @@ public class FirestoreRepositoryFactory {
         @Override public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             String name = method.getName(); args = args == null ? new Object[0] : args;
             if (name.equals("toString")) return "FirestoreRepository(" + collection + ")";
+            if (isAggregateRoot()) return invokeAggregateRoot(name, args);
             if (aggregateField() != null) return invokeAggregate(method, name, args);
             if (name.equals("save")) return save(args[0]);
             if (name.equals("saveAndFlush")) return save(args[0]);
@@ -82,6 +83,49 @@ public class FirestoreRepositoryFactory {
                 return results;
             }
             throw new UnsupportedOperationException("Firestore repository method not supported: " + method);
+        }
+
+        private boolean isAggregateRoot() {
+            return collection.equals("characterInventories") || collection.equals("characterActivities");
+        }
+
+        private Object invokeAggregateRoot(String name, Object[] args) throws Exception {
+            if (name.equals("findById") || name.equals("existsById")) {
+                var result = aggregateRootDocument(String.valueOf(args[0]));
+                return name.equals("existsById") ? result.isPresent() : result;
+            }
+            if (name.equals("findAll")) return aggregateRootDocuments();
+            if (name.equals("count")) return (long) aggregateRootDocuments().size();
+            throw new UnsupportedOperationException("Aggregate root repository method not supported: " + name);
+        }
+
+        private Optional<Object> aggregateRootDocument(String entityId) throws Exception {
+            String cacheKey = "aggregate-document:" + collection + ":" + entityId;
+            Map<String, Object> data = cachedAggregate(cacheKey);
+            if (data == null) {
+                var snapshot = firestore.collection(collection).document(entityId).get().get();
+                recordRead(collection, entityId, 1);
+                if (!snapshot.exists() || snapshot.getData() == null) return Optional.empty();
+                data = new java.util.HashMap<>(snapshot.getData());
+                cacheAggregate(cacheKey, data);
+            }
+            return Optional.of(convertAggregateRoot(data));
+        }
+
+        private List<Object> aggregateRootDocuments() throws Exception {
+            var documents = firestore.collection(collection).get().get().getDocuments();
+            recordRead(collection, "collection", Math.max(1, documents.size()));
+            List<Object> result = new ArrayList<>();
+            for (DocumentSnapshot document : documents) {
+                if (document.exists() && document.getData() != null) result.add(convertAggregateRoot(document.getData()));
+            }
+            return result;
+        }
+
+        private Object convertAggregateRoot(Object data) throws Exception {
+            return mapper.readerFor(type)
+                    .without(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    .readValue(mapper.writeValueAsBytes(data));
         }
 
         private String aggregateField() {
