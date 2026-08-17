@@ -1079,13 +1079,17 @@ public class CharacterService {
     private void syncAutomaticModifiers(CharacterEntity character, List<CharacterAttributeModifierEntity> rows,
                                         Set<String> activeAbilities, Set<String> newlyObtained) {
         var characterId = character.getId();
-        var autoRows = rows.stream().filter(row -> "AUTOMATIC".equals(row.getSource())).toList();
+        var currentRows = new ArrayList<>(rows);
+        var autoRows = currentRows.stream().filter(row -> "AUTOMATIC".equals(row.getSource())).toList();
         var activeSupported = activeAbilities.stream().filter(AutomaticAbilityRules::supported).collect(Collectors.toSet());
-        autoRows.stream().filter(row -> !activeSupported.contains(row.getName())).forEach(modifiers::delete);
+        autoRows.stream().filter(row -> !activeSupported.contains(row.getName())).forEach(row -> {
+            modifiers.delete(row);
+            currentRows.remove(row);
+        });
 
         var baseAttributes = parse(character.getAttributesJson());
         var baseGenetics = parse(character.getGeneticsJson());
-        var totals = rows.stream().collect(Collectors.groupingBy(CharacterAttributeModifierEntity::getAttributeKey,
+        var totals = currentRows.stream().collect(Collectors.groupingBy(CharacterAttributeModifierEntity::getAttributeKey,
                 LinkedHashMap::new, Collectors.summingInt(CharacterAttributeModifierEntity::getValue)));
         var effectiveAttributes = new LinkedHashMap<>(baseAttributes);
         totals.forEach((key, value) -> { if (CharacterRules.ATTRIBUTES.contains(key)) effectiveAttributes.put(key, baseAttributes.getOrDefault(key, 0) + value); });
@@ -1094,12 +1098,14 @@ public class CharacterService {
         int dvergr = (int) activeAbilities.stream().filter(name -> name.matches("Fortaleza Dvergr [1-9]|Fortaleza Dvergr 10")).count();
 
         for (var ability : activeSupported) {
-            boolean existing = autoRows.stream().anyMatch(row -> row.getName().equals(ability));
+            boolean existing = currentRows.stream().anyMatch(row -> "AUTOMATIC".equals(row.getSource())
+                    && row.getName().equals(ability));
             if (!existing && !newlyObtained.contains(ability)) continue;
             var effects = AutomaticAbilityRules.effects(ability, effectiveAttributes, effectiveGenetics, dvergr);
-            for (var effect : effects) upsertAutomatic(characterId, effect.key(), ability, effect.value());
+            for (var effect : effects) upsertAutomatic(currentRows, characterId, effect.key(), ability, effect.value());
         }
 
+        character.setModifiers(currentRows);
     }
 
     private void removeAutomaticAbility(String characterId, String ability) {
@@ -1108,11 +1114,19 @@ public class CharacterService {
                 .forEach(modifiers::delete);
     }
 
-    private void upsertAutomatic(String characterId, String key, String name, int value) {
-        var existing = modifiers.findByCharacterIdAndAttributeKey(characterId, key).stream()
-                .filter(row -> "AUTOMATIC".equals(row.getSource()) && row.getName().equals(name)).findFirst();
+    private void upsertAutomatic(List<CharacterAttributeModifierEntity> rows, String characterId,
+                                 String key, String name, int value) {
+        var existing = rows.stream()
+                .filter(row -> "AUTOMATIC".equals(row.getSource())
+                        && row.getAttributeKey().equals(key) && row.getName().equals(name))
+                .findFirst();
         if (existing.isPresent()) { existing.get().setValue(value); modifiers.save(existing.get()); }
-        else modifiers.save(new CharacterAttributeModifierEntity(UUID.randomUUID().toString(), characterId, key, name, value, "AUTOMATIC"));
+        else {
+            var created = new CharacterAttributeModifierEntity(UUID.randomUUID().toString(), characterId, key, name,
+                    value, "AUTOMATIC");
+            modifiers.save(created);
+            rows.add(created);
+        }
     }
 
     private void ensureGaldr(String characterId, boolean active, boolean newlyObtained) {
@@ -1520,7 +1534,7 @@ public class CharacterService {
         if (closedVersions.isEmpty()) return Map.of("available", false);
         var previous = closedVersions.getFirst();
             var currentAttributes = parse(character.getAttributesJson());
-            var currentModifierRows = currentModifierRows(character, id);
+            var currentModifierRows = currentModifierRows(character);
             var currentModifierTotals = modifierTotals(currentModifierRows);
             var currentAttributeTotals = withModifiers(currentAttributes, currentModifierTotals);
             var currentGenetics = parse(character.getGeneticsJson());
@@ -1595,11 +1609,8 @@ public class CharacterService {
         return modifierSnapshot(modifiers.findByCharacterId(characterId));
     }
 
-    private List<CharacterAttributeModifierEntity> currentModifierRows(CharacterEntity character, String characterId) {
-        if (character.getAggregateVersion() > 0 && character.getModifiers() != null) {
-            return new ArrayList<>(character.getModifiers());
-        }
-        return modifiers.findByCharacterId(characterId);
+    private List<CharacterAttributeModifierEntity> currentModifierRows(CharacterEntity character) {
+        return new ArrayList<>(character.getModifiers());
     }
 
     private Map<String, List<Map<String, Object>>> modifierSnapshot(List<CharacterAttributeModifierEntity> rows) {

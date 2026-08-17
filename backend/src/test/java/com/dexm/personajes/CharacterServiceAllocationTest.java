@@ -423,6 +423,66 @@ class CharacterServiceAllocationTest {
     }
 
     @Test
+    void synchronizesAutomaticModifiersInMemoryWithoutDeletingExistingAbilityEffects() throws Exception {
+        var engano = new CharacterAttributeModifierEntity("auto-1", "c1", "engano",
+                "Utilidad de la diplomacia", 4, "AUTOMATIC");
+        var labia = new CharacterAttributeModifierEntity("auto-2", "c1", "labia",
+                "Utilidad de la diplomacia", 4, "AUTOMATIC");
+        var rows = new ArrayList<>(List.of(engano, labia));
+        var sync = CharacterService.class.getDeclaredMethod("syncAutomaticModifiers", CharacterEntity.class,
+                List.class, Set.class, Set.class);
+        sync.setAccessible(true);
+
+        sync.invoke(service, character, rows, Set.of("Utilidad de la diplomacia"), Set.of());
+
+        assertThat(character.getModifiers()).containsExactly(engano, labia);
+        verify(modifiers, never()).delete(any(CharacterAttributeModifierEntity.class));
+        verify(modifiers).save(engano);
+        verify(modifiers).save(labia);
+        verify(modifiers, never()).findByCharacterIdAndAttributeKey(anyString(), anyString());
+    }
+
+    @Test
+    void removesAutomaticModifiersFromMemoryOnlyWhenGrantingAbilityIsInactive() throws Exception {
+        var engano = new CharacterAttributeModifierEntity("auto-1", "c1", "engano",
+                "Utilidad de la diplomacia", 4, "AUTOMATIC");
+        var labia = new CharacterAttributeModifierEntity("auto-2", "c1", "labia",
+                "Utilidad de la diplomacia", 4, "AUTOMATIC");
+        var rows = new ArrayList<>(List.of(engano, labia));
+        var sync = CharacterService.class.getDeclaredMethod("syncAutomaticModifiers", CharacterEntity.class,
+                List.class, Set.class, Set.class);
+        sync.setAccessible(true);
+
+        sync.invoke(service, character, rows, Set.of(), Set.of());
+
+        assertThat(character.getModifiers()).isEmpty();
+        verify(modifiers).delete(engano);
+        verify(modifiers).delete(labia);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void currentUpgradeKeepsDiplomacyUtilityModifiersFromEmbeddedCharacterState() throws Exception {
+        var mapper = new ObjectMapper();
+        var modifierSnapshot = Map.of(
+                "engano", List.of(Map.of("name", "Utilidad de la diplomacia", "value", 4, "source", "AUTOMATIC")),
+                "labia", List.of(Map.of("name", "Utilidad de la diplomacia", "value", 4, "source", "AUTOMATIC")));
+        var previousSnapshot = mapper.writeValueAsString(Map.of(
+                "attributes", attributes, "genetics", genetics, "minorAttributes", Map.of(),
+                "modifiers", modifierSnapshot, "abilities", List.of("Utilidad de la diplomacia")));
+        when(milestones.findByCharacterIdAndVisibleTrueOrderByCreatedAtDesc("c1"))
+                .thenReturn(List.of(new MilestoneEntity("m1", "c1", 3, 50, previousSnapshot, "{}", "[]")));
+        character.setModifiers(List.of(
+                new CharacterAttributeModifierEntity("auto-1", "c1", "engano", "Utilidad de la diplomacia", 4, "AUTOMATIC"),
+                new CharacterAttributeModifierEntity("auto-2", "c1", "labia", "Utilidad de la diplomacia", 4, "AUTOMATIC")));
+
+        var result = service.currentUpgrade("c1");
+
+        assertThat((List<Map<String, Object>>) result.get("modifiers")).isEmpty();
+        verify(modifiers, never()).findByCharacterId(anyString());
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     void currentUpgradeDoesNotReportAbilityAlreadyEligibleInHistoricalSnapshot() throws Exception {
         var mapper = new ObjectMapper();
