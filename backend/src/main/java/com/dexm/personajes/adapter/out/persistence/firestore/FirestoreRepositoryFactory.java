@@ -1,6 +1,7 @@
 package com.dexm.personajes.adapter.out.persistence.firestore;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.Query;
@@ -271,7 +272,7 @@ public class FirestoreRepositoryFactory {
             }
             Object raw = document.get(aggregateField());
             if (!(raw instanceof List<?> list)) return new ArrayList<>();
-            List<Object> result = new ArrayList<>(); for (Object item : list) result.add(mapper.convertValue(item, type));
+            List<Object> result = new ArrayList<>(); for (Object item : list) result.add(convertAggregateItem(item));
             return result;
         }
 
@@ -304,6 +305,18 @@ public class FirestoreRepositoryFactory {
             cacheAggregate(cacheKey, document);
         }
 
+        /**
+         * Aggregate documents outlive application revisions. A nested item may
+         * therefore contain fields unknown to the current entity class. That
+         * schema drift must not make an otherwise valid level-up fail while the
+         * item is being read to create a history snapshot.
+         */
+        private Object convertAggregateItem(Object item) throws Exception {
+            return mapper.readerFor(type)
+                    .without(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    .readValue(mapper.writeValueAsBytes(item));
+        }
+
         private Optional<Object> aggregateDocument(String entityId) throws Exception {
             String aggregateCollection = collection.equals("trainingActivities") ? "characterActivities" : "characterInventories";
             String cacheKey = "aggregate-document:" + aggregateCollection + ":" + entityId;
@@ -316,7 +329,7 @@ public class FirestoreRepositoryFactory {
             Object raw = data.get(aggregateField());
             if (!(raw instanceof List<?> list)) return Optional.empty();
             for (Object item : list) {
-                Object decoded = mapper.convertValue(item, type);
+                Object decoded = convertAggregateItem(item);
                 if (entityId.equals(String.valueOf(id.get(decoded)))) return Optional.of(decoded);
             }
             return Optional.empty();
