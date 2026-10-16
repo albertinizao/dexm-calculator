@@ -37,15 +37,10 @@ public class AmmunitionInventoryService {
 
     public AmmunitionInventoryService(CharacterRepository characters, AmmunitionRepository ammunition,
                                       WeaponCatalogRepository weaponCatalog, WeaponRepository weapons) {
-        this(characters, ammunition, weaponCatalog, weapons, null);
+        this(characters, ammunition, weaponCatalog, weapons, null, null);
     }
 
     @org.springframework.beans.factory.annotation.Autowired
-    public AmmunitionInventoryService(CharacterRepository characters, AmmunitionRepository ammunition,
-                                      WeaponCatalogRepository weaponCatalog, WeaponRepository weapons,
-                            GrenadeCatalogRepository grenades) {
-        this(characters, ammunition, weaponCatalog, weapons, grenades, null);
-    }
     public AmmunitionInventoryService(CharacterRepository characters, AmmunitionRepository ammunition,
                                       WeaponCatalogRepository weaponCatalog, WeaponRepository weapons,
                                       GrenadeCatalogRepository grenades, OfficialCatalogService officialCatalog) {
