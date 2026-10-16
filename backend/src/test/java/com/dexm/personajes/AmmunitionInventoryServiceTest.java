@@ -11,19 +11,24 @@ import com.dexm.personajes.adapter.out.persistence.WeaponRepository;
 import com.dexm.personajes.adapter.out.persistence.GrenadeCatalogEntity;
 import com.dexm.personajes.adapter.out.persistence.GrenadeCatalogRepository;
 import com.dexm.personajes.application.AmmunitionInventoryService;
+import com.dexm.personajes.application.OfficialCatalogService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,13 +40,14 @@ class AmmunitionInventoryServiceTest {
     @Mock WeaponCatalogRepository weaponCatalog;
     @Mock WeaponRepository weapons;
     @Mock GrenadeCatalogRepository grenades;
+    @Mock OfficialCatalogService officialCatalog;
 
     private AmmunitionInventoryService service;
 
     @BeforeEach
     void setUp() {
-        service = new AmmunitionInventoryService(characters, ammunition, weaponCatalog, weapons, grenades);
-        when(characters.existsById("character-1")).thenReturn(true);
+        service = new AmmunitionInventoryService(characters, ammunition, weaponCatalog, weapons, grenades, officialCatalog);
+        lenient().when(characters.existsById("character-1")).thenReturn(true);
     }
 
     @Test
@@ -111,6 +117,33 @@ class AmmunitionInventoryServiceTest {
         var result = service.create("character-1", new AmmunitionRequest(null, 3, "GRENADE", "basic-grenade"));
 
         assertThat(result).containsEntry("type", "GRENADE").containsEntry("grenadeCatalogId", "basic-grenade").containsEntry("quantity", 5);
+    }
+
+    @Test
+    void create_should_accept_and_accumulate_an_official_grenade() {
+        var officialGrenade = new ObjectMapper().createObjectNode().put("id", "fragmentacion-estandar");
+        when(officialCatalog.grenade("fragmentacion-estandar")).thenReturn(Optional.of(officialGrenade));
+        when(ammunition.findByCharacterIdAndTypeAndGrenadeCatalogIdForUpdate("character-1", "GRENADE", "fragmentacion-estandar"))
+                .thenReturn(Optional.of(new AmmunitionEntity("ammo-1", "character-1", "GRENADE", null, "fragmentacion-estandar", 1)));
+        when(ammunition.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var result = service.create("character-1", new AmmunitionRequest(null, 2, "GRENADE", "fragmentacion-estandar"));
+
+        assertThat(result).containsEntry("type", "GRENADE").containsEntry("grenadeCatalogId", "fragmentacion-estandar").containsEntry("quantity", 3);
+        verify(grenades, never()).findById("fragmentacion-estandar");
+    }
+
+    @Test
+    void constructor_injected_by_spring_should_receive_the_official_catalog() {
+        var constructors = Arrays.stream(AmmunitionInventoryService.class.getConstructors())
+                .filter(candidate -> candidate.isAnnotationPresent(Autowired.class))
+                .toList();
+        assertThat(constructors).hasSize(1);
+        var constructor = constructors.getFirst();
+
+        assertThat(constructor.getParameterTypes())
+                .containsExactly(CharacterRepository.class, AmmunitionRepository.class, WeaponCatalogRepository.class,
+                        WeaponRepository.class, GrenadeCatalogRepository.class, OfficialCatalogService.class);
     }
 
     @Test
