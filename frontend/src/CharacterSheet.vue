@@ -1290,38 +1290,33 @@ async function saveAmmunition() {
 }
 function grenadeInventoryItem(catalogId: string) { return ammunition.value.find(item => item.type === 'GRENADE' && item.grenadeCatalogId === catalogId); }
 const grenadeIllustrationGlyphs = ['✦', '☣', '∿', '✹', '⚡', '◈'] as const;
+const grenadeImageByCatalogId: Record<string, string> = {
+  'fragmentacion-estandar': '/grenades/catalog/fragmentacion-estandar.png',
+  'conmocion-mano': '/grenades/catalog/conmocion-mano.png',
+  'aturdidora-mano': '/grenades/catalog/aturdidora-mano.png',
+  'humo-mano': '/grenades/catalog/humo-mano.png',
+  'gas-lacrimogeno-mano': '/grenades/catalog/gas-lacrimogeno-mano.png',
+  'incendiaria-mano': '/grenades/catalog/incendiaria-mano.png',
+  'he-fragmentacion-lg': '/grenades/catalog/he-fragmentacion-lg.png',
+  'hedp-lg': '/grenades/catalog/hedp-lg.png',
+  'conmocion-lg': '/grenades/catalog/conmocion-lg.png',
+  'aturdidora-lg': '/grenades/catalog/aturdidora-lg.png',
+  'humo-lg': '/grenades/catalog/humo-lg.png',
+  'gas-lacrimogeno-lg': '/grenades/catalog/gas-lacrimogeno-lg.png',
+  'incendiaria-lg': '/grenades/catalog/incendiaria-lg.png',
+  'iluminacion-lg': '/grenades/catalog/iluminacion-lg.png',
+  'he-fragmentacion-pesada': '/grenades/catalog/he-fragmentacion-pesada.png',
+  'hedp-pesada': '/grenades/catalog/hedp-pesada.png',
+  airburst: '/grenades/catalog/airburst.png',
+  'humo-pesado': '/grenades/catalog/humo-pesado.png',
+  'incendiaria-pesada': '/grenades/catalog/incendiaria-pesada.png',
+  'iluminacion-pesada': '/grenades/catalog/iluminacion-pesada.png',
+};
+const genericGrenadeImage = '/grenades/catalog/generica.png';
 function grenadeIllustration(grenade: GrenadeCatalogItem) {
   const seed = `${grenade.id}:${grenade.type || ''}`;
   const hash = [...seed].reduce((total, character) => ((total * 31) + character.charCodeAt(0)) >>> 0, 0);
-  const searchText = `${grenade.id} ${grenade.type || ''}`.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  const launcherType = (grenade.type || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  const asset = grenade.handGrenade
-    ? searchText.includes('fragment') || /\b(he|hedp)\b/.test(searchText)
-      ? '/grenades/fragmentation.png'
-      : /conmocion|aturdidora|stun/.test(searchText)
-        ? '/grenades/stun.png'
-        : /humo|iluminacion|smoke/.test(searchText)
-          ? '/grenades/smoke.png'
-          : /gas lacrimogeno|lacrimogeno|tear gas|gas/.test(searchText)
-            ? '/grenades/gas.png'
-            : /incendiaria|incendiario|incendiary/.test(searchText)
-              ? '/grenades/incendiary.png'
-              : undefined
-    : launcherType.includes('lp')
-      ? /airburst/.test(searchText)
-        ? '/grenades/lp-airburst.png'
-        : '/grenades/lp-heavy.png'
-      : launcherType.includes('lg')
-        ? /hedp/.test(searchText)
-          ? '/grenades/lg-hedp.png'
-          : searchText.includes('fragment') || /\bhe\b/.test(searchText)
-            ? '/grenades/lg-fragmentation.png'
-            : /conmocion|aturdidora|stun/.test(searchText)
-              ? '/grenades/lg-stun.png'
-              : /humo|iluminacion|smoke/.test(searchText)
-                ? '/grenades/lg-smoke.png'
-                : '/grenades/launcher.png'
-        : undefined;
+  const asset = grenadeImageByCatalogId[grenade.id] || genericGrenadeImage;
   return { asset, alt: `Ilustración de ${grenade.name}`, glyph: grenadeIllustrationGlyphs[hash % grenadeIllustrationGlyphs.length], tone: `grenade-tone-${hash % grenadeIllustrationGlyphs.length}` };
 }
 function hideBrokenGrenadeImage(event: Event) { (event.currentTarget as HTMLImageElement).hidden = true; }
@@ -1373,6 +1368,9 @@ async function saveCustomGrenade() {
 }
 function grenadeFor(item: Ammunition): GrenadeCatalogItem | null {
   return item.grenade || grenadeCatalog.value.find(grenade => grenade.id === item.grenadeCatalogId) || null;
+}
+function grenadeInventoryIllustration(item: Ammunition) {
+  return grenadeIllustration(grenadeFor(item) || { id: '', name: 'Granada', centralDamage: 0, adjacentDamage: 0, damageDecay: 0, handGrenade: true, official: false });
 }
 function openGrenadeDetail(item: Ammunition) {
   if (item.type !== 'GRENADE' || !grenadeFor(item)) return;
@@ -2553,7 +2551,7 @@ watch(() => route.name, async (name, previousName) => {
           <article class="weapon-slot protection-slot"><header><strong>Escudo</strong><button v-if="!physicalShields.length" class="button button-quiet" type="button" @click="openPhysicalShieldDetail()">Añadir</button></header><template v-if="physicalShields.length"><button class="inventory-item weapon-card shield-card" type="button" @click="openPhysicalShieldDetail(physicalShields[0])"><img v-if="physicalShields[0].imageUrl" class="weapon-thumbnail" :src="physicalShields[0].imageUrl" :alt="physicalShields[0].name"><span><strong>{{ physicalShields[0].name }}</strong><small>Escudo físico activo</small><small class="weapon-card-stats">RD {{ physicalShields[0].rd || '—' }} · Defensa +{{ physicalShields[0].defense }} · Movimiento {{ physicalShields[0].movement || '—' }}</small></span></button></template><p v-else class="sheet-muted">Hueco libre</p></article>
           <article class="weapon-slot protection-slot"><header><strong>Escudo de energía</strong><button v-if="!shields.length" class="button button-quiet" type="button" @click="openShieldDetail()">Añadir</button></header><template v-if="shields.length"><button class="inventory-item weapon-card shield-card" type="button" @click="openShieldDetail(shields[0])"><img v-if="shields[0].imageUrl" class="weapon-thumbnail" :src="shields[0].imageUrl" :alt="shields[0].name"><span><strong>{{ shields[0].name }}</strong><small>Escudo de energía activo</small><small class="weapon-card-stats">{{ shields[0].hitPoints }} PV</small></span></button></template><p v-else class="sheet-muted">Hueco libre</p></article>
         </div></section>
-          <section class="weapon-section ammunition-section"><div class="sheet-panel-heading"><h3>Munición</h3><button class="button button-quiet" type="button" @click="openNewAmmunition">＋ Añadir munición</button></div><p v-if="!ammunition.length" class="sheet-state">No hay munición registrada.</p><template v-else><div v-if="ammunition.some(item => item.type === 'CALIBER')" class="ammunition-card-grid"><article v-for="item in ammunition.filter(item => item.type === 'CALIBER')" :key="item.id" class="ammunition-card"><button class="ammunition-card-main" type="button" @click="openAmmunition(item)"><span class="ammunition-card-image"><span class="ammunition-image-fallback" aria-hidden="true">▣</span><img :src="ammunitionImage(item.caliber)" :alt="`Munición de calibre ${item.caliber}`" @error="hideBrokenAmmunitionImage"></span><span class="ammunition-card-info"><strong>{{ item.caliber }}</strong><small>Munición disponible</small><small>{{ item.quantity }} unidades</small></span></button><div class="ammunition-actions" :aria-label="`Descontar munición de calibre ${item.caliber}`"><button v-for="amount in [-1, -5, -10]" :key="amount" class="button button-quiet" type="button" :disabled="ammunitionDeleting || item.quantity < Math.abs(amount)" @click="decrementAmmunition(item, amount as -1 | -5 | -10)">{{ amount }}</button></div></article></div><div v-if="ammunition.some(item => item.type === 'GRENADE')" class="ammunition-list ammunition-grenade-list"><article v-for="item in ammunition.filter(item => item.type === 'GRENADE')" :key="item.id" class="ammunition-item"><button class="inventory-item ammunition-summary" type="button" @click="openAmmunition(item)"><span><strong>{{ grenadeFor(item)?.name || 'Granada' }}</strong><small>Granada · {{ grenadeFor(item)?.handGrenade ? 'de mano' : `necesita arma${grenadeFor(item)?.type ? ` · ${grenadeFor(item)?.type}` : ''}` }}</small></span><strong>{{ item.quantity }} ud.</strong></button></article></div></template></section>
+          <section class="weapon-section ammunition-section"><div class="sheet-panel-heading"><h3>Munición</h3><button class="button button-quiet" type="button" @click="openNewAmmunition">＋ Añadir munición</button></div><p v-if="!ammunition.length" class="sheet-state">No hay munición registrada.</p><template v-else><div v-if="ammunition.some(item => item.type === 'CALIBER')" class="ammunition-card-grid"><article v-for="item in ammunition.filter(item => item.type === 'CALIBER')" :key="item.id" class="ammunition-card"><button class="ammunition-card-main" type="button" @click="openAmmunition(item)"><span class="ammunition-card-image"><span class="ammunition-image-fallback" aria-hidden="true">▣</span><img :src="ammunitionImage(item.caliber)" :alt="`Munición de calibre ${item.caliber}`" @error="hideBrokenAmmunitionImage"></span><span class="ammunition-card-info"><strong>{{ item.caliber }}</strong><small>Munición disponible</small><small>{{ item.quantity }} unidades</small></span></button><div class="ammunition-actions" :aria-label="`Descontar munición de calibre ${item.caliber}`"><button v-for="amount in [-1, -5, -10]" :key="amount" class="button button-quiet" type="button" :disabled="ammunitionDeleting || item.quantity < Math.abs(amount)" @click="decrementAmmunition(item, amount as -1 | -5 | -10)">{{ amount }}</button></div></article></div><div v-if="ammunition.some(item => item.type === 'GRENADE')" class="ammunition-card-grid ammunition-grenade-card-grid"><article v-for="item in ammunition.filter(item => item.type === 'GRENADE')" :key="item.id" class="ammunition-card grenade-inventory-card"><button class="ammunition-card-main" type="button" @click="openAmmunition(item)"><span class="ammunition-card-image grenade-inventory-image"><span class="grenade-image-fallback" aria-hidden="true">{{ grenadeInventoryIllustration(item).glyph }}</span><img :src="grenadeInventoryIllustration(item).asset" :alt="grenadeInventoryIllustration(item).alt" @error="hideBrokenGrenadeImage"></span><span class="ammunition-card-info"><strong>{{ grenadeFor(item)?.name || 'Granada' }}</strong><small>Granada · {{ grenadeFor(item)?.handGrenade ? 'de mano' : `necesita arma${grenadeFor(item)?.type ? ` · ${grenadeFor(item)?.type}` : ''}` }}</small><small>{{ item.quantity }} unidad{{ item.quantity === 1 ? '' : 'es' }}</small></span></button></article></div></template></section>
          <section class="weapon-section"><div class="sheet-panel-heading"><h3>Otros objetos</h3><button class="button button-quiet" type="button" @click="openInventoryType">＋ Añadir objeto</button></div><p v-if="!otherInventory.length" class="sheet-state">No hay objetos registrados.</p><div v-else class="inventory-list"><button v-for="item in otherInventory" :key="item.id" class="inventory-item" type="button" @click="openOtherItem(item)"><span><strong>{{ item.name }}</strong><small>{{ item.location || 'Sin localización' }} · {{ item.quantity }} ud.</small></span><strong>{{ item.unitValue ?? 0 }}</strong></button></div></section>
       </section>
 
